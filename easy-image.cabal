@@ -1,0 +1,20 @@
+Name:               easy-image
+Version:            0.1
+Description:        Library for drawing simple pictures
+License:            PublicDomain
+Author:             Ulf Norell
+Maintainer:         ulf.norell@gmail.com
+Build-Type:         Simple
+Cabal-Version:      >=1.2
+
+Library
+  Build-Depends:    base >= 3.0,
+                    bytestring >= 0.10,
+                    QuickCheck >= 2.5,
+                    JuicyPixels >= 2.0
+  Exposed-Modules:  Graphics.EasyImage
+                    Graphics.EasyImage.Math
+                    Graphics.EasyImage.BoundingBox
+  GHC-Options:      -O2 -funbox-strict-fields
+
+

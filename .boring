@@ -1,0 +1,5 @@
+test\.png$
+dist$
+\.(hi|o)$
+\.(swp|swo)$
+^main$
