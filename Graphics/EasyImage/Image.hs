@@ -20,37 +20,36 @@ data Image = ICurve Curve
 
 -- Image operations -------------------------------------------------------
 
+infixr 2 <>
 (<>) :: Image -> Image -> Image
 i1 <> i2 = Union defaultBlendFunc [i1, i2]
 
 curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
-curve f t0 t1 = ICurve $ Curve f t0 t1 defaultCurveStyle
+curve f = curve' f (const id)
 
-withStyle :: Image -> CurveStyle -> Image
-withStyle i s = onStyle i $ const s
+curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
+curve' f g t0 t1 = ICurve $ Curve f g t0 t1 defaultCurveStyle
 
-onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
-onStyle (ICurve curve) f   = ICurve $ curve { curveStyle = f $ curveStyle curve }
-onStyle (Union blend is) f = Union blend $ map (`onStyle` f) is
+line :: Point -> Point -> Image
+line p0 p1 = ICurve $ straightLine p0 p1
 
-withColour :: Image -> Colour -> Image
-withColour i c = onStyle i $ \s -> s { lineColour = c }
+poly :: [Point] -> Image
+poly (p:ps) = foldr1 (+++) $ zipWith line ([p] ++ ps) (ps ++ [p])
 
-transform :: (Point -> Point) -> Image -> Image
-transform f (ICurve c) = ICurve c { curveFunction = f . curveFunction c }
-transform f (Union b is) = Union b $ map (transform f) is
+point :: Point -> Image
+point p = curve (const p) 0 1 `with` [LineWidth 0.8]
 
-scale' :: Vec -> Image -> Image
-scale' v = transform (v *)
+with :: Image -> [Attr] -> Image
+with i as = onStyle i $ foldr (.) id $ map setAttr as
+  where
+    onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
+    onStyle (ICurve curve) f   = ICurve $ curve { curveStyle = f $ curveStyle curve }
+    onStyle (Union blend is) f = Union blend $ map (`onStyle` f) is
 
-scale k = scale' (Vec k k)
+instance Transformable Image where
+  transform f (ICurve c)   = ICurve (transform f c)
+  transform f (Union b is) = Union b $ map (transform f) is
 
-translate :: Vec -> Image -> Image
-translate v = transform (v +)
-
-rotate :: Scalar -> Image -> Image
-rotate α = transform (rot α)
-
-rotateAround :: Scalar -> Point -> Image -> Image
-rotateAround α v = translate v . rotate α . translate (-v)
-
+(+++) :: Image -> Image -> Image
+ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
+_ +++ _ = error "(+++) on non-curves"

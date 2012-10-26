@@ -2,6 +2,7 @@
 module Graphics.EasyImage.Render where
 
 import Control.Applicative
+import Control.Monad
 import Data.Maybe
 import qualified Data.ByteString as B
 
@@ -19,15 +20,30 @@ import Graphics.EasyImage.Curve
 
 sampleSegments :: CurveStyle -> Segments -> Point -> Maybe Colour
 sampleSegments style s p@(Vec x y)
-  | α < 1/510 = Nothing
-  | otherwise = Just $ transparency α (lineColour style)
+  | isZero α' = fill <|> do
+                  let b = fillBlur style
+                  d <- distanceAtMost b s p
+                  guard (d < b)
+                  return $ transparency (1 - d/b) (fillColour style)
+  | isZero α  = fill
+  | otherwise = Just $ transparency α' $ addFill $ setAlpha α $ lineColour style
   where
     w = lineWidth style
     b = lineBlur style
+    α' = getAlpha (lineColour style)
+    isZero x = round (255 * x) == 0
     α = case distanceAtMost (b + w) s p of
           Nothing            -> 0
           Just d | d <= w    -> 1
                  | otherwise -> 1 - (d - w) / b
+    hasFill = not $ isZero $ getAlpha (fillColour style)
+    addFill c = maybe c (defaultBlendFunc c . transparency (1/α')) fill
+    fill | hasFill && odd (length ps) = Just $ fillColour style
+         | otherwise                  = Nothing
+      where
+        BBox x0 _ _ _ = bounds s
+        ray = Seg (Vec (x0 - 1) y) p
+        ps  = intersectBBTree (\r l -> maybe [] (:[]) $ intersectSegment r l) ray s
 
 sampleBBTree :: (a -> Point -> b) -> BBTree a -> Point -> [b]
 sampleBBTree sample (Leaf x) p = [sample x p]
