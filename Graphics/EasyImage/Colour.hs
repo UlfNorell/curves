@@ -37,7 +37,10 @@ toRGBA (Colour r g b a) = PixelRGBA8 (f r) (f g) (f b) (f a)
 type BlendFunc = Colour -> Colour -> Colour
 
 defaultBlendFunc :: BlendFunc
-defaultBlendFunc (Colour r1 g1 b1 a1) (Colour r2 g2 b2 a2) =
+defaultBlendFunc = blend
+
+blend :: BlendFunc
+blend (Colour r1 g1 b1 a1) (Colour r2 g2 b2 a2) =
   Colour (f r1 r2) (f g1 g2) (f b1 b2) (a1 + a2 * (1 - a1))
   where
     f x1 x2 = x1 * a1 + x2 * a2 * (1 - a1)

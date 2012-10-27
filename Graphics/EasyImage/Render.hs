@@ -19,23 +19,27 @@ import Graphics.EasyImage.Curve
 -- Rendering --------------------------------------------------------------
 
 sampleSegments :: CurveStyle -> Segments -> Point -> Maybe Colour
-sampleSegments style s p@(Vec x y)
-  | isZero α' = fill <|> do
-                  let b = fillBlur style
-                  d <- distanceAtMost b s p
-                  guard (d < b)
-                  return $ transparency (1 - d/b) (fillColour style)
-  | isZero α  = fill
-  | otherwise = Just $ transparency α' $ addFill $ setAlpha α $ lineColour style
+sampleSegments style s p@(Vec x y) =
+  case isLine of
+    Nothing -> fill <|> do
+        let b = fillBlur style
+        d <- distanceAtMost b s p
+        guard (d < b)
+        return $ transparency (1 - d/b) (fillColour style)
+    Just (α, c) -> Just $ transparency (getAlpha c) $ addFill $ setAlpha α c
   where
     w = lineWidth style
     b = lineBlur style
-    α' = getAlpha (lineColour style)
+    α' = getAlpha (lineColour style 0)
     isZero x = round (255 * x) == 0
-    α = case distanceAtMost (b + w) s p of
-          Nothing            -> 0
-          Just d | d <= w    -> 1
-                 | otherwise -> 1 - (d - w) / b
+    isLine = do
+      (d, seg) <- distanceAtMost' (b + w) s p
+      let c = lineColour style (distanceFromStart seg)
+          α | d <= w    = 1
+            | otherwise = 1 - (d - w) / b
+      guard $ not $ isZero (getAlpha c)
+      return (α, c)
+
     hasFill = not $ isZero $ getAlpha (fillColour style)
     addFill c = maybe c (defaultBlendFunc c . transparency (1/α')) fill
     fill | hasFill && odd (length ps) = Just $ fillColour style
@@ -43,7 +47,7 @@ sampleSegments style s p@(Vec x y)
       where
         BBox x0 _ _ _ = bounds s
         ray = Seg (Vec (x0 - 1) y) p
-        ps  = intersectBBTree (\r l -> maybe [] (:[]) $ intersectSegment r l) ray s
+        ps  = intersectBBTree (\r l -> maybe [] (:[]) $ intersectSegment r (theSegment l)) ray s
 
 sampleBBTree :: (a -> Point -> b) -> BBTree a -> Point -> [b]
 sampleBBTree sample (Leaf x) p = [sample x p]
@@ -52,6 +56,7 @@ sampleBBTree sample (Node b ts) p
   | otherwise        = []
 
 sampleImage :: CompiledImage -> Point -> Maybe Colour
+sampleImage CIEmpty            p = Nothing
 sampleImage (Segments style s) p = sampleSegments style s p
 sampleImage (CIUnion blend ts) p =
   case cs of

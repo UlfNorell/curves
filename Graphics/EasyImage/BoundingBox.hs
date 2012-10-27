@@ -4,6 +4,7 @@ module Graphics.EasyImage.BoundingBox where
 import Control.Applicative
 import Data.Monoid
 import Data.Function
+import Data.List
 import Test.QuickCheck
 
 import Graphics.EasyImage.Math
@@ -85,13 +86,16 @@ instance DistanceToPoint a => DistanceToPoint (BBTree a) where
   distance (Leaf x)    p = distance x p
   distance (Node _ bs) p = minimum $ map (`distance` p) bs  -- could be optimized
 
-  distanceAtMost d (Leaf x)    p = distanceAtMost d x p
-  distanceAtMost d (Node b ts) p =
-    distanceAtMost d b p *> mins (map (\t -> distanceAtMost d t p) ts)
-    where
-      mins ds = case [ d | Just d <- ds ] of
-                  [] -> Nothing
-                  ds -> Just $ minimum ds
+  distanceAtMost d t p = fst <$> distanceAtMost' d t p
+
+distanceAtMost' :: DistanceToPoint a => Scalar -> BBTree a -> Point -> Maybe (Scalar, a)
+distanceAtMost' d (Leaf x)    p = (,) <$> distanceAtMost d x p <*> pure x
+distanceAtMost' d (Node b ts) p =
+  distanceAtMost d b p *> mins (map (\t -> distanceAtMost' d t p) ts)
+  where
+    mins ds = case [ d | Just d <- ds ] of
+                [] -> Nothing
+                ds -> Just $ minimumBy (compare `on` fst) ds
 
 buildBBTree :: HasBoundingBox a => [a] -> BBTree a
 buildBBTree []  = error "buildBBTree []"

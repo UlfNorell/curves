@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, ExistentialQuantification #-}
+{-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns #-}
 module Graphics.EasyImage.Curve where
 
 import Control.Arrow ((***))
@@ -23,14 +23,10 @@ data Curve = forall a. Transformable a =>
                    , curveStyle    :: CurveStyle
                    }
 
--- TODO:  * parameterise by distance from start allowing
---          - dashed/dotted lines
---          - colour gradients
---          - varying thickness
 data CurveStyle = CurveStyle
       { lineWidth  :: Scalar
       , lineBlur   :: Scalar
-      , lineColour :: Colour
+      , lineColour :: Scalar -> Colour
       , fillColour :: Colour
       , fillBlur   :: Scalar
       }
@@ -38,21 +34,22 @@ data CurveStyle = CurveStyle
 data Attr = LineWidth  Scalar
           | LineBlur   Scalar
           | LineColour Colour
+          | VarLineColour (Scalar -> Colour)
           | FillBlur   Scalar
           | FillColour Colour
-  deriving Show
 
 setAttr :: Attr -> CurveStyle -> CurveStyle
-setAttr (LineWidth x)  s = s { lineWidth = x }
-setAttr (LineBlur x)   s = s { lineBlur = x }
-setAttr (LineColour x) s = s { lineColour = x }
-setAttr (FillColour x) s = s { fillColour = x }
-setAttr (FillBlur x)   s = s { fillBlur = x }
+setAttr (LineWidth x)     s = s { lineWidth = x }
+setAttr (LineBlur x)      s = s { lineBlur = x }
+setAttr (LineColour x)    s = s { lineColour = const x }
+setAttr (VarLineColour x) s = s { lineColour = x }
+setAttr (FillColour x)    s = s { fillColour = x }
+setAttr (FillBlur x)      s = s { fillBlur = x }
 
 defaultCurveStyle =
   CurveStyle { lineWidth  = 0.0
              , lineBlur   = 1.2
-             , lineColour = black
+             , lineColour = const black
              , fillColour = transparent
              , fillBlur   = 1.2 }
 
@@ -88,14 +85,29 @@ joinCurve (Curve f f' t0 t1 s) (Curve g g' s0 s1 _) =
     p = f t1
     q = g s0
 
-curveToSegments :: Scalar -> Curve -> BBTree Segment
+data SegmentAndDistance = SegAndDist { distanceFromStart :: Scalar
+                                     , theSegment        :: Segment }
+
+instance HasBoundingBox SegmentAndDistance where
+  bounds = bounds . theSegment
+
+instance DistanceToPoint SegmentAndDistance where
+  distanceAtMost d = distanceAtMost d . theSegment
+  distance         = distance . theSegment
+  squareDistance   = squareDistance . theSegment
+
+-- Each segment is annotated with the distance from the start of the curve.
+curveToSegments :: Scalar -> Curve -> BBTree SegmentAndDistance
 curveToSegments r (Curve f g t0 t1 _) =
-    buildBBTree $ map (uncurry Seg . (snd *** snd)) $ concatMap subdivide ss
+    buildBBTree $ annotate 0 $ map (uncurry Seg . (snd *** snd)) $ concatMap subdivide ss
   where
     h t = g t (f t)
     res = r^2
     n = 20  -- minimum number of segments
     pairs xs = zip xs (tail xs)
+
+    annotate !d (s:ss) = SegAndDist d s : annotate (d + segmentLength s) ss
+    annotate _ [] = []
 
     ss = pairs $ do
       i <- [0..n]

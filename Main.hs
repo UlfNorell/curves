@@ -1,11 +1,13 @@
 {-# LANGUAGE MultiWayIf #-}
 import System.Environment
 
+import Data.Monoid
+
 import Graphics.EasyImage
 import Debug.Trace
 
-circle :: Point -> Scalar -> Image
-circle (Vec x y) r =
+circle' :: Point -> Scalar -> Image
+circle' (Vec x y) r =
   curve (\α -> Vec (x + r * cos α) (y + r * sin α)) 0 (2 * pi) `with` lineStyle 1 1.2 red
 
 ellipse :: Point -> Scalar -> Scalar -> Image
@@ -32,11 +34,19 @@ main =
     --                            , FillColour $ transparency 0.5 blue ] <>
     -- circle (Vec 12 0) 8 `with` [ LineColour transparent, FillColour $ Colour 0.1 0.4 0 1 ]
     -- poly [100, Vec 300 100, 300, Vec 100 300] <>
-    (scaleFrom center (Vec 10 2) $ rotateAround center (pi/3) $ arrow (Vec 370 300) center)
-      `with` [LineWidth 1]
-    <> circle center 20 `with` [FillColour $ Colour 1 0.7 0.7 1]
-    <> scaleFrom 100 2 (rotateAround 100 (pi/3) angleTest)
+    -- (scaleFrom center (Vec 10 2) $ rotateAround center (pi/3) $ arrow (Vec 370 300) center)
+    --   `with` [LineWidth 1]
+    -- <> circle center 20 `with` [FillColour $ Colour 1 0.7 0.7 1]
+    -- <> scaleFrom 100 2 (rotateAround 100 (pi/3) angleTest)
+    -- arrow 1 (Vec 3 2) <>
+    -- arrow 1 (Vec 3 1) <>
+    -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
+    -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
+    text (unlines $ chunks 15 $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'])
+     `with` [LineWidth 1]
   where
+    text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
+      where f y s = translate (Vec 0 y) (stringImage s)
     angleTest =
       line p1 p0 +++ line p0 p2 <> angleArc p0 p1 p2
       where
@@ -44,6 +54,11 @@ main =
         p1 = Vec 150 120
         p2 = Vec 130 150
     center = Vec 400 300
+
+chunks n [] = []
+chunks n xs = ys : chunks n zs
+  where
+    (ys, zs) = splitAt n xs
 
 angleArc :: Point -> Point -> Point -> Image
 angleArc p0 p1 p2 = curve' f g 0 1
@@ -54,7 +69,7 @@ angleArc p0 p1 p2 = curve' f g 0 1
         α = angle (p1 - p0) (p2 - p0)
 
 arrow :: Point -> Point -> Image
-arrow from to = curve' f g 0 2 <> line from to
+arrow from to = curve' f g 0 2 <> line from to `with` dashed black 10 10
   where
     f = const $ Seg from to
     g t (Seg from to) =
@@ -64,6 +79,22 @@ arrow from to = curve' f g 0 2 <> line from to
         v    = norm (from - to)
         fin1 = to + 20 * rot (pi/6) v
         fin2 = to + 20 * rot (-pi/6) v
+
+modDouble a b = a - b * fromIntegral (floor (a / b))
+
+gradient c1 c2 a =
+  [VarLineColour $ \d ->
+    case modDouble d (2 * a) of
+      x | x <= a    -> blend (setAlpha (x / a) c2) c1
+        | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
+  ]
+
+dashed c a b =
+  [VarLineColour $ \d ->
+    case modDouble d (a + b) of
+      x | x <= a    -> c
+        | otherwise -> transparent
+  ]
 
 image1 =
     rotateAround (Vec 400 325) (pi/6) (ellipse (Vec 400 300) 400 350) <>
@@ -77,13 +108,9 @@ image1 =
 
 -- TODO
 --    * text
---    * elements measured in pixels (arrow heads, angles, text)
---      - How?
---          resolution parameter to curveFunction?
---            can't get this to work
---          have a post-hook function?
---            -- For Transformable a
---            curveFunction :: Scalar -> a
---            postFunction  :: Scalar -> a -> Point
---      - fix autoFit to handle pixel features (how?)
+--      - auto kerning (how?)
+--    * freeze the size of an image
+--      - change curveFunction to return a basis and recompute image in render function
+--    * parameterize width and blur as well (allow calligraphy style curves)
+--        - still need a max width for bounding box calculation
 

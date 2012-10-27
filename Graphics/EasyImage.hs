@@ -4,6 +4,7 @@ module Graphics.EasyImage
   , module Graphics.EasyImage.Colour
   , module Graphics.EasyImage.Math
   , module Graphics.EasyImage.Render
+  , module Graphics.EasyImage.Text
   , autoFit
   , Attr(..)
   , Basis(..)
@@ -17,4 +18,5 @@ import Graphics.EasyImage.Image
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Render
 import Graphics.EasyImage.Compile
+import Graphics.EasyImage.Text
 
