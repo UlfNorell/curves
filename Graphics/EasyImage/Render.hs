@@ -47,7 +47,8 @@ sampleSegments style s p@(Vec x y) =
       where
         BBox x0 _ _ _ = bounds s
         ray = Seg (Vec (x0 - 1) y) p
-        ps  = intersectBBTree (\r l -> maybe [] (:[]) $ intersectSegment r (theSegment l)) ray s
+        ps  | insideBBox p (bounds s) = intersectBBTree (\r l -> maybe [] (:[]) $ intersectSegment r (theSegment l)) ray s
+            | otherwise               = []
 
 sampleBBTree :: (a -> Point -> b) -> BBTree a -> Point -> [b]
 sampleBBTree sample (Leaf x) p = [sample x p]

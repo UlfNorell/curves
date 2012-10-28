@@ -1,10 +1,12 @@
-
+{-# LANGUAGE BangPatterns #-}
 module Graphics.EasyImage.Text where
 
 import Data.Monoid
 
 import Graphics.EasyImage.Math
 import Graphics.EasyImage.Image
+import Graphics.EasyImage.BoundingBox
+import Graphics.EasyImage.Compile
 
 center   = Vec 0.5 1
 topLeft  = Vec 0 2
@@ -59,12 +61,12 @@ charImage 'B' = scaleFrom topLeft (Vec 0.9 1) (charImage 'P') <> scaleFrom botLe
 charImage 'C' = scaleFrom (hcenter r) (Vec 1 (1/r)) $ circleSegment (hcenter r) r (pi/4) (7/4 * pi)
   where
     r = 1 / (1 + 1 / sqrt 2)
-charImage 'D' = dCup <> line topLeft botLeft
+charImage 'D' = dCup +++ line topLeft botLeft
 charImage 'E' = mconcat [lineStrip [topRight, topLeft, botLeft, botRight], line (left 0.5) center]
 charImage 'F' = mconcat [lineStrip [topRight, topLeft, botLeft], line (left 0.5) center]
 charImage 'G' = charImage 'C' <> lineStrip [center, right 0.5, botRight]
 charImage 'H' = mconcat [line topLeft botLeft, line topRight botRight, line (left 0.5) (right 0.5)]
-charImage 'I' = line (top 0.5) (bot 0.5)
+charImage 'I' = line (top 0.5) (bot 0.5) <> line (top 0.35) (top 0.65) <> line (bot 0.35) (bot 0.65)
 charImage 'J' = circleSegment (coord 0.5 0.25) 0.5 pi (2 * pi) +++
                 lineStrip [right 0.25, topRight, top 0.5]
 charImage 'K' = mconcat [line topLeft botLeft, line (left y) topRight, line (coord x (y + x * (1 - y))) botRight ]
@@ -75,7 +77,7 @@ charImage 'L' = lineStrip [topLeft, botLeft, botRight]
 charImage 'M' = lineStrip [botLeft, topLeft, vcenter 0.25, topRight, botRight]
 charImage 'N' = lineStrip [botLeft, topLeft, botRight, topRight]
 charImage 'O' = scaleFrom center (Vec 1 2) (circle center 0.5)
-charImage 'P' = pCup <> line topLeft botLeft
+charImage 'P' = pCup +++ line topLeft botLeft
 charImage 'Q' = charImage 'O' <> line (vcenter 0.25) botRight
 charImage 'R' = charImage 'P' <> line (hcenter 0.5) botRight
 charImage 'S' = circleSegInBox (left $ 0.5 + dx) topRight (pi/4) (3/2 * pi - α) +++
@@ -107,7 +109,7 @@ charImage 'k' = mconcat [line topLeft botLeft, line (left y) (right 0.5), line (
   where
     x = 0.3
     y = 0.2
-charImage 'l' = line (top 0.5) (bot 0.5)
+charImage 'l' = line (top 0.5) (bot 0.5) +++ line (bot 0.5) (bot 0.65)
 charImage 'm' = line botLeft (left 0.5) <> scaleFrom botLeft (Vec x 1) nHook <> translate (Vec x 0) (scaleFrom botLeft (Vec x 1) nHook)
   where x = 0.65
 charImage 'n' = line botLeft (left 0.5) <> nHook
@@ -144,9 +146,77 @@ charImage '7' = lineStrip [topLeft, topRight, bot 0.25]
 charImage '8' = charImage 'o' <> translate (Vec 0 1) (charImage 'o')
 charImage '9' = rotateAround (vcenter 0.75) (-pi/6) (circle (vcenter 0.75) 0.5) +++ line (bot 0.25) (bot 0.25)
 charImage ' ' = mempty
+charImage '!' = line (top 0.5) (vcenter 0.25) <> line (vcenter 0.01) (bot 0.5)
+charImage '\\' = line topLeft botRight
+charImage '"' = let x = 0.1; y = 0.1 in
+                line (top (0.5 - x)) (coord (0.5 - x) (1 - y)) <>
+                line (top (0.5 + x)) (coord (0.5 + x) (1 - y))
+charImage '\'' = line (vcenter 1) (vcenter 0.9)
+charImage '#' = let slant = 0.1
+                    hsep  = 0.4
+                    vsep  = 0.4
+                in mconcat [ line (top $ 0.5 - hsep/2 + slant/2) (bot $ 0.5 - hsep/2 - slant/2)
+                           , line (top $ 0.5 + hsep/2 + slant/2) (bot $ 0.5 + hsep/2 - slant/2)
+                           , line (left $ 0.5 + vsep/2) (right $ 0.5 + vsep/2)
+                           , line (left $ 0.5 - vsep/2) (right $ 0.5 - vsep/2) ]
+charImage '$' = scaleFrom center (Vec 1 0.9) (charImage 'S') <> line (top 0.5) (bot 0.5)
+charImage '%' = line botLeft topRight <> circle (coord 0.25 0.875) 0.25
+                                      <> circle (coord 0.75 0.125) 0.25
+charImage '+' = line (left 0.5) (right 0.5) <> line (coord 0.5 0.25) (coord 0.5 0.75)
+charImage '*' = charImage '+' <> rotateAround center (pi/4) (charImage '+')
+charImage '/' = line botLeft topRight
+charImage '|' = line (top 0.5) (bot 0.5)
+charImage '=' = line (left 0.35) (right 0.35) <> line (left 0.65) (right 0.65)
+charImage '(' = circleSegInBox (bot 0.5) topRight (3/4 * pi) (5/4 * pi)
+charImage ')' = mirrorH (charImage '(')
+charImage '?' = line (vcenter 0.15) (vcenter 0.4) +++ scaleFrom (top 0.5) (Vec 1 1.2) (circleSegment (vcenter 0.75) 0.5 (-pi/2) (3/4 * pi)) <>
+                line (vcenter 0) (vcenter 0.01)
+charImage '-' = line (left 0.5) (right 0.5)
+charImage '_' = line botLeft botRight
+charImage '^' = lineStrip [coord 0.25 0.75, top 0.5, coord 0.75 0.75]
+charImage '`' = line (top 0.45) (coord 0.55 0.9)
+charImage '~' = cap +++ translate (Vec 0.5 (-y * 2)) (mirrorV cap)
+  where
+    y = 1/30
+    h = 0.1
+    cap = scaleFrom (bot 0.25) (Vec (-1) 1) $ circleSegInBox (left $ 0.5 - h/2 + y) (vcenter $ 0.5 + h/2 + y) (pi/4) (3/4 * pi)
+charImage '[' = lineStrip [topRight, top 0.5, bot 0.5, botRight]
+charImage ']' = mirrorH (charImage '[')
+charImage '{' = half +++ reverseImage (mirrorV half)
+  where
+    half = circleSegInBox (vcenter 0.75) topRight (pi/2) pi +++
+           line (vcenter 0.75) (vcenter 0.65) +++
+           reverseImage (circleSegInBox (hcenter 0.3) (vcenter 0.65) (3/2 * pi) (2 * pi))
+charImage '}' = mirrorH $ charImage '{'
+charImage '.' = line (bot 0.5) (vcenter 0.01)
+charImage ',' = line (bot 0.55) (coord 0.45 (-0.1))
+charImage ';' = charImage ',' <> line center (vcenter 0.49)
+charImage ':' = charImage '.' <> line center (vcenter 0.49)
+charImage '<' = lineStrip [right 0.75, left 0.5, right 0.25]
+charImage '>' = mirrorH $ charImage '<'
+charImage '@' = f (charImage 'c') <>
+                f (line (right 0.5) botRight) +++
+                circleSegInBox botLeft (right 0.75) (-pi/4) (3/2 * pi)
+  where
+    f = translate (Vec 0 0.3) . scaleFrom (bot 0.5) 0.7
+charImage '&' = reverseImage (circleSegInBox botLeft (right 0.5) (3/4 * pi) (2 * pi)) +++
+                circleSegInBox (coord x 0.75) (top (x + w)) (-pi/4) (5/4 * pi - 0.28) +++ line botRight botRight
+  where
+    w = 0.7
+    x = 0.1
 charImage _   = poly [0, Vec 1 0, Vec 1 2, Vec 0 2]
 
-stringImage :: String -> Image
-stringImage s = mconcat $ zipWith f s (iterate (+1.3) 0)
+charPos c = (getX p / 10, getX (q - p) / 10)
   where
-    f c x = translate (Vec x 0) $ charImage c
+    i = scale 10 (charImage c)
+    Seg p q = bboxToSegment $ bounds $ compileImage i
+
+stringImage :: String -> Image
+stringImage s = render 0 s
+  where
+    render _  []    = mempty
+    render !x (c:s) = translate (Vec (x - dx) 0) (charImage c) <>
+                      render (x + w + spacing) s
+      where
+        (dx, w) = charPos c
+    spacing = 0.1

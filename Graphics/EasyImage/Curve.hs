@@ -62,6 +62,12 @@ instance Transformable Curve where
 straightLine :: Point -> Point -> Curve
 straightLine p q = Curve (interpolate p q) (const id) 0 1 defaultCurveStyle
 
+reverseCurve :: Curve -> Curve
+reverseCurve (Curve f g a b s) = Curve f' g' a b s
+  where
+    f' t = f (b + a - t)
+    g' t p = g (b + a - t) p
+
 data Join a b = FirstPart a | Gap a b | SecondPart b
 
 instance (Transformable a, Transformable b) => Transformable (Join a b) where

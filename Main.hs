@@ -42,8 +42,8 @@ main =
     -- arrow 1 (Vec 3 1) <>
     -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
-    text (unlines $ chunks 15 $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'])
-     `with` [LineWidth 1]
+    text (unlines $ chunks 18 $ [' '..'\126'])
+      `with` [LineWidth 1]
   where
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
       where f y s = translate (Vec 0 y) (stringImage s)
@@ -113,4 +113,5 @@ image1 =
 --      - change curveFunction to return a basis and recompute image in render function
 --    * parameterize width and blur as well (allow calligraphy style curves)
 --        - still need a max width for bounding box calculation
-
+--    * B-splines
+--    * right nested +++ gives stack overflow

@@ -54,6 +54,10 @@ circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
 circleSegment (Vec x y) r a b =
   curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
 
+reverseImage :: Image -> Image
+reverseImage (Union f is) = Union f $ map reverseImage is
+reverseImage (ICurve c) = ICurve $ reverseCurve c
+
 with :: Image -> [Attr] -> Image
 with i as = onStyle i $ foldr (.) id $ map setAttr as
   where
@@ -65,7 +69,7 @@ instance Transformable Image where
   transform f (ICurve c)   = ICurve (transform f c)
   transform f (Union b is) = Union b $ map (transform f) is
 
-infixr 8 +++
+infixl 8 +++
 (+++) :: Image -> Image -> Image
 ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
 _ +++ _ = error "(+++) on non-curves"
