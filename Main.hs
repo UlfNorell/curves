@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 import System.Environment
 
+import Data.List
 import Data.Monoid
 
 import Graphics.EasyImage
@@ -42,11 +43,13 @@ main =
     -- arrow 1 (Vec 3 1) <>
     -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
-    text (unlines $ chunks 18 $ [' '..'\126'])
-      `with` [LineWidth 1]
+    -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
+    -- poly [0, Vec 100 0, 100, Vec 0 100]
+    text (unlines $ chunks 18 $ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω'])
+     `with` [LineWidth 1]
   where
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
-      where f y s = translate (Vec 0 y) (stringImage s)
+      where f y s = translate (Vec 0 y) (stringImage' 0 s)
     angleTest =
       line p1 p0 +++ line p0 p2 <> angleArc p0 p1 p2
       where
@@ -109,9 +112,11 @@ image1 =
 -- TODO
 --    * text
 --      - auto kerning (how?)
---    * freeze the size of an image
---      - change curveFunction to return a basis and recompute image in render function
 --    * parameterize width and blur as well (allow calligraphy style curves)
 --        - still need a max width for bounding box calculation
---    * B-splines
 --    * right nested +++ gives stack overflow
+--    * intersection/difference (generalize blend func in Union)
+--    * Clean up interfaces, add Haddock comments
+--    * libraries on top
+--      - geometry
+--      - graphs
