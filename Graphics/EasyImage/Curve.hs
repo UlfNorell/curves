@@ -93,6 +93,24 @@ joinCurve (Curve f f' t0 t1 s) (Curve g g' s0 s1 _) =
     p = f t1
     q = g s0
 
+appendPoint :: Curve -> Point -> Curve
+appendPoint (Curve f g a b s) p = Curve f' g' a (b + 1) s
+  where
+    endPt = f b
+    f' t | t <= b    = FirstPart (f t)
+         | otherwise = Gap endPt p
+    g' t (FirstPart p) = g t p
+    g' t (Gap p q)     = interpolate (g b p) q (t - b)
+
+prependPoint :: Point -> Curve -> Curve
+prependPoint p (Curve f g a b s) = Curve f' g' (a - 1) b s
+  where
+    startPt = f a
+    f' t | t >= a    = SecondPart (f t)
+         | otherwise = Gap p startPt
+    g' t (Gap p q)      = interpolate p (g a q) (t - a + 1)
+    g' t (SecondPart p) = g t p
+
 data SegmentAndDistance = SegAndDist { distanceFromStart :: Scalar
                                      , theSegment        :: Segment }
 

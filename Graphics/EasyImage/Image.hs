@@ -75,7 +75,54 @@ with i as = onStyle i $ foldr (.) id $ map setAttr as
 instance Transformable Image where
   transform f = mapCurves (transform f)
 
-infixl 8 +++
+infixl 8 +++, <++
+infixr 7 ++>
 (+++) :: Image -> Image -> Image
 ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
+ICurve c +++ Union _ [] = ICurve c
+ICurve c +++ Union b (i:is) = Union b ((ICurve c +++ i) : is)
+Union b is +++ ICurve c = Union b (init is ++ [last is +++ ICurve c])
 _ +++ _ = error "(+++) on non-curves"
+
+(<++) :: Point -> Image -> Image
+p <++ ICurve c       = ICurve $ prependPoint p c
+p <++ Union b (i:is) = Union b $ (p <++ i) : is
+_ <++ Union _ []     = error "_ <++ mempty"
+
+(++>) :: Image -> Point -> Image
+ICurve c   ++> p = ICurve $ appendPoint c p
+Union _ [] ++> _ = error "mempty ++> _"
+Union b is ++> p = Union b $ init is ++ [last is ++> p]
+
+-- B-Splines --------------------------------------------------------------
+
+bSpline :: [Point] -> Image
+bSpline ps = foldl1 (+++) $ map seg (takeWhile ((>=4).length) $ map (take 4) (tails ps))
+  where
+    m = map (map (/ 6)) [[-1, 3, -3, 1], [3, -6, 0, 4], [-3, 3, 3, 1], [1, 0, 0, 0]]
+    coefs t = map diag $ mmul [t^3, t^2, t, 1] m
+    mmul v m = map (vmul v) m
+    vmul u v = sum $ zipWith (*) u v
+
+    seg ps = curve f 0 1
+      where
+        f t = vmul (coefs t) ps
+
+closedBSpline :: [Point] -> Image
+closedBSpline ps = bSpline $ ps ++ take 3 ps
+
+bSpline' (p:ps) = bSpline $ p:p:p:ps ++ replicate 2 (last (p:ps))
+
+-- ImageElement -----------------------------------------------------------
+
+class Transformable a => ImageElement a where
+  render :: a -> Image
+
+instance ImageElement Image where
+  render = id
+
+instance ImageElement Segment where
+  render (Seg p q) = line p q
+
+instance ImageElement Vec where
+  render = point
