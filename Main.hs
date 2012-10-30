@@ -44,10 +44,14 @@ main =
     -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
     -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
-    -- poly [0, Vec 100 0, 100, Vec 0 100]
-    text (unlines $ chunks 18 $ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω'])
-     `with` [LineWidth 1]
+    -- text (unlines $ chunks 18 $ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω'])
+    --  `with` [LineWidth 1]
+    mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
+            | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
+    (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
   where
+    angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
+      where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
       where f y s = translate (Vec 0 y) (stringImage' 0 s)
     angleTest =

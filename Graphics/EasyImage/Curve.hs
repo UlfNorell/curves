@@ -60,15 +60,24 @@ reverseCurve (Curve f g a b s) = Curve f' g' a b s
     f' t = f (b + a - t)
     g' t p = g (b + a - t) p
 
+data Freezing = Freeze { freezeSize, freezeOrientation :: Bool }
+
 -- | Freeze dimension to pixels.
-freezeCurve :: Point -> Curve -> Curve
-freezeCurve p0 (Curve f g a b s) = Curve (const basis) g' a b s
+freezeCurve :: Freezing -> Point -> Curve -> Curve
+freezeCurve fr p0 (Curve f g a b s) = Curve (const basis) g' a b s
   where
+    fsize = freezeSize fr
+    fdir  = freezeOrientation fr
     basis = translate p0 defaultBasis
     h t = g t (f t)
 
-    g' t (Basis o px py) = o + diag (getX v) * norm (px - o) + diag (getY v) * norm (py - o)
-      where v = h t - p0
+    g' t (Basis o px py) = o + diag (getX v) * vx + diag (getY v) * vy
+      where
+        v = h t - p0
+        (vx, vy)
+          | fdir && fsize = (Vec 1 0, Vec 0 1)
+          | fdir          = (Vec (distance px o) 0, Vec 0 (distance py o))
+          | fsize         = (norm (px - o), norm (py - o))
 
 data Join a b = FirstPart a | Gap a b | SecondPart b
 

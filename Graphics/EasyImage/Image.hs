@@ -63,8 +63,23 @@ mapCurves f (Union b is) = Union b (map (mapCurves f) is)
 reverseImage :: Image -> Image
 reverseImage = mapCurves reverseCurve
 
+-- | Freeze the size of an image.
+freezeImageSize :: Point -> Image -> Image
+freezeImageSize p = mapCurves (freezeCurve fr p)
+  where
+    fr = Freeze{ freezeSize = True, freezeOrientation = False }
+
+-- | Freeze both image orientation
+freezeImageOrientation :: Point -> Image -> Image
+freezeImageOrientation p = mapCurves (freezeCurve fr p)
+  where
+    fr = Freeze{ freezeSize = False, freezeOrientation = True }
+
+-- | Freeze both size and orientation
 freezeImage :: Point -> Image -> Image
-freezeImage p = mapCurves (freezeCurve p)
+freezeImage p = mapCurves (freezeCurve fr p)
+  where
+    fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
 with :: Image -> [Attr] -> Image
 with i as = onStyle i $ foldr (.) id $ map setAttr as
