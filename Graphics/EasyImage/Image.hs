@@ -5,6 +5,8 @@ module Graphics.EasyImage.Image
   where
 
 import Data.Monoid
+import Data.List
+import Data.Maybe
 
 import Graphics.EasyImage.Math
 import Graphics.EasyImage.Colour
@@ -54,20 +56,24 @@ circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
 circleSegment (Vec x y) r a b =
   curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
 
+mapCurves :: (Curve -> Curve) -> Image -> Image
+mapCurves f (ICurve c) = ICurve (f c)
+mapCurves f (Union b is) = Union b (map (mapCurves f) is)
+
 reverseImage :: Image -> Image
-reverseImage (Union f is) = Union f $ map reverseImage is
-reverseImage (ICurve c) = ICurve $ reverseCurve c
+reverseImage = mapCurves reverseCurve
+
+freezeImage :: Point -> Image -> Image
+freezeImage p = mapCurves (freezeCurve p)
 
 with :: Image -> [Attr] -> Image
 with i as = onStyle i $ foldr (.) id $ map setAttr as
   where
     onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
-    onStyle (ICurve curve) f   = ICurve $ curve { curveStyle = f $ curveStyle curve }
-    onStyle (Union blend is) f = Union blend $ map (`onStyle` f) is
+    onStyle i f = mapCurves (\c -> c { curveStyle = f $ curveStyle c }) i
 
 instance Transformable Image where
-  transform f (ICurve c)   = ICurve (transform f c)
-  transform f (Union b is) = Union b $ map (transform f) is
+  transform f = mapCurves (transform f)
 
 infixl 8 +++
 (+++) :: Image -> Image -> Image

@@ -7,14 +7,6 @@ import Graphics.EasyImage.Math
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.BoundingBox
 
-data Basis = Basis { origin, xUnit, yUnit :: Point }
-  deriving (Show, Eq, Ord)
-
-defaultBasis = Basis 0 (Vec 1 0) (Vec 0 1)
-
-instance Transformable Basis where
-  transform f (Basis o x y) = Basis (transform f o) (transform f x) (transform f y)
-
 data Curve = forall a. Transformable a =>
              Curve { curveFunction :: Scalar -> a
                    , curveRender   :: Scalar -> a -> Point
@@ -67,6 +59,16 @@ reverseCurve (Curve f g a b s) = Curve f' g' a b s
   where
     f' t = f (b + a - t)
     g' t p = g (b + a - t) p
+
+-- | Freeze dimension to pixels.
+freezeCurve :: Point -> Curve -> Curve
+freezeCurve p0 (Curve f g a b s) = Curve (const basis) g' a b s
+  where
+    basis = translate p0 defaultBasis
+    h t = g t (f t)
+
+    g' t (Basis o px py) = o + diag (getX v) * norm (px - o) + diag (getY v) * norm (py - o)
+      where v = h t - p0
 
 data Join a b = FirstPart a | Gap a b | SecondPart b
 

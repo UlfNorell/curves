@@ -151,6 +151,9 @@ instance Transformable Segment where
 instance Transformable a => Transformable [a] where
   transform f = map (transform f)
 
+instance Transformable () where
+  transform _ x = x
+
 instance (Transformable a, Transformable b) => Transformable (a, b) where
   transform f (x, y) = (transform f x, transform f y)
 
@@ -174,6 +177,16 @@ rotateAround p α = translate p . rotate α . translate (-p)
 
 interpolate :: Point -> Point -> Scalar -> Point
 interpolate p q t = p + diag t * (q - p)
+
+-- Basis ------------------------------------------------------------------
+
+data Basis = Basis { origin, xUnit, yUnit :: Point }
+  deriving (Show, Eq, Ord)
+
+defaultBasis = Basis 0 (Vec 1 0) (Vec 0 1)
+
+instance Transformable Basis where
+  transform f (Basis o x y) = Basis (transform f o) (transform f x) (transform f y)
 
 -- Testing ----------------------------------------------------------------
 
