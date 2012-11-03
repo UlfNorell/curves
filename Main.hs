@@ -65,7 +65,7 @@ main =
   where
     combineTest p f =
       translate p $
-      combine f (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red])
+      combine f (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red, VarLineBlur $ \d -> 5 * (2 + sin (d/4/pi))])
                 (circle (Vec 1 0) 1.75    `with` [FillColour $ transparency 0.9 blue, FillBlur 0])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)

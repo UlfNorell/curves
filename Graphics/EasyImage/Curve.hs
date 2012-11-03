@@ -16,8 +16,8 @@ data Curve = forall a. Transformable a =>
                    }
 
 data CurveStyle = CurveStyle
-      { lineWidth  :: Scalar
-      , lineBlur   :: Scalar
+      { lineWidth  :: Scalar -> Scalar
+      , lineBlur   :: Scalar -> Scalar
       , lineColour :: Scalar -> Colour
       , fillColour :: Colour
       , fillBlur   :: Scalar
@@ -26,21 +26,25 @@ data CurveStyle = CurveStyle
 data Attr = LineWidth  Scalar
           | LineBlur   Scalar
           | LineColour Colour
+          | VarLineWidth  (Scalar -> Scalar)
+          | VarLineBlur   (Scalar -> Scalar)
           | VarLineColour (Scalar -> Colour)
           | FillBlur   Scalar
           | FillColour Colour
 
 setAttr :: Attr -> CurveStyle -> CurveStyle
-setAttr (LineWidth x)     s = s { lineWidth = x }
-setAttr (LineBlur x)      s = s { lineBlur = x }
+setAttr (LineWidth x)     s = s { lineWidth = const x }
+setAttr (LineBlur x)      s = s { lineBlur = const x }
 setAttr (LineColour x)    s = s { lineColour = const x }
+setAttr (VarLineWidth x)     s = s { lineWidth = x }
+setAttr (VarLineBlur x)      s = s { lineBlur = x }
 setAttr (VarLineColour x) s = s { lineColour = x }
 setAttr (FillColour x)    s = s { fillColour = x }
 setAttr (FillBlur x)      s = s { fillBlur = x }
 
 defaultCurveStyle =
-  CurveStyle { lineWidth  = 0.0
-             , lineBlur   = 1.2
+  CurveStyle { lineWidth  = const 0.0
+             , lineBlur   = const 1.2
              , lineColour = const black
              , fillColour = transparent
              , fillBlur   = 1.2 }

@@ -37,6 +37,7 @@ sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(V
           α | d <= w    = 1
             | d > w + b = 0
             | otherwise = 1 - (d - w) / b
+      guard $ α > 0
       guard $ not $ isZero (getAlpha c)
       return (α, c)
 

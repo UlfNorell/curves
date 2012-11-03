@@ -49,7 +49,7 @@ compileImage = compileImage' 1
 setLineStyle :: CurveStyle -> SegmentAndDistance -> AnnotatedSegment LineStyle
 setLineStyle s seg = fmap mkLineStyle seg
   where
-    mkLineStyle d = LineStyle (lineColour s d) (lineWidth s) (lineBlur s)
+    mkLineStyle d = LineStyle (lineColour s d) (lineWidth s d) (lineBlur s d)
 
 compileImage' :: Scalar -> Image -> CompiledImage
 compileImage' res (ICurve c) = Segments fs ss
