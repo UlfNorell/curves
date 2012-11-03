@@ -46,6 +46,9 @@ lineStrip (p:ps) = foldr1 (+++) $ zipWith line (p:ps) ps
 poly :: [Point] -> Image
 poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
 
+rectangle :: Point -> Point -> Image
+rectangle p q = poly [p, Vec (getX q) (getY p), q, Vec (getX p) (getY q)]
+
 point :: Point -> Image
 point p = curve (const p) 0 1 `with` [LineWidth 0.8]
 
