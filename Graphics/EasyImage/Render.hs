@@ -41,7 +41,7 @@ sampleSegments style s p@(Vec x y) =
       return (α, c)
 
     hasFill = not $ isZero $ getAlpha (fillColour style)
-    addFill c = maybe c (defaultBlendFunc c . transparency (1/α')) fill
+    addFill c = maybe c (blend c . transparency (1/α')) fill
     fill | hasFill && odd (length ps) = Just $ fillColour style
          | otherwise                  = Nothing
       where
@@ -60,11 +60,9 @@ sampleImage :: CompiledImage -> Point -> Maybe Colour
 sampleImage CIEmpty            p = Nothing
 sampleImage (Segments style s) p = sampleSegments style s p
 sampleImage (CIUnion blend ts) p =
-  case cs of
+  case sampleBBTree sampleImage ts p of
     [] -> Nothing
-    cs -> Just $ foldr1 blend cs
-  where
-    cs = [ c | Just c <- sampleBBTree sampleImage ts p ]
+    cs -> foldr1 blend cs
 
 type Pixel = Codec.PixelRGBA8
 
@@ -75,7 +73,7 @@ renderCompiledImage w h bg0 i =
     bg = opaque bg0
     sample p = toRGBA $ case sampleImage i p of
       Nothing -> bg0
-      Just c  -> defaultBlendFunc c bg
+      Just c  -> blend c bg
 
 saveImage :: FilePath -> Codec.Image Codec.PixelRGBA8 -> IO ()
 saveImage file img = B.writeFile file (Codec.encodePng img)

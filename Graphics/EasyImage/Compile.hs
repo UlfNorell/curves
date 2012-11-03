@@ -15,7 +15,7 @@ type Segments = BBTree SegmentAndDistance
 
 data CompiledImage
       = Segments CurveStyle Segments
-      | CIUnion BlendFunc (BBTree CompiledImage)
+      | CIUnion (Op (Maybe Colour)) (BBTree CompiledImage)
       | CIEmpty
 
 instance HasBoundingBox CompiledImage where
@@ -28,8 +28,8 @@ compileImage = compileImage' 1
 
 compileImage' :: Scalar -> Image -> CompiledImage
 compileImage' res (ICurve c) = Segments (curveStyle c) (curveToSegments res c)
-compileImage' res (Union _ []) = CIEmpty
-compileImage' res (Union blend is) =
+compileImage' res (Combine _ []) = CIEmpty
+compileImage' res (Combine blend is) =
   CIUnion blend $ buildBBTree $ map (compileImage' res) is
 
 autoFit p q = loop . scale 1000

@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 import System.Environment
 
+import Control.Applicative
 import Data.List
 import Data.Monoid
 
@@ -27,7 +28,7 @@ outline i = (i `with` [ LineWidth 3, LineColour white ]) <>
             (i `with` [ LineWidth 5, LineColour $ Colour 0.8 0 0.6 1 ])
 
 main =
-  save $ rectangle 20 (Vec 780 580) <> autoFit (Vec 20 20) (Vec 780 580) (
+  save $ autoFit (Vec 20 20) (Vec 780 580) $
     -- circle 0 3 `with` [ LineWidth 1, LineBlur 20, LineColour red ] <>
     -- poly [-1, Vec 1 (-1), Vec 0 1]
     -- image1
@@ -53,11 +54,19 @@ main =
     -- {-angleTest <>-} label (Vec 1 (-0.2)) 20 "α + β + γ = π"
     -- circle 0 10 <> circle (Vec 10 20) 5 <>
     -- translate (Vec 20 0) (rotate (pi/4) $ freezeImageSize 0 $ scale 20 $ stringImage "Test")
-    angleTest
-    <> translate (Vec 4 0) (freezeImageSize 0 $ scale 10 $ rotate (pi/4) $ stringImage "Angle test")
-    <> arrow (Vec 3 0) (Vec 3 1)
-    <> translate (Vec 3 1.1) (freezeImage 0 $ scale 10 $ stringImage' CenterAlign 0.1 "<Centered text>"))
+    -- angleTest
+    -- <> translate (Vec 4 0) (freezeImageSize 0 $ scale 10 $ rotate (pi/4) $ stringImage "Angle test")
+    -- <> arrow (Vec 3 0) (Vec 3 1)
+    -- <> translate (Vec 3 1.1) (freezeImage 0 $ scale 10 $ stringImage' CenterAlign 0.1 "<Centered text>"))
+    combineTest (Vec 0 4) unionBlend <>
+    combineTest (Vec 6 0) intersectBlend <>
+    combineTest (Vec 0 0) diffBlend <>
+    combineTest (Vec 6 4) (flip diffBlend)
   where
+    combineTest p f =
+      translate p $
+      combine f (circle (Vec (-1) 0) 1.75 `with` [LineColour transparent, FillColour $ transparency 0.5 red, FillBlur 5])
+                (circle (Vec 1 0) 1.75    `with` [LineColour transparent, FillColour $ transparency 0.9 blue, FillBlur 5])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
@@ -137,7 +146,6 @@ image1 =
 --    * parameterize width and blur as well (allow calligraphy style curves)
 --        - still need a max width for bounding box calculation
 --    * right nested +++ gives stack overflow
---    * intersection/difference (generalize blend func in Union)
 --    * Clean up interfaces, add Haddock comments
 --    * libraries on top
 --      - geometry

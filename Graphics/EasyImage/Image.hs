@@ -4,6 +4,7 @@ module Graphics.EasyImage.Image
   , (<>) )
   where
 
+import Control.Applicative
 import Data.Monoid
 import Data.List
 import Data.Maybe
@@ -20,16 +21,37 @@ import Graphics.EasyImage.BoundingBox
 -- Work with curve representation until just before rasterization. Then compile
 -- to segment representation.
 
+type Op a = a -> a -> a
+
 -- TODO: - explicit transformation matrices (for effiecency?)
---       - intersections
 data Image = ICurve Curve
-           | Union BlendFunc [Image]
+           | Combine (Op (Maybe Colour)) [Image]
 
 -- Image operations -------------------------------------------------------
 
+unionBlend c Nothing = c
+unionBlend Nothing c = c
+unionBlend (Just c1) (Just c2) = Just $ blend c1 c2
+
+intersectBlend c Nothing = Nothing
+intersectBlend Nothing c = Nothing
+intersectBlend (Just c1) (Just c2) = Just $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
+
+diffBlend c (Just c') = transparency (1 - getAlpha c') <$> c
+diffBlend c Nothing   = c
+
 instance Monoid Image where
-  mempty  = Union defaultBlendFunc []
-  mappend a b = Union defaultBlendFunc [a, b]
+  mempty      = Combine unionBlend []
+  mappend a b = Combine unionBlend [a, b]
+
+combine :: Op (Maybe Colour) -> Op Image
+combine f a b = Combine f [a, b]
+
+(><) :: Op Image
+a >< b = combine intersectBlend a b
+
+(<->) :: Op Image
+a <-> b = combine diffBlend a b
 
 curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
 curve f = curve' f (const id)
@@ -61,7 +83,7 @@ circleSegment (Vec x y) r a b =
 
 mapCurves :: (Curve -> Curve) -> Image -> Image
 mapCurves f (ICurve c) = ICurve (f c)
-mapCurves f (Union b is) = Union b (map (mapCurves f) is)
+mapCurves f (Combine b is) = Combine b (map (mapCurves f) is)
 
 reverseImage :: Image -> Image
 reverseImage = mapCurves reverseCurve
@@ -97,20 +119,20 @@ infixl 8 +++, <++
 infixr 7 ++>
 (+++) :: Image -> Image -> Image
 ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
-ICurve c +++ Union _ [] = ICurve c
-ICurve c +++ Union b (i:is) = Union b ((ICurve c +++ i) : is)
-Union b is +++ ICurve c = Union b (init is ++ [last is +++ ICurve c])
+ICurve c +++ Combine _ [] = ICurve c
+ICurve c +++ Combine b (i:is) = Combine b ((ICurve c +++ i) : is)
+Combine b is +++ ICurve c = Combine b (init is ++ [last is +++ ICurve c])
 _ +++ _ = error "(+++) on non-curves"
 
 (<++) :: Point -> Image -> Image
 p <++ ICurve c       = ICurve $ prependPoint p c
-p <++ Union b (i:is) = Union b $ (p <++ i) : is
-_ <++ Union _ []     = error "_ <++ mempty"
+p <++ Combine b (i:is) = Combine b $ (p <++ i) : is
+_ <++ Combine _ []     = error "_ <++ mempty"
 
 (++>) :: Image -> Point -> Image
 ICurve c   ++> p = ICurve $ appendPoint c p
-Union _ [] ++> _ = error "mempty ++> _"
-Union b is ++> p = Union b $ init is ++ [last is ++> p]
+Combine _ [] ++> _ = error "mempty ++> _"
+Combine b is ++> p = Combine b $ init is ++ [last is ++> p]
 
 -- B-Splines --------------------------------------------------------------
 
