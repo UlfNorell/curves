@@ -16,33 +16,33 @@ import Graphics.EasyImage.Compile
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Curve
 
+import Debug.Trace
+
 -- Rendering --------------------------------------------------------------
 
-sampleSegments :: CurveStyle -> Segments -> Point -> Maybe Colour
-sampleSegments style s p@(Vec x y) =
+sampleSegments :: FillStyle -> Segments -> Point -> Maybe Colour
+sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(Vec x y) =
   case isLine of
     Nothing -> fill <|> do
-        let b = fillBlur style
+        let b = fillBlur
         d <- distanceAtMost b s p
         guard (d < b)
-        return $ transparency (1 - d/b) (fillColour style)
-    Just (α, c) -> Just $ transparency (getAlpha c) $ addFill $ setAlpha α c
+        return $ transparency (1 - d/b) fillColour
+    Just (α, c) -> Just $ transparency (getAlpha c) $ addFill (getAlpha c) $ setAlpha α c
   where
-    w = lineWidth style
-    b = lineBlur style
-    α' = getAlpha (lineColour style 0)
     isZero x = round (255 * x) == 0
     isLine = do
       (d, seg) <- distanceAtMost' (b + w) s p
-      let c = lineColour style (distanceFromStart seg)
+      let LineStyle c w b = annotation seg
           α | d <= w    = 1
+            | d > w + b = 0
             | otherwise = 1 - (d - w) / b
       guard $ not $ isZero (getAlpha c)
       return (α, c)
 
-    hasFill = not $ isZero $ getAlpha (fillColour style)
-    addFill c = maybe c (blend c . transparency (1/α')) fill
-    fill | hasFill && odd (length ps) = Just $ fillColour style
+    hasFill = not $ isZero $ getAlpha fillColour
+    addFill α' c = maybe c (blend c . transparency (1/α')) fill
+    fill | hasFill && odd (length ps) = Just fillColour
          | otherwise                  = Nothing
       where
         BBox x0 _ _ _ = bounds s

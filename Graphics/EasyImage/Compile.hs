@@ -1,6 +1,11 @@
 
 module Graphics.EasyImage.Compile where
 
+import Prelude hiding (minimum, maximum, any, or, and)
+import Control.Applicative
+import Data.Foldable
+import Data.Monoid
+
 import Graphics.EasyImage.Math
 import Graphics.EasyImage.BoundingBox
 import Graphics.EasyImage.Image
@@ -11,23 +16,47 @@ import Debug.Trace
 
 -- Compilation ------------------------------------------------------------
 
-type Segments = BBTree SegmentAndDistance
+type Segments = BBTree (AnnotatedSegment LineStyle)
+
+data FillStyle = FillStyle Colour Scalar LineStyle
+data LineStyle = LineStyle Colour Scalar Scalar
+
+instance Monoid LineStyle where
+  mempty  = LineStyle transparent 0 0
+  mappend (LineStyle c1 w1 b1) (LineStyle c2 w2 b2) =
+    LineStyle (c1 `blend` c2) (max w1 w2) (max b1 b2)
 
 data CompiledImage
-      = Segments CurveStyle Segments
+      = Segments FillStyle Segments
       | CIUnion (Op (Maybe Colour)) (BBTree CompiledImage)
       | CIEmpty
 
 instance HasBoundingBox CompiledImage where
-  bounds (Segments s b) = relaxBoundingBox (max (fillBlur s) $ lineWidth s + lineBlur s) $ bounds b
+  bounds (Segments fs b) = relaxBoundingBox (max fw lw) $ bounds b
+    where
+      fw = case fs of
+             FillStyle c w _ | not $ isZero (getAlpha c) -> w
+             _ -> 0
+      lw = case fs of
+             FillStyle _ _ (LineStyle c w b) | not $ isZero (getAlpha c) -> w + b
+             _ -> 0
   bounds (CIUnion _ b)  = bounds b
   bounds CIEmpty        = Empty
 
 compileImage :: Image -> CompiledImage
 compileImage = compileImage' 1
 
+setLineStyle :: CurveStyle -> SegmentAndDistance -> AnnotatedSegment LineStyle
+setLineStyle s seg = fmap mkLineStyle seg
+  where
+    mkLineStyle d = LineStyle (lineColour s d) (lineWidth s) (lineBlur s)
+
 compileImage' :: Scalar -> Image -> CompiledImage
-compileImage' res (ICurve c) = Segments (curveStyle c) (curveToSegments res c)
+compileImage' res (ICurve c) = Segments fs ss
+  where
+    s  = curveStyle c
+    fs = FillStyle (fillColour s) (fillBlur s) (foldMap annotation ss)
+    ss = setLineStyle (curveStyle c) <$> curveToSegments res c
 compileImage' res (Combine _ []) = CIEmpty
 compileImage' res (Combine blend is) =
   CIUnion blend $ buildBBTree $ map (compileImage' res) is

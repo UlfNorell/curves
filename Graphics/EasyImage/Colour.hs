@@ -23,6 +23,9 @@ getAlpha (Colour _ _ _ a) = a
 setAlpha :: Scalar -> Colour -> Colour
 setAlpha a (Colour r g b _) = Colour r g b a
 
+isZero :: Scalar -> Bool
+isZero x = 0 == round (255 * x)
+
 white = Colour 1 1 1 1
 black = Colour 0 0 0 1
 blue  = Colour 0 0 1 1

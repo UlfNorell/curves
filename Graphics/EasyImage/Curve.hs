@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns #-}
+{-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns, DeriveFunctor #-}
 module Graphics.EasyImage.Curve where
 
 import Control.Arrow ((***))
@@ -120,13 +120,16 @@ prependPoint p (Curve f g a b s) = Curve f' g' (a - 1) b s
     g' t (Gap p q)      = interpolate p (g a q) (t - a + 1)
     g' t (SecondPart p) = g t p
 
-data SegmentAndDistance = SegAndDist { distanceFromStart :: Scalar
-                                     , theSegment        :: Segment }
+data AnnotatedSegment a = AnnSeg { annotation :: a
+                                 , theSegment :: Segment }
+  deriving (Functor)
 
-instance HasBoundingBox SegmentAndDistance where
+type SegmentAndDistance = AnnotatedSegment Scalar
+
+instance HasBoundingBox (AnnotatedSegment a) where
   bounds = bounds . theSegment
 
-instance DistanceToPoint SegmentAndDistance where
+instance DistanceToPoint (AnnotatedSegment a) where
   distanceAtMost d = distanceAtMost d . theSegment
   distance         = distance . theSegment
   squareDistance   = squareDistance . theSegment
@@ -141,7 +144,7 @@ curveToSegments r (Curve f g t0 t1 _) =
     n = 20  -- minimum number of segments
     pairs xs = zip xs (tail xs)
 
-    annotate !d (s:ss) = SegAndDist d s : annotate (d + segmentLength s) ss
+    annotate !d (s:ss) = AnnSeg d s : annotate (d + segmentLength s) ss
     annotate _ [] = []
 
     ss = pairs $ do

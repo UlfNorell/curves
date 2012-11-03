@@ -1,10 +1,12 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
 module Graphics.EasyImage.BoundingBox where
 
+import Prelude hiding (minimum, maximum, any, or, and)
 import Control.Applicative
 import Data.Monoid
 import Data.Function
-import Data.List
+-- import Data.List
+import Data.Foldable hiding (concatMap)
 import Test.QuickCheck
 
 import Graphics.EasyImage.Math
@@ -77,7 +79,7 @@ intersectBoundingBox (Seg p0 p1) b@(BBox x0 y0 x1 y1)
 -- Bounding box trees -----------------------------------------------------
 
 data BBTree a = Leaf a | Node BoundingBox [BBTree a]
-  deriving (Functor, Eq, Show)
+  deriving (Functor, Foldable, Eq, Show)
 
 instance HasBoundingBox a => HasBoundingBox (BBTree a) where
   bounds (Leaf x)   = bounds x

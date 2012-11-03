@@ -65,8 +65,8 @@ main =
   where
     combineTest p f =
       translate p $
-      combine f (circle (Vec (-1) 0) 1.75 `with` [LineColour transparent, FillColour $ transparency 0.5 red, FillBlur 5])
-                (circle (Vec 1 0) 1.75    `with` [LineColour transparent, FillColour $ transparency 0.9 blue, FillBlur 5])
+      combine f (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red])
+                (circle (Vec 1 0) 1.75    `with` [FillColour $ transparency 0.9 blue, FillBlur 0])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
@@ -141,12 +141,13 @@ image1 =
     f x = sin x + 0.5 * sin (3 * x)
 
 -- TODO
---    * text
---      - auto kerning (how?)
---    * parameterize width and blur as well (allow calligraphy style curves)
---        - still need a max width for bounding box calculation
 --    * right nested +++ gives stack overflow
 --    * Clean up interfaces, add Haddock comments
 --    * libraries on top
 --      - geometry
 --      - graphs
+--    * text
+--      - auto kerning (how?)
+--    * parameterize width and blur as well (allow calligraphy style curves)
+--        - still need a max width for bounding box calculation
+--        - actually maybe not, compiled images can store style on each segment
