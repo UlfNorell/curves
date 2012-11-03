@@ -280,13 +280,25 @@ charPos c = (getX p / k, getX (q - p) / k)
     i = scale (diag k) (charImage c)
     Seg p q = bboxToSegment $ bounds $ compileImage i
 
-stringImage' :: Scalar -> String -> Image
-stringImage' spacing s = render 0 s
+data Alignment = LeftAlign | RightAlign | CenterAlign
+
+stringImage' :: Alignment -> Scalar -> String -> Image
+stringImage' _ _ "" = mempty
+stringImage' align spacing s =
+  case align of
+    LeftAlign   -> i
+    RightAlign  -> translate (Vec (-w) 0) i
+    CenterAlign -> translate (Vec (-w/2) 0) i
   where
-    render _  []    = mempty
-    render !x (c:s) = translate (Vec (x - dx) 0) (charImage c) <>
-                      render (x + w + spacing) s
+    (i, w) = render 0 s
+    render w  []    = (mempty, w - spacing)
+    render !x (c:s) = (translate (Vec (x - dx) 0) (charImage c) <> i, w')
       where
         (dx, w) = charPos c
+        (i, w') = render (x + w + spacing) s
 
-stringImage = stringImage' 0.1
+stringImage = stringImage' LeftAlign 0.1
+
+label :: Point -> Scalar -> String -> Image
+label p h s = translate p $ freezeImage 0 $ scale (diag $ h/2) $ translate (Vec 0 (-1)) $ stringImage' CenterAlign 0.1 s
+

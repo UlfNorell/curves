@@ -27,7 +27,7 @@ outline i = (i `with` [ LineWidth 3, LineColour white ]) <>
             (i `with` [ LineWidth 5, LineColour $ Colour 0.8 0 0.6 1 ])
 
 main =
-  save $ autoFit (Vec 20 20) (Vec 780 580) $
+  save $ rectangle 20 (Vec 780 580) <> autoFit (Vec 20 20) (Vec 780 580) (
     -- circle 0 3 `with` [ LineWidth 1, LineBlur 20, LineColour red ] <>
     -- poly [-1, Vec 1 (-1), Vec 0 1]
     -- image1
@@ -46,21 +46,39 @@ main =
     -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
     -- text (unlines $ chunks 18 $ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω'])
     --  `with` [LineWidth 1]
-    mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
-            | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
-    (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
+    -- mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
+    --         | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
+    -- (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
+    -- rotate (10/12 * pi) angleTest
+    -- {-angleTest <>-} label (Vec 1 (-0.2)) 20 "α + β + γ = π"
+    -- circle 0 10 <> circle (Vec 10 20) 5 <>
+    -- translate (Vec 20 0) (rotate (pi/4) $ freezeImageSize 0 $ scale 20 $ stringImage "Test")
+    angleTest
+    <> translate (Vec 4 0) (freezeImageSize 0 $ scale 10 $ rotate (pi/4) $ stringImage "Angle test")
+    <> arrow (Vec 3 0) (Vec 3 1)
+    <> translate (Vec 3 1.1) (freezeImage 0 $ scale 10 $ stringImage' CenterAlign 0.1 "<Centered text>"))
   where
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
-      where f y s = translate (Vec 0 y) (stringImage' 0 s)
+      where f y s = translate (Vec 0 y) (stringImage' LeftAlign 0 s)
     angleTest =
-      line p1 p0 +++ line p0 p2 <> angleArc p0 p1 p2
+      mconcat [ poly [p0, p1, p2]
+              , labelledAngle "α" p0 p1 p2
+              , labelledAngle "β" p1 p2 p0
+              , labelledAngle "γ" p2 p0 p1
+              ]
       where
-        p0 = Vec 100 100
-        p1 = Vec 150 120
-        p2 = Vec 130 150
-    center = Vec 400 300
+        p0 = 0
+        p1 = Vec 2 0
+        p2 = Vec 2 1
+
+labelledAngle s p0 p1 p2 =
+  angleArc p0 p1 p2
+  <> freezeImageSize p0 (label (p0 + 40 * norm (v1 + v2)) 14 s)
+  where
+    v1 = norm $ p1 - p0
+    v2 = norm $ p2 - p0
 
 chunks n [] = []
 chunks n xs = ys : chunks n zs
@@ -76,7 +94,7 @@ angleArc p0 p1 p2 = curve' f g 0 1
         α = angle (p1 - p0) (p2 - p0)
 
 arrow :: Point -> Point -> Image
-arrow from to = curve' f g 0 2 <> line from to `with` dashed black 10 10
+arrow from to = curve' f g 0 2 <> line from to
   where
     f = const $ Seg from to
     g t (Seg from to) =
