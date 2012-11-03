@@ -7,6 +7,8 @@ import Graphics.EasyImage.Image
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Curve
 
+import Debug.Trace
+
 -- Compilation ------------------------------------------------------------
 
 type Segments = BBTree SegmentAndDistance
@@ -30,13 +32,21 @@ compileImage' res (Union _ []) = CIEmpty
 compileImage' res (Union blend is) =
   CIUnion blend $ buildBBTree $ map (compileImage' res) is
 
-autoFit :: Point -> Point -> Image -> Image
-autoFit p0 p1 i0 =
-  translate (p0 - q0 + offs) $ scaleFrom q0 k i
+autoFit p q = loop . scale 1000
   where
-    -- To reduce the effect of line widths, pixel-based features and the 1 unit
-    -- resolution.
-    i = scale 1000 i0
+    -- Repeat autoFit until reasonably stable. This makes it work for features
+    -- that are scaling insensitive (line widths and frozen images).
+    -- Scaling up by 1000 first makes it converge faster
+    loop i
+      | abs (k - 1) < 0.01 = i'
+      | otherwise          = loop i'
+      where
+        (k, i') = autoFit' p q i
+
+autoFit' :: Point -> Point -> Image -> (Scalar, Image)
+autoFit' p0 p1 i =
+  (getX k, translate (p0 - q0 + offs) $ scaleFrom q0 k i)
+  where
     Seg q0 q1 = bboxToSegment $ bounds $ compileImage i
     screen = p1 - p0
     world  = q1 - q0
