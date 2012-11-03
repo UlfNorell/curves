@@ -133,20 +133,14 @@ instance DistanceToPoint Segment where
 
 -- Transformations --------------------------------------------------------
 
-data Bijection a b = Bij { apply    :: a -> b
-                         , applyInv :: b -> a }
-
-inverse :: Bijection a b -> Bijection b a
-inverse (Bij f g) = Bij g f
-
 class Transformable a where
-  transform :: Bijection Point Point -> a -> a
+  transform :: (Point -> Point) -> a -> a
 
 instance Transformable Vec where
-  transform = apply
+  transform = id
 
 instance Transformable Segment where
-  transform f (Seg p q) = Seg (apply f p) (apply f q)
+  transform f (Seg p q) = Seg (f p) (f q)
 
 instance Transformable a => Transformable [a] where
   transform f = map (transform f)
@@ -161,16 +155,16 @@ instance (Transformable a, Transformable b, Transformable c) => Transformable (a
   transform f (x, y, z) = (transform f x, transform f y, transform f z)
 
 translate :: Transformable a => Vec -> a -> a
-translate v = transform $ Bij (v +) (subtract v)
+translate v = transform (v +)
 
 scale :: Transformable a => Vec -> a -> a
-scale v = transform $ Bij (* v) (/ v)
+scale v = transform (* v)
 
 scaleFrom :: Transformable a => Point -> Vec -> a -> a
 scaleFrom p v = translate p . scale v . translate (-p)
 
 rotate :: Transformable a => Scalar -> a -> a
-rotate α = transform $ Bij (rot α) (rot (-α))
+rotate α = transform (rot α)
 
 rotateAround :: Transformable a => Point -> Scalar -> a -> a
 rotateAround p α = translate p . rotate α . translate (-p)
