@@ -69,11 +69,11 @@ freezeCurve fr p0 (Curve f g a b s) = Curve (const basis) g' a b s
     fsize = freezeSize fr
     fdir  = freezeOrientation fr
     basis = translate p0 defaultBasis
-    h t = g t (f t)
 
-    g' t (Basis o px py) = o + diag (getX v) * vx + diag (getY v) * vy
+    g' t (Basis o px py) = g t (transform h (f t))
       where
-        v = h t - p0
+        h q = o + diag (getX v) * vx + diag (getY v) * vy
+          where v = q - p0
         (vx, vy)
           | fdir && fsize = (Vec 1 0, Vec 0 1)
           | fdir          = (Vec (distance px o) 0, Vec 0 (distance py o))
