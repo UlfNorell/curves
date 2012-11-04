@@ -58,12 +58,11 @@ sampleBBTree sample (Node b l r) p
   | otherwise        = []
 
 sampleImage :: CompiledImage -> Point -> Maybe Colour
-sampleImage CIEmpty            p = Nothing
-sampleImage (Segments style s) p = sampleSegments style s p
-sampleImage (CIUnion blend ts) p =
-  case sampleBBTree sampleImage ts p of
-    [] -> Nothing
-    cs -> foldr1 blend cs
+sampleImage CIEmpty               p = Nothing
+sampleImage (Segments style s)    p = sampleSegments style s p
+sampleImage (CIUnion blend b l r) p
+  | not $ insideBBox p b = Nothing
+  | otherwise            = blend (sampleImage l p) (sampleImage r p)
 
 type Pixel = Codec.PixelRGBA8
 

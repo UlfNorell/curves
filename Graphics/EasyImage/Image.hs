@@ -25,7 +25,8 @@ type Op a = a -> a -> a
 
 -- TODO: - explicit transformation matrices (for effiecency?)
 data Image = ICurve Curve
-           | Combine (Op (Maybe Colour)) [Image]
+           | Combine (Op (Maybe Colour)) Image Image
+           | IEmpty
 
 -- Image operations -------------------------------------------------------
 
@@ -44,11 +45,11 @@ diffBlend c (Just c') = transparency (1 - getAlpha c') <$> c
 diffBlend c Nothing   = c
 
 instance Monoid Image where
-  mempty      = Combine unionBlend []
-  mappend a b = Combine unionBlend [a, b]
+  mempty      = IEmpty
+  mappend a b = Combine unionBlend a b
 
 combine :: Op (Maybe Colour) -> Op Image
-combine f a b = Combine f [a, b]
+combine f a b = Combine f a b
 
 (><) :: Op Image
 a >< b = combine intersectBlend a b
@@ -67,9 +68,11 @@ line p0 p1 = ICurve $ straightLine p0 p1
 
 lineStrip :: [Point] -> Image
 lineStrip (p:q:ps) = foldl (++>) (line p q) ps
+lineStrip _ = error "lineStrip: list too short"
 
 poly :: [Point] -> Image
 poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
+poly [] = error "poly: []"
 
 rectangle :: Point -> Point -> Image
 rectangle p q = poly [p, Vec (getX q) (getY p), q, Vec (getX p) (getY q)]
@@ -85,8 +88,9 @@ circleSegment (Vec x y) r a b =
   curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
 
 mapCurves :: (Curve -> Curve) -> Image -> Image
-mapCurves f (ICurve c) = ICurve (f c)
-mapCurves f (Combine b is) = Combine b (map (mapCurves f) is)
+mapCurves f IEmpty          = IEmpty
+mapCurves f (ICurve c)      = ICurve (f c)
+mapCurves f (Combine b i j) = Combine b (mapCurves f i) (mapCurves f j)
 
 reverseImage :: Image -> Image
 reverseImage = mapCurves reverseCurve
@@ -122,20 +126,20 @@ infixl 8 ++>
 infixr 7 +++, <++
 (+++) :: Image -> Image -> Image
 ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
-ICurve c +++ Combine _ [] = ICurve c
-ICurve c +++ Combine b (i:is) = Combine b ((ICurve c +++ i) : is)
-Combine b is +++ ICurve c = Combine b (init is ++ [last is +++ ICurve c])
-_ +++ _ = error "(+++) on non-curves"
+i +++ IEmpty = i
+IEmpty +++ i = i
+Combine f i j +++ c = Combine f i (j +++ c)
+c +++ Combine f i j = Combine f (c +++ i) j
 
 (<++) :: Point -> Image -> Image
-p <++ ICurve c       = ICurve $ prependPoint p c
-p <++ Combine b (i:is) = Combine b $ (p <++ i) : is
-_ <++ Combine _ []     = error "_ <++ mempty"
+p <++ ICurve c      = ICurve $ prependPoint p c
+p <++ Combine b i j = Combine b (p <++ i) j
+_ <++ IEmpty        = error "_ <++ mempty"
 
 (++>) :: Image -> Point -> Image
-ICurve c   ++> p = ICurve $ appendPoint c p
-Combine _ [] ++> _ = error "mempty ++> _"
-Combine b is ++> p = Combine b $ init is ++ [last is ++> p]
+ICurve c      ++> p = ICurve $ appendPoint c p
+IEmpty        ++> _ = error "mempty ++> _"
+Combine b i j ++> p = Combine b i (j ++> p)
 
 -- B-Splines --------------------------------------------------------------
 
@@ -155,6 +159,7 @@ closedBSpline :: [Point] -> Image
 closedBSpline ps = bSpline $ ps ++ take 3 ps
 
 bSpline' (p:ps) = bSpline $ p:p:p:ps ++ replicate 2 (last (p:ps))
+bSpline' [] = error "bSpline': empty list"
 
 -- ImageElement -----------------------------------------------------------
 

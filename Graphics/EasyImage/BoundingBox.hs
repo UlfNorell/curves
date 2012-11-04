@@ -47,6 +47,9 @@ bboxToSegment :: BoundingBox -> Segment
 bboxToSegment (BBox x0 y0 x1 y1) = Seg (Vec x0 y0) (Vec x1 y1)
 bboxToSegment Empty              = Seg 0 0
 
+instance (HasBoundingBox a, HasBoundingBox b) => HasBoundingBox (a, b) where
+  bounds (x, y) = mappend (bounds x) (bounds y)
+
 instance HasBoundingBox Segment where
   bounds = segmentToBBox
 

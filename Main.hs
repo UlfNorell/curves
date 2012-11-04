@@ -147,11 +147,11 @@ image1 =
 
 -- TODO
 --    * Clean up interfaces, add Haddock comments
---    * optimize
 --    * libraries on top
 --      - geometry
 --      - graphs
 --    * text
 --      - auto kerning (how?)
+--    * more optimization (what?)
 --  BUGS
 --

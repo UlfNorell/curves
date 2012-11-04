@@ -28,7 +28,7 @@ instance Monoid LineStyle where
 
 data CompiledImage
       = Segments FillStyle Segments
-      | CIUnion (Op (Maybe Colour)) (BBTree CompiledImage)
+      | CIUnion (Op (Maybe Colour)) BoundingBox CompiledImage CompiledImage
       | CIEmpty
 
 instance HasBoundingBox CompiledImage where
@@ -40,8 +40,8 @@ instance HasBoundingBox CompiledImage where
       lw = case fs of
              FillStyle _ _ (LineStyle c w b) | not $ isZero (getAlpha c) -> w + b
              _ -> 0
-  bounds (CIUnion _ b)  = bounds b
-  bounds CIEmpty        = Empty
+  bounds (CIUnion _ b _ _) = b
+  bounds CIEmpty           = Empty
 
 compileImage :: Image -> CompiledImage
 compileImage = compileImage' 1
@@ -57,29 +57,10 @@ compileImage' res (ICurve c) = Segments fs ss
     s  = curveStyle c
     fs = FillStyle (fillColour s) (fillBlur s) (foldMap annotation ss)
     ss = setLineStyle (curveStyle c) <$> curveToSegments res c
-compileImage' res (Combine _ []) = CIEmpty
-compileImage' res (Combine blend is) =
-  CIUnion blend $ buildBBTree $ map (compileImage' res) is
-
-autoFit p q = loop . scale 1000
+compileImage' res IEmpty = CIEmpty
+compileImage' res (Combine blend a b) =
+  CIUnion blend (bounds (ca, cb)) ca cb
   where
-    -- Repeat autoFit until reasonably stable. This makes it work for features
-    -- that are scaling insensitive (line widths and frozen images).
-    -- Scaling up by 1000 first makes it converge faster
-    loop i
-      | abs (k - 1) < 0.01 = i'
-      | otherwise          = loop i'
-      where
-        (k, i') = autoFit' p q i
-
-autoFit' :: Point -> Point -> Image -> (Scalar, Image)
-autoFit' p0 p1 i =
-  (getX k, translate (p0 - q0 + offs) $ scaleFrom q0 k i)
-  where
-    Seg q0 q1 = bboxToSegment $ bounds $ compileImage i
-    screen = p1 - p0
-    world  = q1 - q0
-    k      = diag $ vuncurry min (screen / world)
-    world' = k * world
-    offs   = 0.5 * (screen - world')
+    ca = compileImage' res a
+    cb = compileImage' res b
 
