@@ -53,12 +53,16 @@ instance HasBoundingBox Segment where
 instance DistanceToPoint BoundingBox where
   -- Note: cheats in the corner cases
   distance (BBox x0 y0 x1 y1) (Vec x y)
-    = maximum [0, x0 - x, x - x1, y0 - y, y - y1]
+    = 0 `max` (x0 - x) `max` (x - x1) `max` (y0 - y) `max` (y - y1)
 
 relaxBoundingBox :: Scalar -> BoundingBox -> BoundingBox
 relaxBoundingBox a (BBox x0 y0 x1 y1) = BBox (x0 - a) (y0 - a) (x1 + a) (y1 + a)
 
 intersectBoundingBox :: Segment -> BoundingBox -> Bool
+intersectBoundingBox (Seg p@(Vec px py) q@(Vec qx qy)) b@(BBox x0 y0 x1 y1)
+  | py == qy = py >= y0 && py <= y1 &&
+               (px >= x0 || qx >= x0) &&
+               (px <= x1 || py <= x1)
 intersectBoundingBox (Seg p0 p1) b@(BBox x0 y0 x1 y1)
   | getX p0 < x0 && getX p1 < x0       = False
   | getY p0 < y0 && getY p1 < y0       = False
@@ -80,32 +84,34 @@ intersectBoundingBox (Seg p0 p1) b@(BBox x0 y0 x1 y1)
 
 -- Bounding box trees -----------------------------------------------------
 
-data BBTree a = Leaf a | Node BoundingBox [BBTree a]
+data BBTree a = Leaf a | Node BoundingBox (BBTree a) (BBTree a)
   deriving (Functor, Foldable, Eq, Show)
 
 instance HasBoundingBox a => HasBoundingBox (BBTree a) where
-  bounds (Leaf x)   = bounds x
-  bounds (Node b _) = b
+  bounds (Leaf x)     = bounds x
+  bounds (Node b _ _) = b
 
 instance DistanceToPoint a => DistanceToPoint (BBTree a) where
-  distance (Leaf x)    p = distance x p
-  distance (Node _ bs) p = minimum $ map (`distance` p) bs  -- could be optimized
+  distance (Leaf x)     p = distance x p
+  distance (Node _ l r) p = {-# SCC "distance@BBTree" #-} min (distance l p) (distance r p) -- could be optimized (looking at bounding boxes of l and r)
 
   distanceAtMost d t p = fst <$> distanceAtMost' d t p
 
 distanceAtMost' :: DistanceToPoint a => Scalar -> BBTree a -> Point -> Maybe (Scalar, a)
-distanceAtMost' d (Leaf x)    p = (,) <$> distanceAtMost d x p <*> pure x
-distanceAtMost' d (Node b ts) p =
-  distanceAtMost d b p *> mins (map (\t -> distanceAtMost' d t p) ts)
-  where
-    mins ds = case [ d | Just d <- ds ] of
-                [] -> Nothing
-                ds -> Just $ minimumBy (compare `on` fst) ds
+distanceAtMost' d (Leaf x)     p = (,) <$> distanceAtMost d x p <*> pure x
+distanceAtMost' d (Node b l r) p =
+  distanceAtMost d b p *>
+  case (distanceAtMost' d l p, distanceAtMost' d r p) of
+    (Nothing, d) -> d
+    (d, Nothing) -> d
+    (l@(Just (dl, x)), r@(Just (dr, y)))
+      | dl < dr   -> l
+      | otherwise -> r
 
 buildBBTree :: HasBoundingBox a => [a] -> BBTree a
 buildBBTree []  = error "buildBBTree []"
 buildBBTree [x] = Leaf x
-buildBBTree xs  = Node ((mappend `on` bounds) l r) [l, r]
+buildBBTree xs  = Node ((mappend `on` bounds) l r) l r
   where
     n        = div (length xs) 2
     (ys, zs) = splitAt n xs
@@ -114,8 +120,8 @@ buildBBTree xs  = Node ((mappend `on` bounds) l r) [l, r]
 
 intersectBBTree :: (Segment -> a -> [Point]) -> Segment -> BBTree a -> [Point]
 intersectBBTree isect s (Leaf x) = isect s x
-intersectBBTree isect s (Node b ts)
-  | intersectBoundingBox s b = concatMap (intersectBBTree isect s) ts
+intersectBBTree isect s (Node b l r)
+  | intersectBoundingBox s b = intersectBBTree isect s l ++ intersectBBTree isect s r
   | otherwise                = []
 
 -- Testing ----------------------------------------------------------------

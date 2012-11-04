@@ -159,7 +159,7 @@ curveToSegments r (Curve f g t0 t1 _) =
       return (t, h t)
 
     subdivide s@((t0, p0), (t1, p1))
-      | squareDistance p0 p1 > res = concatMap subdivide [((t0, p0), (t, p)), ((t, p), (t1, p1))]
+      | squareDistance p0 p1 > res = subdivide ((t0, p0), (t, p)) ++ subdivide ((t, p), (t1, p1))
       | otherwise                  = [s]
       where
         t = (t0 + t1) / 2

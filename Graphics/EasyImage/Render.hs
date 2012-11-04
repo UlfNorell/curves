@@ -53,8 +53,8 @@ sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(V
 
 sampleBBTree :: (a -> Point -> b) -> BBTree a -> Point -> [b]
 sampleBBTree sample (Leaf x) p = [sample x p]
-sampleBBTree sample (Node b ts) p
-  | p `insideBBox` b = concatMap (\t -> sampleBBTree sample t p) ts
+sampleBBTree sample (Node b l r) p
+  | p `insideBBox` b = sampleBBTree sample l p ++ sampleBBTree sample r p
   | otherwise        = []
 
 sampleImage :: CompiledImage -> Point -> Maybe Colour
