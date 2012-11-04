@@ -45,9 +45,8 @@ main =
     -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
     -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
-    text (unlines $ chunks 22 $ [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω'])
-      `with` [LineWidth 1, FillColour $ transparency 0.3 blue]
-    --  `with` [LineWidth 1]
+    text (unlines $ chunks 22 $ sampleText)
+      `with` [LineWidth 1, FillColour $ transparency 0.5 blue]
     -- mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
     --         | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
     -- (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
@@ -63,7 +62,12 @@ main =
     -- combineTest (Vec 6 0) intersectBlend <>
     -- combineTest (Vec 0 0) diffBlend <>
     -- combineTest (Vec 6 4) (flip diffBlend)
+    -- stringImage "A"
+    --line (Vec 0.5 0) (Vec 0.5 2)
+    -- <> -- foldl (++>) (line 3 26.5) [Vec 26.5 3, Vec 3 26.5, 3]
+    -- line 3 4 +++ line 5 6 +++ line 7 8
   where
+    sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
       translate p $
       {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red, VarLineWidth $ \_ d -> (1.5 + sin (d * 4 * pi))])
@@ -149,4 +153,5 @@ image1 =
 --      - graphs
 --    * text
 --      - auto kerning (how?)
+--  BUGS
 --

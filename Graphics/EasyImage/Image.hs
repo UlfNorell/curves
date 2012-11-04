@@ -66,7 +66,7 @@ line :: Point -> Point -> Image
 line p0 p1 = ICurve $ straightLine p0 p1
 
 lineStrip :: [Point] -> Image
-lineStrip (p:ps) = foldr1 (+++) $ zipWith line (p:ps) ps
+lineStrip (p:q:ps) = foldl (++>) (line p q) ps
 
 poly :: [Point] -> Image
 poly (p:ps) = lineStrip ([p] ++ ps ++ [p])

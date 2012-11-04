@@ -99,7 +99,7 @@ joinCurve (Curve f f' t0 t1 s) (Curve g g' s0 s1 _) =
           (\ t r -> case r of
             FirstPart p  -> f' t p
             Gap p q      -> interpolate (f' t1 p) (g' s0 q) (t - t1)
-            SecondPart p -> g' t p
+            SecondPart p -> g' (t - t1 + s0 - 1) p
           )
           t0 (t1 + s1 - s0 + 1) s
   where
