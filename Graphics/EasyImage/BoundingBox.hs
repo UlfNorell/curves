@@ -93,7 +93,9 @@ instance HasBoundingBox a => HasBoundingBox (BBTree a) where
 
 instance DistanceToPoint a => DistanceToPoint (BBTree a) where
   distance (Leaf x)     p = distance x p
-  distance (Node _ l r) p = {-# SCC "distance@BBTree" #-} min (distance l p) (distance r p) -- could be optimized (looking at bounding boxes of l and r)
+  distance (Node _ l r) p = {-# SCC "distance@BBTree" #-} min (distance l p) (distance r p)
+    -- could be optimized (looking at bounding boxes of l and r),
+    -- but not a bottle-neck
 
   distanceAtMost d t p = fst <$> distanceAtMost' d t p
 
@@ -110,13 +112,15 @@ distanceAtMost' d (Node b l r) p =
 
 buildBBTree :: HasBoundingBox a => [a] -> BBTree a
 buildBBTree []  = error "buildBBTree []"
-buildBBTree [x] = Leaf x
-buildBBTree xs  = Node ((mappend `on` bounds) l r) l r
+buildBBTree xs = loop (length xs) xs
   where
-    n        = div (length xs) 2
-    (ys, zs) = splitAt n xs
-    l        = buildBBTree ys
-    r        = buildBBTree zs
+    loop _ [x] = Leaf x
+    loop n xs  = Node ((mappend `on` bounds) l r) l r
+      where
+        n'       = div n 2
+        (ys, zs) = splitAt n' xs
+        l        = loop n' ys
+        r        = loop (n - n') zs
 
 intersectBBTree :: (Segment -> a -> [Point]) -> Segment -> BBTree a -> [Point]
 intersectBBTree isect s (Leaf x) = isect s x
