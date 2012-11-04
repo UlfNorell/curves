@@ -46,10 +46,10 @@ instance HasBoundingBox CompiledImage where
 compileImage :: Image -> CompiledImage
 compileImage = compileImage' 1
 
-setLineStyle :: CurveStyle -> SegmentAndDistance -> AnnotatedSegment LineStyle
+setLineStyle :: CurveStyle -> AnnotatedSegment (Scalar, Scalar) -> AnnotatedSegment LineStyle
 setLineStyle s seg = fmap mkLineStyle seg
   where
-    mkLineStyle d = LineStyle (lineColour s d) (lineWidth s d) (lineBlur s d)
+    mkLineStyle (d, r) = LineStyle (lineColour s d r) (lineWidth s d r) (lineBlur s d r)
 
 compileImage' :: Scalar -> Image -> CompiledImage
 compileImage' res (ICurve c) = Segments fs ss

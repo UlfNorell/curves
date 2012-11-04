@@ -58,15 +58,15 @@ main =
     -- <> translate (Vec 4 0) (freezeImageSize 0 $ scale 10 $ rotate (pi/4) $ stringImage "Angle test")
     -- <> arrow (Vec 3 0) (Vec 3 1)
     -- <> translate (Vec 3 1.1) (freezeImage 0 $ scale 10 $ stringImage' CenterAlign 0.1 "<Centered text>"))
-    combineTest (Vec 0 4) unionBlend <>
-    combineTest (Vec 6 0) intersectBlend <>
-    combineTest (Vec 0 0) diffBlend <>
-    combineTest (Vec 6 4) (flip diffBlend)
+    -- combineTest (Vec 0 4) unionBlend <>
+    -- combineTest (Vec 6 0) intersectBlend <>
+    -- combineTest (Vec 0 0) diffBlend <>
+    -- combineTest (Vec 6 4) (flip diffBlend)
   where
     combineTest p f =
       translate p $
-      combine f (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red, VarLineBlur $ \d -> 5 * (2 + sin (d/4/pi))])
-                (circle (Vec 1 0) 1.75    `with` [FillColour $ transparency 0.9 blue, FillBlur 0])
+      {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red, VarLineWidth $ \_ d -> (1.5 + sin (d * 4 * pi))])
+                -- (circle (Vec 1 0) 1.75    `with` [FillColour $ transparency 0.9 blue, FillBlur 0])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
@@ -117,14 +117,14 @@ arrow from to = curve' f g 0 2 <> line from to
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
 gradient c1 c2 a =
-  [VarLineColour $ \d ->
+  [VarLineColour $ \d _ ->
     case modDouble d (2 * a) of
       x | x <= a    -> blend (setAlpha (x / a) c2) c1
         | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
   ]
 
 dashed c a b =
-  [VarLineColour $ \d ->
+  [VarLineColour $ \d _ ->
     case modDouble d (a + b) of
       x | x <= a    -> c
         | otherwise -> transparent
@@ -148,6 +148,4 @@ image1 =
 --      - graphs
 --    * text
 --      - auto kerning (how?)
---    * parameterize width and blur as well (allow calligraphy style curves)
---        - still need a max width for bounding box calculation
---        - actually maybe not, compiled images can store style on each segment
+--

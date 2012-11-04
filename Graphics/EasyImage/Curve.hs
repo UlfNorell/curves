@@ -16,9 +16,9 @@ data Curve = forall a. Transformable a =>
                    }
 
 data CurveStyle = CurveStyle
-      { lineWidth  :: Scalar -> Scalar
-      , lineBlur   :: Scalar -> Scalar
-      , lineColour :: Scalar -> Colour
+      { lineWidth  :: Scalar -> Scalar -> Scalar
+      , lineBlur   :: Scalar -> Scalar -> Scalar
+      , lineColour :: Scalar -> Scalar -> Colour
       , fillColour :: Colour
       , fillBlur   :: Scalar
       }
@@ -26,16 +26,16 @@ data CurveStyle = CurveStyle
 data Attr = LineWidth  Scalar
           | LineBlur   Scalar
           | LineColour Colour
-          | VarLineWidth  (Scalar -> Scalar)
-          | VarLineBlur   (Scalar -> Scalar)
-          | VarLineColour (Scalar -> Colour)
+          | VarLineWidth  (Scalar -> Scalar -> Scalar)
+          | VarLineBlur   (Scalar -> Scalar -> Scalar)
+          | VarLineColour (Scalar -> Scalar -> Colour)
           | FillBlur   Scalar
           | FillColour Colour
 
 setAttr :: Attr -> CurveStyle -> CurveStyle
-setAttr (LineWidth x)     s = s { lineWidth = const x }
-setAttr (LineBlur x)      s = s { lineBlur = const x }
-setAttr (LineColour x)    s = s { lineColour = const x }
+setAttr (LineWidth x)     s = s { lineWidth = \_ _ -> x }
+setAttr (LineBlur x)      s = s { lineBlur = \_ _ -> x }
+setAttr (LineColour x)    s = s { lineColour = \_ _ -> x }
 setAttr (VarLineWidth x)     s = s { lineWidth = x }
 setAttr (VarLineBlur x)      s = s { lineBlur = x }
 setAttr (VarLineColour x) s = s { lineColour = x }
@@ -43,9 +43,9 @@ setAttr (FillColour x)    s = s { fillColour = x }
 setAttr (FillBlur x)      s = s { fillBlur = x }
 
 defaultCurveStyle =
-  CurveStyle { lineWidth  = const 0.0
-             , lineBlur   = const 1.2
-             , lineColour = const black
+  CurveStyle { lineWidth  = \_ _ -> 0.0
+             , lineBlur   = \_ _ -> 1.2
+             , lineColour = \_ _ -> black
              , fillColour = transparent
              , fillBlur   = 1.2 }
 
@@ -128,8 +128,6 @@ data AnnotatedSegment a = AnnSeg { annotation :: a
                                  , theSegment :: Segment }
   deriving (Functor)
 
-type SegmentAndDistance = AnnotatedSegment Scalar
-
 instance HasBoundingBox (AnnotatedSegment a) where
   bounds = bounds . theSegment
 
@@ -139,17 +137,21 @@ instance DistanceToPoint (AnnotatedSegment a) where
   squareDistance   = squareDistance . theSegment
 
 -- Each segment is annotated with the distance from the start of the curve.
-curveToSegments :: Scalar -> Curve -> BBTree SegmentAndDistance
+curveToSegments :: Scalar -> Curve -> BBTree (AnnotatedSegment (Scalar, Scalar))
 curveToSegments r (Curve f g t0 t1 _) =
-    buildBBTree $ annotate 0 $ map (uncurry Seg . (snd *** snd)) $ concatMap subdivide ss
+    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap subdivide ss
   where
     h t = g t (f t)
     res = r^2
     n = 20  -- minimum number of segments
     pairs xs = zip xs (tail xs)
 
-    annotate !d (s:ss) = AnnSeg d s : annotate (d + segmentLength s) ss
-    annotate _ [] = []
+    annotate ss = annotate' total 0 ss
+      where
+        total = sum $ map segmentLength ss
+
+    annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
+    annotate' _ _ [] = []
 
     ss = pairs $ do
       i <- [0..n]

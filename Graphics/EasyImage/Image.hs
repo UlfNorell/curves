@@ -29,14 +29,17 @@ data Image = ICurve Curve
 
 -- Image operations -------------------------------------------------------
 
+unionBlend :: Op (Maybe Colour)
 unionBlend c Nothing = c
 unionBlend Nothing c = c
 unionBlend (Just c1) (Just c2) = Just $ blend c1 c2
 
+intersectBlend :: Op (Maybe Colour)
 intersectBlend c Nothing = Nothing
 intersectBlend Nothing c = Nothing
 intersectBlend (Just c1) (Just c2) = Just $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
+diffBlend :: Op (Maybe Colour)
 diffBlend c (Just c') = transparency (1 - getAlpha c') <$> c
 diffBlend c Nothing   = c
 
