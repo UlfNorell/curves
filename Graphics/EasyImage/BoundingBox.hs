@@ -30,9 +30,11 @@ class HasBoundingBox a where
 instance HasBoundingBox BoundingBox where
   bounds = id
 
+{-# INLINE insideBBox #-}
 insideBBox :: Point -> BoundingBox -> Bool
 insideBBox (Vec x y) (BBox x0 y0 x1 y1) =
-  and [ x0 <= x, x <= x1, y0 <= y, y <= y1 ]
+  x0 <= x && x <= x1 &&
+  y0 <= y && y <= y1
 
 segmentToBBox :: Segment -> BoundingBox
 segmentToBBox (Seg p1 p2) =

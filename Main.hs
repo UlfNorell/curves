@@ -141,8 +141,8 @@ image1 =
     f x = sin x + 0.5 * sin (3 * x)
 
 -- TODO
---    * right nested +++ gives stack overflow
 --    * Clean up interfaces, add Haddock comments
+--    * optimize
 --    * libraries on top
 --      - geometry
 --      - graphs

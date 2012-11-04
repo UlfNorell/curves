@@ -3,3 +3,4 @@ dist$
 \.(hi|o)$
 \.(swp|swo)$
 ^main$
+^(lib|lib_p|main_p|main_p\.prof)$
