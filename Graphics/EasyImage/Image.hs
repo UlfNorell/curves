@@ -118,8 +118,8 @@ with i as = onStyle i $ foldr (.) id $ map setAttr as
 instance Transformable Image where
   transform f = mapCurves (transform f)
 
-infixl 8 +++, <++
-infixr 7 ++>
+infixl 8 ++>
+infixr 7 +++, <++
 (+++) :: Image -> Image -> Image
 ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
 ICurve c +++ Combine _ [] = ICurve c

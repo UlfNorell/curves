@@ -176,8 +176,11 @@ charImage '|' = line (top 0.5) (bot 0.5)
 charImage '=' = line (left 0.35) (right 0.35) <> line (left 0.65) (right 0.65)
 charImage '(' = circleSegInBox (bot 0.5) topRight (3/4 * pi) (5/4 * pi)
 charImage ')' = mirrorH (charImage '(')
-charImage '?' = line (vcenter 0.15) (vcenter 0.4) +++ scaleFrom (top 0.5) (Vec 1 1.2) (circleSegment (vcenter 0.75) 0.5 (-pi/2) (3/4 * pi)) <>
-                line (vcenter 0) (vcenter 0.01)
+charImage '?' =
+  bSpline' [left 0.85, top 0.1, topRight, right 0.5, center, vcenter 0.15] <>
+  line (vcenter 0) (vcenter 0.01)
+  -- line (vcenter 0.15) (vcenter 0.4) +++ scaleFrom (top 0.5) (Vec 1 1.2) (circleSegment (vcenter 0.75) 0.5 (-pi/2) (3/4 * pi)) <>
+  -- line (vcenter 0) (vcenter 0.01)
 charImage '-' = line (left 0.5) (right 0.5)
 charImage '_' = line botLeft botRight
 charImage '^' = lineStrip [coord 0.25 0.75, top 0.5, coord 0.75 0.75]
