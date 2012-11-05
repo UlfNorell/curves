@@ -5,6 +5,7 @@ module Graphics.EasyImage
   , module Graphics.EasyImage.Math
   , module Graphics.EasyImage.Render
   , module Graphics.EasyImage.Text
+  , module Graphics.EasyImage.Geometry
   , autoFit
   , Attr(..)
   , Basis(..)
@@ -19,6 +20,7 @@ import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Render
 import Graphics.EasyImage.Compile
 import Graphics.EasyImage.Text
+import Graphics.EasyImage.Geometry
 
 autoFit :: Point -> Point -> Image -> Image
 autoFit p q = loop
@@ -42,4 +44,16 @@ autoFit' p0 p1 i =
     world' = k * world
     offs   = 0.5 * (screen - world')
 
+-- ImageElement -----------------------------------------------------------
 
+class Transformable a => ImageElement a where
+  render :: a -> Image
+
+instance ImageElement Image where
+  render = id
+
+instance ImageElement Segment where
+  render (Seg p q) = line p q
+
+instance ImageElement Vec where
+  render = point

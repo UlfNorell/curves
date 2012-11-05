@@ -45,8 +45,11 @@ main =
     -- angleArc 1 (Vec 3 2) (Vec 3 1) <>
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
     -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
-    text (unlines $ chunks 22 $ sampleText)
-      `with` [LineWidth 1, FillColour $ transparency 0.5 blue]
+    -- text (unlines $ chunks 22 $ sampleText)
+    --   `with` [LineWidth 1, FillColour $ transparency 0.5 blue]
+    -- <>
+    -- rectangle (Vec (-0.2) 2.2) (Vec 26 (-17))
+    --   `with` [FillColour $ transparency 0.3 red]
     -- mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
     --         | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
     -- (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
@@ -66,6 +69,22 @@ main =
     --line (Vec 0.5 0) (Vec 0.5 2)
     -- <> -- foldl (++>) (line 3 26.5) [Vec 26.5 3, Vec 3 26.5, 3]
     -- line 3 4 +++ line 5 6 +++ line 7 8
+    -- let i = curve (\t -> rot t (Vec (1.4 + sin (t * 5)) 0)) 0 (2 * pi)
+    -- in i `with` [FillColour $ Colour 1 0.5 0.8 1] <>
+    --    rotate 0.02 i `with` [LineColour transparent, FillBlur 10, FillColour black]
+    let r = transparency 0.05 red
+        b = Colour 0.8 0.8 1 0.5 in
+    (circle 0 0.5 `with` [LineColour transparent, FillColour r])
+    <> line 0 1 `with` [LineColour b, LineWidth 10]
+    <> line unitX (unitX - unitY) `with` [LineColour $ blend r b, LineWidth 10]
+    -- mconcat
+    --   [ labelledAngle "108°" 40 unitX (rotate (2 * pi / 5) unitX) (rotate (-2 * pi / 5) unitX)
+    --   , regularPoly 5
+    --   , circle 0 1 `with` [FillColour $ Colour 1 0.6 0.6 1]
+    --       <-> regularPoly 5 `with` [FillColour black]
+    --   , let i = line (-1) 1 `with` [LineBlur 20, LineColour $ Colour 0.6 0.6 1 1]
+    --     in i <> rotate (pi/2) i
+    --   ]
   where
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
@@ -78,46 +97,19 @@ main =
       where f y s = translate (Vec 0 y) (stringImage' LeftAlign 0 s)
     angleTest =
       mconcat [ poly [p0, p1, p2]
-              , labelledAngle "α" p0 p1 p2
-              , labelledAngle "β" p1 p2 p0
-              , labelledAngle "γ" p2 p0 p1
+              , labelledAngle "α" 40 p0 p1 p2
+              , labelledAngle "β" 40 p1 p2 p0
+              , labelledAngle "γ" 40 p2 p0 p1
               ]
       where
         p0 = 0
         p1 = Vec 2 0
         p2 = Vec 2 1
 
-labelledAngle s p0 p1 p2 =
-  angleArc p0 p1 p2
-  <> freezeImageSize p0 (label (p0 + 40 * norm (v1 + v2)) 14 s)
-  where
-    v1 = norm $ p1 - p0
-    v2 = norm $ p2 - p0
-
 chunks n [] = []
 chunks n xs = ys : chunks n zs
   where
     (ys, zs) = splitAt n xs
-
-angleArc :: Point -> Point -> Point -> Image
-angleArc p0 p1 p2 = curve' f g 0 1
-  where
-    f _ = (p0, p1, p2)
-    g t (p0, p1, p2) = p0 + 20 * rot (t * α) (norm (p1 - p0))
-      where
-        α = angle (p1 - p0) (p2 - p0)
-
-arrow :: Point -> Point -> Image
-arrow from to = curve' f g 0 2 <> line from to
-  where
-    f = const $ Seg from to
-    g t (Seg from to) =
-        if | t <= 1    -> interpolate fin1 to t
-           | otherwise -> interpolate to fin2 (t - 1)
-      where
-        v    = norm (from - to)
-        fin1 = to + 20 * rot (pi/6) v
-        fin2 = to + 20 * rot (-pi/6) v
 
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
@@ -150,8 +142,8 @@ image1 =
 --    * libraries on top
 --      - geometry
 --      - graphs
+--    * tidier examples
 --    * text
 --      - auto kerning (how?)
---    * more optimization (what?)
+--      - formulas (fractions, sub/superscript etc)
 --  BUGS
---

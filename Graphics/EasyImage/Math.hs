@@ -14,6 +14,12 @@ type Point = Vec
 instance Show Vec where
   show (Vec x y) = "(" ++ show x ++ " " ++ show y ++ ")"
 
+unitX :: Vec
+unitX = Vec 1 0
+
+unitY :: Vec
+unitY = Vec 0 1
+
 diag :: Scalar -> Vec
 diag x = Vec x x
 

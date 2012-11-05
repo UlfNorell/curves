@@ -55,9 +55,6 @@ fillStyle b c   = [FillColour c, FillBlur b]
 instance Transformable Curve where
   transform h (Curve f g t0 t1 s) = Curve (transform h . f) g t0 t1 s
 
-straightLine :: Point -> Point -> Curve
-straightLine p q = Curve (interpolate p q) (const id) 0 1 defaultCurveStyle
-
 reverseCurve :: Curve -> Curve
 reverseCurve (Curve f g a b s) = Curve f' g' a b s
   where
@@ -114,6 +111,7 @@ appendPoint (Curve f g a b s) p = Curve f' g' a (b + 1) s
          | otherwise = Gap endPt p
     g' t (FirstPart p) = g t p
     g' t (Gap p q)     = interpolate (g b p) q (t - b)
+    g' t SecondPart{}  = error "appendPoint: impossible"
 
 prependPoint :: Point -> Curve -> Curve
 prependPoint p (Curve f g a b s) = Curve f' g' (a - 1) b s
@@ -123,6 +121,7 @@ prependPoint p (Curve f g a b s) = Curve f' g' (a - 1) b s
          | otherwise = Gap p startPt
     g' t (Gap p q)      = interpolate p (g a q) (t - a + 1)
     g' t (SecondPart p) = g t p
+    g' t FirstPart{}    = error "prependPoint: impossible"
 
 data AnnotatedSegment a = AnnSeg { annotation :: a
                                  , theSegment :: Segment }

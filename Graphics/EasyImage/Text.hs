@@ -274,6 +274,7 @@ charImage 'ψ' = bSpline' [hcenter 0.1, botLeft, botRight, coord 0.9 0.5] <> lin
 charImage 'ω' = bSpline' [hcenter 0.1, l 0.35, botLeft, bot 0.5, coord 0.55 0.4, coord 0.45 0.4, bot 0.5, botRight, r 0.35, hcenter 0.9]
   where l = coord (-0.1)
         r = coord 1.1
+charImage '°' = circle (vcenter 0.9) 0.2
 charImage _   = poly [0, Vec 1 0, Vec 1 2, Vec 0 2]
 
 charPos ' ' = (0, 0.3)

@@ -32,6 +32,7 @@ instance HasBoundingBox BoundingBox where
 
 {-# INLINE insideBBox #-}
 insideBBox :: Point -> BoundingBox -> Bool
+insideBBox _ Empty = False
 insideBBox (Vec x y) (BBox x0 y0 x1 y1) =
   x0 <= x && x <= x1 &&
   y0 <= y && y <= y1
@@ -54,14 +55,17 @@ instance HasBoundingBox Segment where
   bounds = segmentToBBox
 
 instance DistanceToPoint BoundingBox where
+  distance Empty p = 1.0e40    -- infinity
   -- Note: cheats in the corner cases
   distance (BBox x0 y0 x1 y1) (Vec x y)
     = 0 `max` (x0 - x) `max` (x - x1) `max` (y0 - y) `max` (y - y1)
 
 relaxBoundingBox :: Scalar -> BoundingBox -> BoundingBox
+relaxBoundingBox _ Empty = Empty
 relaxBoundingBox a (BBox x0 y0 x1 y1) = BBox (x0 - a) (y0 - a) (x1 + a) (y1 + a)
 
 intersectBoundingBox :: Segment -> BoundingBox -> Bool
+intersectBoundingBox _ Empty = False
 intersectBoundingBox (Seg p@(Vec px py) q@(Vec qx qy)) b@(BBox x0 y0 x1 y1)
   | py == qy = py >= y0 && py <= y1 &&
                (px >= x0 || qx >= x0) &&

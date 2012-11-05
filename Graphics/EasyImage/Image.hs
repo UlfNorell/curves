@@ -33,15 +33,15 @@ data Image = ICurve Curve
 unionBlend :: Op (Maybe Colour)
 unionBlend c Nothing = c
 unionBlend Nothing c = c
-unionBlend (Just c1) (Just c2) = Just $ blend c1 c2
+unionBlend (Just c1) (Just c2) = visible $ blend c1 c2
 
 intersectBlend :: Op (Maybe Colour)
 intersectBlend c Nothing = Nothing
 intersectBlend Nothing c = Nothing
-intersectBlend (Just c1) (Just c2) = Just $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
+intersectBlend (Just c1) (Just c2) = visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
 diffBlend :: Op (Maybe Colour)
-diffBlend c (Just c') = transparency (1 - getAlpha c') <$> c
+diffBlend c (Just c') = visible . transparency (1 - getAlpha c') =<< c
 diffBlend c Nothing   = c
 
 instance Monoid Image where
@@ -50,6 +50,9 @@ instance Monoid Image where
 
 combine :: Op (Maybe Colour) -> Op Image
 combine f a b = Combine f a b
+
+infixr 6 ><
+infixl 7 <->
 
 (><) :: Op Image
 a >< b = combine intersectBlend a b
@@ -62,30 +65,6 @@ curve f = curve' f (const id)
 
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
 curve' f g t0 t1 = ICurve $ Curve f g t0 t1 defaultCurveStyle
-
-line :: Point -> Point -> Image
-line p0 p1 = ICurve $ straightLine p0 p1
-
-lineStrip :: [Point] -> Image
-lineStrip (p:q:ps) = foldl (++>) (line p q) ps
-lineStrip _ = error "lineStrip: list too short"
-
-poly :: [Point] -> Image
-poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
-poly [] = error "poly: []"
-
-rectangle :: Point -> Point -> Image
-rectangle p q = poly [p, Vec (getX q) (getY p), q, Vec (getX p) (getY q)]
-
-point :: Point -> Image
-point p = curve (const p) 0 1 `with` [LineWidth 0.8]
-
-circle :: Point -> Scalar -> Image
-circle p r = circleSegment p r 0 (2 * pi)
-
-circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
-circleSegment (Vec x y) r a b =
-  curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
 
 mapCurves :: (Curve -> Curve) -> Image -> Image
 mapCurves f IEmpty          = IEmpty
@@ -141,6 +120,24 @@ ICurve c      ++> p = ICurve $ appendPoint c p
 IEmpty        ++> _ = error "mempty ++> _"
 Combine b i j ++> p = Combine b i (j ++> p)
 
+line :: Point -> Point -> Image
+line p q = curve (interpolate p q) 0 1
+
+circle :: Point -> Scalar -> Image
+circle p r = circleSegment p r 0 (2 * pi)
+
+circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
+circleSegment (Vec x y) r a b =
+  curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
+
+lineStrip :: [Point] -> Image
+lineStrip (p:q:ps) = foldl (++>) (line p q) ps
+lineStrip _ = error "lineStrip: list too short"
+
+poly :: [Point] -> Image
+poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
+poly [] = error "poly: []"
+
 -- B-Splines --------------------------------------------------------------
 
 bSpline :: [Point] -> Image
@@ -161,16 +158,3 @@ closedBSpline ps = bSpline $ ps ++ take 3 ps
 bSpline' (p:ps) = bSpline $ p:p:p:ps ++ replicate 2 (last (p:ps))
 bSpline' [] = error "bSpline': empty list"
 
--- ImageElement -----------------------------------------------------------
-
-class Transformable a => ImageElement a where
-  render :: a -> Image
-
-instance ImageElement Image where
-  render = id
-
-instance ImageElement Segment where
-  render (Seg p q) = line p q
-
-instance ImageElement Vec where
-  render = point

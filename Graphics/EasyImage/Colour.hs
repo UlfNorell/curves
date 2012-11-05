@@ -26,6 +26,10 @@ setAlpha a (Colour r g b _) = Colour r g b a
 isZero :: Scalar -> Bool
 isZero x = 0 == round (255 * x)
 
+visible :: Colour -> Maybe Colour
+visible c | isZero (getAlpha c) = Nothing
+visible c                       = Just c
+
 white = Colour 1 1 1 1
 black = Colour 0 0 0 1
 blue  = Colour 0 0 1 1
