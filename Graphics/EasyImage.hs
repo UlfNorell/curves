@@ -6,6 +6,7 @@ module Graphics.EasyImage
   , module Graphics.EasyImage.Render
   , module Graphics.EasyImage.Text
   , module Graphics.EasyImage.Geometry
+  , module Graphics.EasyImage.Attribute
   , autoFit
   , Attr(..)
   , Basis(..)
@@ -21,6 +22,7 @@ import Graphics.EasyImage.Render
 import Graphics.EasyImage.Compile
 import Graphics.EasyImage.Text
 import Graphics.EasyImage.Geometry
+import Graphics.EasyImage.Attribute
 
 autoFit :: Point -> Point -> Image -> Image
 autoFit p q = loop

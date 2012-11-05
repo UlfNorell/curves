@@ -1,4 +1,4 @@
-
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
 module Graphics.EasyImage.Image
   ( module Graphics.EasyImage.Image
   , (<>) )
@@ -13,6 +13,7 @@ import Graphics.EasyImage.Math
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Curve
 import Graphics.EasyImage.BoundingBox
+import Graphics.EasyImage.Attribute
 
 -- Two representations:
 --  - curve representation
@@ -92,11 +93,15 @@ freezeImage p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
-with :: Image -> [Attr] -> Image
-with i as = onStyle i $ foldr (.) id $ map setAttr as
-  where
-    onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
-    onStyle i f = mapCurves (\c -> c { curveStyle = f $ curveStyle c }) i
+instance HasAttr a Curve => HasAttr a Image where
+  modifyAttr attr f = mapCurves (modifyAttr attr f)
+
+with :: Image -> [Assignment Image] -> Image
+with i as = assign i as
+  -- onStyle i $ foldr (.) id $ map setAttr as
+  -- where
+  --   onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
+  --   onStyle i f = mapCurves (\c -> c { curveStyle = f $ curveStyle c }) i
 
 instance Transformable Image where
   transform f = mapCurves (transform f)

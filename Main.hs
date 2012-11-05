@@ -6,6 +6,7 @@ import Data.List
 import Data.Monoid
 
 import Graphics.EasyImage
+import Graphics.EasyImage.Chart
 import Debug.Trace
 
 circle' :: Point -> Scalar -> Image
@@ -24,8 +25,8 @@ graph x0 x1 f = curve (\x -> Vec x (f x)) x0 x1
 
 save i = renderImage "test.png" 800 600 white i
 
-outline i = (i `with` [ LineWidth 3, LineColour white ]) <>
-            (i `with` [ LineWidth 5, LineColour $ Colour 0.8 0 0.6 1 ])
+outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
+            (i `with` [ LineWidth := 5, LineColour := Colour 0.8 0 0.6 1 ])
 
 main =
   save $ autoFit (Vec 20 20) (Vec 780 580) $
@@ -72,11 +73,6 @@ main =
     -- let i = curve (\t -> rot t (Vec (1.4 + sin (t * 5)) 0)) 0 (2 * pi)
     -- in i `with` [FillColour $ Colour 1 0.5 0.8 1] <>
     --    rotate 0.02 i `with` [LineColour transparent, FillBlur 10, FillColour black]
-    let r = transparency 0.05 red
-        b = Colour 0.8 0.8 1 0.5 in
-    (circle 0 0.5 `with` [LineColour transparent, FillColour r])
-    <> line 0 1 `with` [LineColour b, LineWidth 10]
-    <> line unitX (unitX - unitY) `with` [LineColour $ blend r b, LineWidth 10]
     -- mconcat
     --   [ labelledAngle "108°" 40 unitX (rotate (2 * pi / 5) unitX) (rotate (-2 * pi / 5) unitX)
     --   , regularPoly 5
@@ -85,12 +81,13 @@ main =
     --   , let i = line (-1) 1 `with` [LineBlur 20, LineColour $ Colour 0.6 0.6 1 1]
     --     in i <> rotate (pi/2) i
     --   ]
+    barChart (map fromIntegral [25,24..1])
   where
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
       translate p $
-      {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour $ transparency 0.5 red, VarLineWidth $ \_ d -> (1.5 + sin (d * 4 * pi))])
-                -- (circle (Vec 1 0) 1.75    `with` [FillColour $ transparency 0.9 blue, FillBlur 0])
+      {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour := transparency 0.5 red, VarLineWidth := \_ d -> (1.5 + sin (d * 4 * pi))])
+                -- (circle (Vec 1 0) 1.75    `with` [FillColour := transparency 0.9 blue, FillBlur := 0])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
@@ -114,14 +111,14 @@ chunks n xs = ys : chunks n zs
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
 gradient c1 c2 a =
-  [VarLineColour $ \d _ ->
+  [VarLineColour := \d _ ->
     case modDouble d (2 * a) of
       x | x <= a    -> blend (setAlpha (x / a) c2) c1
         | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
   ]
 
 dashed c a b =
-  [VarLineColour $ \d _ ->
+  [VarLineColour := \d _ ->
     case modDouble d (a + b) of
       x | x <= a    -> c
         | otherwise -> transparent
@@ -132,13 +129,14 @@ image1 =
     translate (Vec 250 300) (scale 200 $ circle (Vec 0 0) 1) <> point (Vec 250 300) <>
     outline (ellipse (Vec 200 200) 200 120) <>
     (translate (Vec 20 150) $ scale (Vec 30 100) $ graph 0 (8 * pi) f `with`
-      [ LineWidth 2, LineColour $ Colour 0 0.5 0.2 1
-      , FillColour $ transparency 0.3 green ])
+      [ LineWidth := 2, LineColour := Colour 0 0.5 0.2 1
+      , FillColour := transparency 0.3 green ])
   where
     f x = sin x + 0.5 * sin (3 * x)
 
 -- TODO
 --    * Clean up interfaces, add Haddock comments
+--    * wx-style attributes (:=, :~)
 --    * libraries on top
 --      - geometry
 --      - graphs
@@ -146,4 +144,5 @@ image1 =
 --    * text
 --      - auto kerning (how?)
 --      - formulas (fractions, sub/superscript etc)
+--    * 3D
 --  BUGS

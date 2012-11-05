@@ -1,4 +1,6 @@
-{-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns, DeriveFunctor #-}
+{-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns, DeriveFunctor, GADTs,
+             KindSignatures, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts,
+             UndecidableInstances #-}
 module Graphics.EasyImage.Curve where
 
 import Control.Arrow ((***))
@@ -6,6 +8,7 @@ import Control.Arrow ((***))
 import Graphics.EasyImage.Math
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.BoundingBox
+import Graphics.EasyImage.Attribute
 
 data Curve = forall a. Transformable a =>
              Curve { curveFunction :: Scalar -> a
@@ -23,24 +26,28 @@ data CurveStyle = CurveStyle
       , fillBlur   :: Scalar
       }
 
-data Attr = LineWidth  Scalar
-          | LineBlur   Scalar
-          | LineColour Colour
-          | VarLineWidth  (Scalar -> Scalar -> Scalar)
-          | VarLineBlur   (Scalar -> Scalar -> Scalar)
-          | VarLineColour (Scalar -> Scalar -> Colour)
-          | FillBlur   Scalar
-          | FillColour Colour
+data Attr :: * -> * where
+  LineWidth     :: Attr Scalar
+  LineBlur      :: Attr Scalar
+  LineColour    :: Attr Colour
+  VarLineWidth  :: Attr (Scalar -> Scalar -> Scalar)
+  VarLineBlur   :: Attr (Scalar -> Scalar -> Scalar)
+  VarLineColour :: Attr (Scalar -> Scalar -> Colour)
+  FillBlur      :: Attr Scalar
+  FillColour    :: Attr Colour
 
-setAttr :: Attr -> CurveStyle -> CurveStyle
-setAttr (LineWidth x)     s = s { lineWidth = \_ _ -> x }
-setAttr (LineBlur x)      s = s { lineBlur = \_ _ -> x }
-setAttr (LineColour x)    s = s { lineColour = \_ _ -> x }
-setAttr (VarLineWidth x)     s = s { lineWidth = x }
-setAttr (VarLineBlur x)      s = s { lineBlur = x }
-setAttr (VarLineColour x) s = s { lineColour = x }
-setAttr (FillColour x)    s = s { fillColour = x }
-setAttr (FillBlur x)      s = s { fillBlur = x }
+instance HasAttr Attr CurveStyle where
+  modifyAttr LineWidth     f s = s { lineWidth  = \d r -> f (lineWidth s d r) }
+  modifyAttr LineBlur      f s = s { lineBlur   = \d r -> f (lineBlur s d r) }
+  modifyAttr LineColour    f s = s { lineColour = \d r -> f (lineColour s d r) }
+  modifyAttr VarLineWidth  f s = s { lineWidth  = f $ lineWidth s }
+  modifyAttr VarLineBlur   f s = s { lineBlur   = f $ lineBlur s }
+  modifyAttr VarLineColour f s = s { lineColour = f $ lineColour s }
+  modifyAttr FillColour    f s = s { fillColour = f $ fillColour s }
+  modifyAttr FillBlur      f s = s { fillBlur   = f $ fillBlur s }
+
+instance HasAttr a CurveStyle => HasAttr a Curve where
+  modifyAttr attr f c = c { curveStyle = modifyAttr attr f $ curveStyle c }
 
 defaultCurveStyle =
   CurveStyle { lineWidth  = \_ _ -> 0.0
@@ -49,8 +56,8 @@ defaultCurveStyle =
              , fillColour = transparent
              , fillBlur   = 1.2 }
 
-lineStyle w b c = [LineWidth w, LineBlur b, LineColour c]
-fillStyle b c   = [FillColour c, FillBlur b]
+lineStyle w b c = [LineWidth := w, LineBlur := b, LineColour := c]
+fillStyle b c   = [FillColour := c, FillBlur := b]
 
 instance Transformable Curve where
   transform h (Curve f g t0 t1 s) = Curve (transform h . f) g t0 t1 s

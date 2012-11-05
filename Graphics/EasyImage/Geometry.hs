@@ -5,6 +5,7 @@ import Graphics.EasyImage.Math
 import Graphics.EasyImage.Image
 import Graphics.EasyImage.Curve
 import Graphics.EasyImage.Text
+import Graphics.EasyImage.Attribute
 
 rectangle :: Point -> Point -> Image
 rectangle p q = poly [p, Vec (getX q) (getY p), q, Vec (getX p) (getY q)]
@@ -26,7 +27,7 @@ triangleAA :: Length -> Angle -> Angle -> Image
 triangleAA a α β = triangleA a (a * sin β / sin (α + β)) α
 
 point :: Point -> Image
-point p = curve (const p) 0 1 `with` [LineWidth 0.8]
+point p = curve (const p) 0 1 `with` [LineWidth := 0.8]
 
 regularPoly :: Int -> Image
 regularPoly n | n < 3 = error "regularPoly: n < 3"
