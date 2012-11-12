@@ -66,7 +66,9 @@ curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
 curve f = curve' f (const id)
 
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curve f g t0 t1 defaultCurveStyle
+curve' f g t0 t1 = ICurve $ Curve (f . tr) (g . tr) defaultCurveStyle
+  where
+    tr t = t0 + t * (t1 - t0)
 
 mapCurves :: (Curve -> Curve) -> Image -> Image
 mapCurves f IEmpty          = IEmpty

@@ -49,10 +49,10 @@ main =
     -- circle (Vec 2 2) 3 `with` (gradient red blue 100 ++ [LineWidth 10, LineBlur 5]) -- , FillColour (Colour 0 0 1 0.4), FillBlur 15])
     -- rotate (pi/4) (freezeImage 0 $ scale 20 $ text "Hello World!") `with` [LineWidth 1] <>
     -- text (unlines $ chunks 22 $ sampleText)
-    --   `with` [LineWidth 1, FillColour $ opacity 0.5 blue]
+    --   `with` [LineWidth := 1, FillColour := opacity 0.5 blue]
     -- <>
     -- rectangle (Vec (-0.2) 2.2) (Vec 26 (-17))
-    --   `with` [FillColour $ opacity 0.3 red]
+    --   `with` [FillColour := opacity 0.3 red]
     -- mconcat [ rotate a $ translate (Vec 100 0) $ freeze 0 $ scale 15 $ stringImage [c]
     --         | (freeze, (c, a)) <- zip (cycle [freezeImage, freezeImageSize, freezeImageOrientation, const id]) $ angled ['A'..'Z'] ] <>
     -- (circle 0 10 <> circle 0 11)`with` [LineColour $ Colour 0.7 0.7 0.7 1]
