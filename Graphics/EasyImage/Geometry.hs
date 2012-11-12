@@ -34,7 +34,7 @@ angleArc :: Point -> Point -> Point -> Image
 angleArc p0 p1 p2 = curve' f g 0 1
   where
     f _ = (p0, p1, p2)
-    g t (p0, p1, p2) = p0 + 20 * rot (t * α) (norm (p1 - p0))
+    g t (p0, p1, p2) = p0 + 20 * rotate (t * α) (norm (p1 - p0))
       where
         α = angle (p1 - p0) (p2 - p0)
 
@@ -54,6 +54,6 @@ arrow from to = curve' f g 0 2 <> line from to
            | otherwise -> interpolate to fin2 (t - 1)
       where
         v    = norm (from - to)
-        fin1 = to + 20 * rot (pi/6) v
-        fin2 = to + 20 * rot (-pi/6) v
+        fin1 = to + 20 * rotate (pi/6) v
+        fin2 = to + 20 * rotate (-pi/6) v
 

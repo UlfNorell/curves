@@ -1,5 +1,5 @@
 Name:               easy-image
-Version:            0.1
+Version:            1.0
 Description:        Library for drawing simple pictures
 License:            PublicDomain
 Author:             Ulf Norell
@@ -27,6 +27,7 @@ Library
                     Graphics.EasyImage.Curve
                     Graphics.EasyImage.Image
                     Graphics.EasyImage.Render
+                    Graphics.EasyImage.Tests
   GHC-Options:      -O2 -funbox-strict-fields
 
 

@@ -1,13 +1,27 @@
 
-FLAGS = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror
+FLAGS   = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror
+VERSION = 1.0
+LIB			= dist/build/libHSeasy-image-$(VERSION).a
+hs_files = $(shell find Graphics -name '*.hs')
 
-default :
-	ghc --make Main.hs -o main $(FLAGS) -odir=lib -hidir=lib
+default : examples/main tags
 
-prof :
-	ghc --make Main.hs -prof -auto-all -o main_p $(FLAGS) -odir=lib_p -hidir=lib_p
+examples/main : $(LIB) examples/Main.hs
+	(cd examples; ghc --make Main.hs -o main $(FLAGS) -odir=../lib -hidir=../lib)
 
-.PHONY : tags
+prof : examples/main_p
 
-tags :
-	hTags -c `find . -name '*.hs'`
+examples/main_p : library examples/Main.hs
+	(cd examples; ghc --make Main.hs -prof -auto-all -o main_p $(FLAGS) -odir=../lib_p -hidir=../lib_p)
+
+library : $(LIB)
+
+dist/build/libHSeasy-image-$(VERSION).a : dist/setup-config $(hs_files)
+	cabal build
+	cabal install --reinstall
+
+dist/setup-config : easy-image.cabal
+	cabal configure
+
+tags : $(hs_files)
+	hTags -c $(hs_files)

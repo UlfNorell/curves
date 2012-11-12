@@ -135,24 +135,3 @@ intersectBBTree isect s (Node b l r)
   | intersectBoundingBox s b = intersectBBTree isect s l ++ intersectBBTree isect s r
   | otherwise                = []
 
--- Testing ----------------------------------------------------------------
-
-prop_intersectBBox v u (Positive k) (Positive t) =
-  getY v /= 0 ==>
-  (forAllShrink (chooseDouble (0, 2 * pi))  shrink $ \α ->
-   forAllShrink (chooseDouble (0.01, 0.99)) shrink $ \x ->
-   let pt p = u + Vec k k * rot α p
-       p0 = pt $ Vec 0 0
-       p1 = pt $ Vec 0 1
-       i  = pt $ Vec 0 x
-       q0 = pt $ Vec 0 x - v
-       q1 = pt $ Vec 0 x + (Vec t t * v)
-       l1 = Seg p0 p1
-       l2 = Seg q0 q1
-   in
-    whenFail (putStr $ unlines [ "l1  = " ++ show l1
-                               , "l2  = " ++ show l2
-                               , "i   = " ++ show i ]) $
-      intersectBoundingBox l1 (bounds l2)
-  )
-

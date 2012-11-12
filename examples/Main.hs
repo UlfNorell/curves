@@ -127,6 +127,7 @@ image1 =
 --    * libraries on top
 --      - geometry
 --      - graphs
+--      - charts
 --    * tidier examples
 --    * text
 --      - auto kerning (how?)
