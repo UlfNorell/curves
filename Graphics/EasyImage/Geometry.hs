@@ -26,9 +26,6 @@ triangleA a b α = poly [0, Vec a 0, rotate α $ Vec b 0]
 triangleAA :: Length -> Angle -> Angle -> Image
 triangleAA a α β = triangleA a (a * sin β / sin (α + β)) α
 
-point :: Point -> Image
-point p = curve (const p) 0 1 `with` [LineWidth := 0.8]
-
 regularPoly :: Int -> Image
 regularPoly n | n < 3 = error "regularPoly: n < 3"
 regularPoly n = poly [ rotate (2 * pi * fromIntegral i / fromIntegral n) unitX | i <- [0..n - 1] ]

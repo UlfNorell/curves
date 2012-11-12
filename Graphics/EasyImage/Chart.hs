@@ -4,6 +4,7 @@ module Graphics.EasyImage.Chart where
 import Data.Monoid
 
 import Graphics.EasyImage
+import Graphics.EasyImage.Geometry
 
 barChart :: [Scalar] -> Image
 barChart ys =

@@ -1,18 +1,32 @@
 {-# LANGUAGE DeriveFunctor, TypeSynonymInstances, FlexibleInstances #-}
+{-| Top level blah blah.
+-}
 module Graphics.EasyImage
-  ( module Graphics.EasyImage.Image
+  (
+    module Graphics.EasyImage.Math
   , module Graphics.EasyImage.Colour
-  , module Graphics.EasyImage.Math
-  , module Graphics.EasyImage.Render
-  , module Graphics.EasyImage.Text
-  , module Graphics.EasyImage.Geometry
+    -- * Image
+  , Image
+    -- ** Curves
+  , curve, curve'
+  , point, line, lineStrip, poly, circle, circleSegment
+  , bSpline, bSpline', closedBSpline
+  , reverseImage
+  , (+++), (<++), (++>)
+  , freezeImageSize, freezeImageOrientation, freezeImage
+    -- ** Combining images
+  , BlendFunc
+  , combine
+  , unionBlend, intersectBlend, diffBlend
+  , (<>)
+  , (><), (<->)
+    -- * Image attributes
   , module Graphics.EasyImage.Attribute
   , module Graphics.EasyImage.Style
-  , autoFit
   , Attr(..)
-  , Basis(..)
-  , lineStyle
-  , ImageElement(..)
+    -- * Rendering
+  , autoFit
+  , renderImage
   )
   where
 
@@ -23,8 +37,6 @@ import Graphics.EasyImage.Image
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Render
 import Graphics.EasyImage.Compile
-import Graphics.EasyImage.Text
-import Graphics.EasyImage.Geometry
 import Graphics.EasyImage.Attribute
 import Graphics.EasyImage.Style
 
@@ -63,3 +75,4 @@ instance ImageElement Segment where
 
 instance ImageElement Vec where
   render = point
+

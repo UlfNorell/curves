@@ -7,6 +7,8 @@ import Data.Monoid
 
 import Graphics.EasyImage
 import Graphics.EasyImage.Chart
+import Graphics.EasyImage.Text
+import Graphics.EasyImage.Geometry
 import Debug.Trace
 
 circle' :: Point -> Scalar -> Image

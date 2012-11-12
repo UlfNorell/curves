@@ -183,6 +183,7 @@ interpolate p q t = p + diag t * (q - p)
 data Basis = Basis { origin, xUnit, yUnit :: Point }
   deriving (Show, Eq, Ord)
 
+defaultBasis :: Basis
 defaultBasis = Basis 0 (Vec 1 0) (Vec 0 1)
 
 instance Transformable Basis where

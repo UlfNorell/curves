@@ -7,3 +7,7 @@ default :
 prof :
 	ghc --make Main.hs -prof -auto-all -o main_p $(FLAGS) -odir=lib_p -hidir=lib_p
 
+.PHONY : tags
+
+tags :
+	hTags -c `find . -name '*.hs'`

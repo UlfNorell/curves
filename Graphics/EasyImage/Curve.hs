@@ -56,9 +56,6 @@ defaultCurveStyle =
              , fillColour = transparent
              , fillBlur   = 1.2 }
 
-lineStyle w b c = [LineWidth := w, LineBlur := b, LineColour := c]
-fillStyle b c   = [FillColour := c, FillBlur := b]
-
 instance Transformable Curve where
   transform h (Curve f g t0 t1 s) = Curve (transform h . f) g t0 t1 s
 

@@ -1,12 +1,23 @@
 {-# LANGUAGE MultiWayIf #-}
 module Graphics.EasyImage.Style where
 
+import Graphics.EasyImage.Math
+import Graphics.EasyImage.Image
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Curve
 import Graphics.EasyImage.Attribute
 
+type Style = [Assignment Image]
+
+lineStyle :: Scalar -> Scalar -> Colour -> Style
+lineStyle w b c = [LineWidth := w, LineBlur := b, LineColour := c]
+
+fillStyle :: Scalar -> Colour -> Style
+fillStyle b c   = [FillColour := c, FillBlur := b]
+
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
+gradient :: Colour -> Colour -> Scalar -> Style
 gradient c1 c2 a =
   [VarLineColour := \d _ ->
     case modDouble d (2 * a) of
@@ -14,6 +25,7 @@ gradient c1 c2 a =
         | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
   ]
 
+dashedOpen :: Scalar -> Scalar -> Style
 dashedOpen a b =
   [VarLineColour :~ \old d r ->
     if | r == 0    -> old d r
@@ -28,6 +40,7 @@ dashedOpen a b =
             | otherwise -> transparent
   ]
 
+dashedClosed :: Scalar -> Scalar -> Style
 dashedClosed a b =
   [VarLineColour :~ \old d r ->
     if | r == 0    -> old d r
@@ -42,6 +55,7 @@ dashedClosed a b =
             | otherwise -> transparent
   ]
 
+dashed :: Scalar -> Scalar -> Style
 dashed a b =
   [VarLineColour :~ \old d r ->
     case modDouble d (a + b) of

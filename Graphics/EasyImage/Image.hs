@@ -15,33 +15,28 @@ import Graphics.EasyImage.Curve
 import Graphics.EasyImage.BoundingBox
 import Graphics.EasyImage.Attribute
 
--- Two representations:
---  - curve representation
---  - segments representation
---
--- Work with curve representation until just before rasterization. Then compile
--- to segment representation.
-
 type Op a = a -> a -> a
 
--- TODO: - explicit transformation matrices (for effiecency?)
+-- TODO: - explicit transformation matrices (for efficiency?)
 data Image = ICurve Curve
            | Combine (Op (Maybe Colour)) Image Image
            | IEmpty
 
 -- Image operations -------------------------------------------------------
 
-unionBlend :: Op (Maybe Colour)
+type BlendFunc = Maybe Colour -> Maybe Colour -> Maybe Colour
+
+unionBlend :: BlendFunc
 unionBlend c Nothing = c
 unionBlend Nothing c = c
 unionBlend (Just c1) (Just c2) = visible $ blend c1 c2
 
-intersectBlend :: Op (Maybe Colour)
+intersectBlend :: BlendFunc
 intersectBlend c Nothing = Nothing
 intersectBlend Nothing c = Nothing
 intersectBlend (Just c1) (Just c2) = visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
-diffBlend :: Op (Maybe Colour)
+diffBlend :: BlendFunc
 diffBlend c (Just c') = visible . transparency (1 - getAlpha c') =<< c
 diffBlend c Nothing   = c
 
@@ -49,16 +44,22 @@ instance Monoid Image where
   mempty      = IEmpty
   mappend a b = Combine unionBlend a b
 
-combine :: Op (Maybe Colour) -> Op Image
+combine :: BlendFunc -> Image -> Image -> Image
 combine f a b = Combine f a b
 
 infixr 6 ><
 infixl 7 <->
 
-(><) :: Op Image
+-- | The intersection of two images.
+--
+-- > (><) = combine intersectBlend
+(><) :: Image -> Image -> Image
 a >< b = combine intersectBlend a b
 
-(<->) :: Op Image
+-- | Subtract the second image from the first.
+--
+-- > (<->) = combine diffBlend
+(<->) :: Image -> Image -> Image
 a <-> b = combine diffBlend a b
 
 curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
@@ -81,7 +82,7 @@ freezeImageSize p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = False }
 
--- | Freeze both image orientation
+-- | Freeze image orientation
 freezeImageOrientation :: Point -> Image -> Image
 freezeImageOrientation p = mapCurves (freezeCurve fr p)
   where
@@ -93,7 +94,7 @@ freezeImage p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
-instance HasAttr a Curve => HasAttr a Image where
+instance HasAttr Attr Image where
   modifyAttr attr f = mapCurves (modifyAttr attr f)
 
 instance Transformable Image where
@@ -120,6 +121,9 @@ Combine b i j ++> p = Combine b i (j ++> p)
 
 line :: Point -> Point -> Image
 line p q = curve (interpolate p q) 0 1
+
+point :: Point -> Image
+point p = curve (const p) 0 1
 
 circle :: Point -> Scalar -> Image
 circle p r = circleSegment p r 0 (2 * pi)
