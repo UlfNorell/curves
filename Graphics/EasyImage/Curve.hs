@@ -99,6 +99,11 @@ instance (Transformable a, Transformable b) => Transformable (Join a b) where
   transform f (Gap p q)      = Gap (transform f p) (transform f q)
   transform f (SecondPart b) = SecondPart $ transform f b
 
+bindCurve :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Curve) -> Curve
+bindCurve f g = Curve f g' defaultCurveStyle
+  where
+    g' t x = case g t x of Curve i j _ -> j t (i t)
+
 joinCurve :: Curve -> Curve -> Curve
 joinCurve (Curve f f' s) (Curve g g' _) =
     Curve (\ t ->

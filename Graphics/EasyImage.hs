@@ -26,6 +26,7 @@ module Graphics.EasyImage
     -- * Rendering
   , autoFit
   , renderImage
+  , ImageElement(..)
   )
   where
 
