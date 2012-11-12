@@ -27,8 +27,8 @@ data Image = ICurve Curve
 type BlendFunc = Maybe Colour -> Maybe Colour -> Maybe Colour
 
 unionBlend :: BlendFunc
-unionBlend c Nothing = c
-unionBlend Nothing c = c
+unionBlend c Nothing = visible =<< c
+unionBlend Nothing c = visible =<< c
 unionBlend (Just c1) (Just c2) = visible $ blend c1 c2
 
 intersectBlend :: BlendFunc
@@ -38,7 +38,7 @@ intersectBlend (Just c1) (Just c2) = visible $ setAlpha (getAlpha c2 * getAlpha 
 
 diffBlend :: BlendFunc
 diffBlend c (Just c') = visible . opacity (1 - getAlpha c') =<< c
-diffBlend c Nothing   = c
+diffBlend c Nothing   = visible =<< c
 
 instance Monoid Image where
   mempty      = IEmpty
