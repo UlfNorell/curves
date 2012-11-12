@@ -81,7 +81,9 @@ main =
     --   , let i = line (-1) 1 `with` [LineBlur 20, LineColour $ Colour 0.6 0.6 1 1]
     --     in i <> rotate (pi/2) i
     --   ]
-    barChart (map fromIntegral [25,24..1])
+    -- barChart (map fromIntegral [25,24..1])
+    line (-unitX) unitX `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50)
+    <> circle 0 1 `with` ([LineWidth := 4] ++ gradient red blue 50 ++ dashedClosed 250 10)
   where
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
@@ -108,22 +110,6 @@ chunks n xs = ys : chunks n zs
   where
     (ys, zs) = splitAt n xs
 
-modDouble a b = a - b * fromIntegral (floor (a / b))
-
-gradient c1 c2 a =
-  [VarLineColour := \d _ ->
-    case modDouble d (2 * a) of
-      x | x <= a    -> blend (setAlpha (x / a) c2) c1
-        | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
-  ]
-
-dashed c a b =
-  [VarLineColour := \d _ ->
-    case modDouble d (a + b) of
-      x | x <= a    -> c
-        | otherwise -> transparent
-  ]
-
 image1 =
     rotateAround (Vec 400 325) (pi/6) (ellipse (Vec 400 300) 400 350) <>
     translate (Vec 250 300) (scale 200 $ circle (Vec 0 0) 1) <> point (Vec 250 300) <>
@@ -136,7 +122,6 @@ image1 =
 
 -- TODO
 --    * Clean up interfaces, add Haddock comments
---    * wx-style attributes (:=, :~)
 --    * libraries on top
 --      - geometry
 --      - graphs
@@ -145,4 +130,5 @@ image1 =
 --      - auto kerning (how?)
 --      - formulas (fractions, sub/superscript etc)
 --    * 3D
+--      - shading would require parameterized fill colour
 --  BUGS

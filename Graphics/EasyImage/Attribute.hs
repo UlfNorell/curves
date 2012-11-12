@@ -11,10 +11,10 @@ class HasAttr f a where
 setAttr :: HasAttr f a => f b -> b -> a -> a
 setAttr t x = modifyAttr t (const x)
 
-assign :: a -> [Assignment a] -> a
-assign x as = foldl assn x as
+with :: a -> [Assignment a] -> a
+with x as = foldl assign x as
   where
-    assn :: a -> Assignment a -> a
-    assn a (t := x) = setAttr t x a
-    assn a (t :~ f) = modifyAttr t f a
+    assign :: a -> Assignment a -> a
+    assign a (t := x) = setAttr t x a
+    assign a (t :~ f) = modifyAttr t f a
 

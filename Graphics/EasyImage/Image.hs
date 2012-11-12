@@ -96,13 +96,6 @@ freezeImage p = mapCurves (freezeCurve fr p)
 instance HasAttr a Curve => HasAttr a Image where
   modifyAttr attr f = mapCurves (modifyAttr attr f)
 
-with :: Image -> [Assignment Image] -> Image
-with i as = assign i as
-  -- onStyle i $ foldr (.) id $ map setAttr as
-  -- where
-  --   onStyle :: Image -> (CurveStyle -> CurveStyle) -> Image
-  --   onStyle i f = mapCurves (\c -> c { curveStyle = f $ curveStyle c }) i
-
 instance Transformable Image where
   transform f = mapCurves (transform f)
 
