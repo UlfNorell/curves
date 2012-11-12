@@ -84,8 +84,12 @@ main =
     --     in i <> rotate (pi/2) i
     --   ]
     -- barChart (map fromIntegral [25,24..1])
-    line (-unitX) unitX `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50)
-    <> circle 0 1 `with` ([LineWidth := 4] ++ gradient red blue 50 ++ dashedClosed 250 10)
+    -- line (-unitX) unitX `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50)
+    circle 0 1 `with` ([LineWidth := 4] ++ gradient red blue 50 ++ dashedClosed 250 10) <>
+    (mconcat [ line p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
+      `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50) <>
+    (foldr1 (+++) [ fractal 1 p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
+      `with` [FillColour := opacity 0.3 blue, LineColour := transparent, FillBlur := 2.2, LineBlur := 0.8]
   where
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
