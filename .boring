@@ -4,3 +4,4 @@ dist$
 \.(swp|swo)$
 ^examples/(main|main_p)$
 ^(lib|lib_p|main_p\.prof)$
+^tags$
