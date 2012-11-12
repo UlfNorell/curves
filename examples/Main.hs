@@ -126,6 +126,32 @@ image1 =
   where
     f x = sin x + 0.5 * sin (3 * x)
 
+fractal res p q = fractal' res $
+  interpolate p q
+  -- \t -> rotateAround c (-t * pi) p
+  -- \t -> p + coord t (sin (t * 2 * pi) / 5)
+  where
+    xAxis = q - p
+    yAxis = rot90 xAxis
+    coord x y = diag x * xAxis + diag y * yAxis
+    c = (p + q) / 2
+    r = distance p q / 2
+
+fractal' res f = curve' (const f) frac 0 1
+  where
+    r = res^2
+    frac t f
+      | squareDistance p q <= r = f t
+      | t <= 0.25 = frac (4 * t - 0) $ \t -> f (t / 3)
+      | t <= 0.50 = frac (4 * t - 1) $ \t -> rotateAround p'  (pi/3) $ f ((t + 1) / 3)
+      | t <= 0.75 = frac (4 * t - 2) $ \t -> rotateAround q' (-pi/3) $ f ((t + 1) / 3)
+      | otherwise = frac (4 * t - 3) $ \t -> f ((t + 2) / 3)
+      where
+        p  = f 0
+        q  = f 1
+        p' = f (1/3)
+        q' = f (2/3)
+
 -- TODO
 --    * Clean up interfaces, add Haddock comments
 --    * libraries on top
