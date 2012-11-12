@@ -1,20 +1,29 @@
-{-# LANGUAGE GADTs, MultiParamTypeClasses #-}
+{-# LANGUAGE ExistentialQuantification, MultiParamTypeClasses #-}
+{-| Write-only attributes.
+ -}
 module Graphics.EasyImage.Attribute where
 
-data Assignment a where
-  (:=) :: HasAttr f a => f b -> b -> Assignment a
-  (:~) :: HasAttr f a => f b -> (b -> b) -> Assignment a
+-- | Representation of an attribute update for an element of type @a@.
+data Assignment a
+    -- | Set an attribute
+  = forall f b. HasAttribute f a => f b := b
+    -- | Modify an attribute
+  | forall f b. HasAttribute f a => f b :~ (b -> b)
 
-class HasAttr f a where
-  modifyAttr :: f b -> (b -> b) -> a -> a
+-- | The type constructor @f@ is such that @f b@ is the type of names of
+--   attributes of @a@ of type @b@.
+class HasAttribute f a where
+  modifyAttribute :: f b -> (b -> b) -> a -> a
 
-setAttr :: HasAttr f a => f b -> b -> a -> a
-setAttr t x = modifyAttr t (const x)
+setAttribute :: HasAttribute f a => f b -> b -> a -> a
+setAttribute t x = modifyAttribute t (const x)
 
+-- | Apply a sequence of attribute assignments to an object (applied
+--   left-to-right).
 with :: a -> [Assignment a] -> a
 with x as = foldl assign x as
   where
     assign :: a -> Assignment a -> a
-    assign a (t := x) = setAttr t x a
-    assign a (t :~ f) = modifyAttr t f a
+    assign a (t := x) = setAttribute t x a
+    assign a (t :~ f) = modifyAttribute t f a
 

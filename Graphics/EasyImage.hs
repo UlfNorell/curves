@@ -23,7 +23,6 @@ module Graphics.EasyImage
     -- * Image attributes
   , module Graphics.EasyImage.Attribute
   , module Graphics.EasyImage.Style
-  , Attr(..)
     -- * Rendering
   , autoFit
   , renderImage

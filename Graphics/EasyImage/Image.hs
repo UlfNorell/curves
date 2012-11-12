@@ -37,7 +37,7 @@ intersectBlend Nothing c = Nothing
 intersectBlend (Just c1) (Just c2) = visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
 diffBlend :: BlendFunc
-diffBlend c (Just c') = visible . transparency (1 - getAlpha c') =<< c
+diffBlend c (Just c') = visible . opacity (1 - getAlpha c') =<< c
 diffBlend c Nothing   = c
 
 instance Monoid Image where
@@ -94,8 +94,8 @@ freezeImage p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
-instance HasAttr Attr Image where
-  modifyAttr attr f = mapCurves (modifyAttr attr f)
+instance HasAttribute CurveAttribute Image where
+  modifyAttribute attr f = mapCurves (modifyAttribute attr f)
 
 instance Transformable Image where
   transform f = mapCurves (transform f)

@@ -27,22 +27,24 @@ sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(V
         let b = fillBlur
         d <- distanceAtMost b s p
         guard (d < b)
-        return $ transparency (1 - d/b) fillColour
-    Just (α, c) -> Just $ transparency (getAlpha c) $ addFill (getAlpha c) $ setAlpha α c
+        return $ opacity (1 - d/b) fillColour
+    Just (α, c) -> Just $ opacity (getAlpha c) $ addFill (getAlpha c) $ setAlpha α c
   where
     isZero x = round (255 * x) == 0
     isLine = do
-      (d, seg) <- distanceAtMost' (b + w) s p
+      let inner = w/2
+          outer = inner + b
+      (d, seg) <- distanceAtMost' outer s p
       let LineStyle c w b = annotation seg
-          α | d <= w    = 1
-            | d > w + b = 0
-            | otherwise = 1 - (d - w) / b
+          α | d <= inner = 1
+            | d >  outer = 0
+            | otherwise  = 1 - (d - inner) / b
       guard $ α > 0
       guard $ not $ isZero (getAlpha c)
       return (α, c)
 
     hasFill = not $ isZero $ getAlpha fillColour
-    addFill α' c = maybe c (blend c . transparency (1/α')) fill
+    addFill α' c = maybe c (blend c . opacity (1/α')) fill
     fill | hasFill && odd (length ps) = Just fillColour
          | otherwise                  = Nothing
       where
@@ -65,6 +67,11 @@ sampleImage (CIUnion blend b l r) p
   | otherwise            = blend (sampleImage l p) (sampleImage r p)
 
 type Pixel = Codec.PixelRGBA8
+
+toRGBA :: Colour -> Codec.PixelRGBA8
+toRGBA (Colour r g b a) = Codec.PixelRGBA8 (f r) (f g) (f b) (f a)
+  where
+    f x = round (255 * x)
 
 renderCompiledImage :: Int -> Int -> Colour -> CompiledImage -> Codec.Image Pixel
 renderCompiledImage w h bg0 i =

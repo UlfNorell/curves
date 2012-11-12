@@ -26,28 +26,38 @@ data CurveStyle = CurveStyle
       , fillBlur   :: Scalar
       }
 
-data Attr :: * -> * where
-  LineWidth     :: Attr Scalar
-  LineBlur      :: Attr Scalar
-  LineColour    :: Attr Colour
-  VarLineWidth  :: Attr (Scalar -> Scalar -> Scalar)
-  VarLineBlur   :: Attr (Scalar -> Scalar -> Scalar)
-  VarLineColour :: Attr (Scalar -> Scalar -> Colour)
-  FillBlur      :: Attr Scalar
-  FillColour    :: Attr Colour
+-- | Style attributes of a curve. The line width is with width in pixels of the
+-- solid part of the curve. Outside the line width the curve fades to
+-- full transparency in a band whose width is determined by the line blur
+-- attribute.  All line attributes can be parameterized by the absolute (in
+-- pixels) and relative distance from the start of the curve.
+--
+-- Closed curves can be filled using a fill colour ('transparent' for no fill).
+-- The fill blur is the width of the band outside the curve in which the fill
+-- colour fades to full transparency. Setting the fill colour of a non-closed
+-- curve results in unspecified behaviour.
+data CurveAttribute :: * -> * where
+  LineWidth     :: CurveAttribute Scalar
+  LineBlur      :: CurveAttribute Scalar
+  LineColour    :: CurveAttribute Colour
+  VarLineWidth  :: CurveAttribute (Scalar -> Scalar -> Scalar)
+  VarLineBlur   :: CurveAttribute (Scalar -> Scalar -> Scalar)
+  VarLineColour :: CurveAttribute (Scalar -> Scalar -> Colour)
+  FillBlur      :: CurveAttribute Scalar
+  FillColour    :: CurveAttribute Colour
 
-instance HasAttr Attr CurveStyle where
-  modifyAttr LineWidth     f s = s { lineWidth  = \d r -> f (lineWidth s d r) }
-  modifyAttr LineBlur      f s = s { lineBlur   = \d r -> f (lineBlur s d r) }
-  modifyAttr LineColour    f s = s { lineColour = \d r -> f (lineColour s d r) }
-  modifyAttr VarLineWidth  f s = s { lineWidth  = f $ lineWidth s }
-  modifyAttr VarLineBlur   f s = s { lineBlur   = f $ lineBlur s }
-  modifyAttr VarLineColour f s = s { lineColour = f $ lineColour s }
-  modifyAttr FillColour    f s = s { fillColour = f $ fillColour s }
-  modifyAttr FillBlur      f s = s { fillBlur   = f $ fillBlur s }
+instance HasAttribute CurveAttribute CurveStyle where
+  modifyAttribute LineWidth     f s = s { lineWidth  = \d r -> f (lineWidth s d r) }
+  modifyAttribute LineBlur      f s = s { lineBlur   = \d r -> f (lineBlur s d r) }
+  modifyAttribute LineColour    f s = s { lineColour = \d r -> f (lineColour s d r) }
+  modifyAttribute VarLineWidth  f s = s { lineWidth  = f $ lineWidth s }
+  modifyAttribute VarLineBlur   f s = s { lineBlur   = f $ lineBlur s }
+  modifyAttribute VarLineColour f s = s { lineColour = f $ lineColour s }
+  modifyAttribute FillColour    f s = s { fillColour = f $ fillColour s }
+  modifyAttribute FillBlur      f s = s { fillBlur   = f $ fillBlur s }
 
-instance HasAttr a CurveStyle => HasAttr a Curve where
-  modifyAttr attr f c = c { curveStyle = modifyAttr attr f $ curveStyle c }
+instance HasAttribute a CurveStyle => HasAttribute a Curve where
+  modifyAttribute attr f c = c { curveStyle = modifyAttribute attr f $ curveStyle c }
 
 defaultCurveStyle =
   CurveStyle { lineWidth  = \_ _ -> 0.0
