@@ -154,6 +154,7 @@ fractal' res f = curve' (const f) frac 0 1
 
 -- TODO
 --    * Clean up interfaces, add Haddock comments
+--    * Make it compile with ghc-7.0 (also 6.12?)
 --    * libraries on top
 --      - geometry
 --      - graphs
@@ -163,10 +164,13 @@ fractal' res f = curve' (const f) frac 0 1
 --    * more curve combinators
 --      - zipCurves
 --      - differentiate
+--    * brush style
+--    * function to compute the bounding box of an image
 --    * tidier examples
 --    * text
 --      - auto kerning (how?)
 --      - formulas (fractions, sub/superscript etc)
+--      - make it not use internal stuff (compileImage)
 --    * 3D
 --      - shading would require parameterized fill colour
 --  BUGS

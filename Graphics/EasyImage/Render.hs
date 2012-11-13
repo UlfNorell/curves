@@ -85,6 +85,14 @@ renderCompiledImage w h bg0 i =
 saveImage :: FilePath -> Codec.Image Codec.PixelRGBA8 -> IO ()
 saveImage file img = B.writeFile file (Codec.encodePng img)
 
-renderImage :: FilePath -> Int -> Int -> Colour -> Image -> IO ()
+-- | Render an image as a PNG file with a 1-bit alpha channel. Semi-transparent
+--   pixels in the image are blended with the given background colour to
+--   produce opaque pixels.
+renderImage :: FilePath -- ^ File in which to store the image
+            -> Int      -- ^ Image width
+            -> Int      -- ^ Image height
+            -> Colour   -- ^ Background colour
+            -> Image    -- ^ Image to render
+            -> IO ()
 renderImage file w h bg i = saveImage file $ renderCompiledImage w h bg $ compileImage i
 

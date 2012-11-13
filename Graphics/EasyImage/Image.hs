@@ -18,32 +18,45 @@ import Graphics.EasyImage.Attribute
 type Op a = a -> a -> a
 
 -- TODO: - explicit transformation matrices (for efficiency?)
+-- | The image type.
 data Image = ICurve Curve
            | Combine (Op (Maybe Colour)) Image Image
            | IEmpty
 
 -- Image operations -------------------------------------------------------
 
+-- | A blend function is used to compute the resulting colour when 'combine'ing
+--   two images.
 type BlendFunc = Maybe Colour -> Maybe Colour -> Maybe Colour
 
+-- | Alpha 'blend' the first colour on top of the second colour.
 unionBlend :: BlendFunc
-unionBlend c Nothing = visible =<< c
-unionBlend Nothing c = visible =<< c
-unionBlend (Just c1) (Just c2) = visible $ blend c1 c2
+unionBlend c1 c2 = case (visible =<< c1, visible =<< c2) of
+  (Nothing, c)       -> c
+  (c, Nothing)       -> c
+  (Just c1, Just c2) -> visible (blend c1 c2)
 
+-- | The alpha value of the result is the product of the alpha values of the
+--   two inputs.
 intersectBlend :: BlendFunc
-intersectBlend c Nothing = Nothing
-intersectBlend Nothing c = Nothing
-intersectBlend (Just c1) (Just c2) = visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
+intersectBlend c1 c2 = case (visible =<< c1, visible =<< c2) of
+  (_, Nothing)       -> Nothing
+  (Nothing, _)       -> Nothing
+  (Just c1, Just c2) -> visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
+-- | Multiplies the alpha value of the first colour by 1 - the alpha value of
+--   the second colour.
 diffBlend :: BlendFunc
-diffBlend c (Just c') = visible . opacity (1 - getAlpha c') =<< c
-diffBlend c Nothing   = visible =<< c
+diffBlend c c' = case visible =<< c' of
+  Nothing -> visible =<< c
+  Just c' -> visible . opacity (1 - getAlpha c') =<< c
 
+-- | 'mappend' = 'combine' 'unionBlend'
 instance Monoid Image where
   mempty      = IEmpty
   mappend a b = Combine unionBlend a b
 
+-- | Combine two images using the specified blend function.
 combine :: BlendFunc -> Image -> Image -> Image
 combine f a b = Combine f a b
 
@@ -62,9 +75,28 @@ a >< b = combine intersectBlend a b
 (<->) :: Image -> Image -> Image
 a <-> b = combine diffBlend a b
 
+-- | A simple curve whose points are given by the function argument. The second
+--   and third arguments specify the range of the function. The function must
+--   be continuous on this interval.
+--
+--   For example, a straight line between points @p@ and @q@ can be implemented as
+--
+--   @curve (\\t -> p + 'diag' t * (q - p)) 0 1@
 curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
 curve f = curve' f (const id)
 
+-- | The most general form of curve. The curve function is split in two, one
+--   function from the parameter to an arbitrary 'Transformable' object, and a
+--   second function from this object (and the parameter value) to a point on
+--   the curve. The power of this combinator comes from the fact that
+--   transformations (e.g. 'translate', 'scale', 'rotate') of the curve apply
+--   only to the (result of the) first function. This means that the points
+--   computed by the second function are measured in pixels of the final image.
+--
+--   For an example, see the 'Graphics.EasyImage.Geometry.arrow' combinator,
+--   which uses a line 'Segment' as the intermediate type and computes the
+--   arrow head in the second function, to ensure that the arrow head has the
+--   same dimensions regardless of how the arrow is scaled.
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
 curve' f g t0 t1 = ICurve $ Curve (f . tr) (g . tr) defaultCurveStyle
   where
@@ -75,22 +107,37 @@ mapCurves f IEmpty          = IEmpty
 mapCurves f (ICurve c)      = ICurve (f c)
 mapCurves f (Combine b i j) = Combine b (mapCurves f i) (mapCurves f j)
 
+-- | Reverse the direction of all curves in an image. Useful in conjunction
+--   with '+++'.
 reverseImage :: Image -> Image
 reverseImage = mapCurves reverseCurve
 
--- | Freeze the size of an image.
+-- | Freeze the size of an image around the given point. Scaling the image will
+--   only affect the position of the image, not the size. Translation and
+--   rotation affect the image normally.
+--
+--   @'scaleFrom' p ('diag' k) (freezeImageSize p i) == freezeImageSize p i@
+--
+--   Scaling with non-uniform scale factors will still distort the image,
+--   however.
 freezeImageSize :: Point -> Image -> Image
 freezeImageSize p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = False }
 
--- | Freeze image orientation
+-- | Freeze image orientation. Rotations of the image will only affect the
+--   position of the image, not its orientation. Translation and scaling
+--   affect the image normally.
+--
+--   @'rotateAround' p a (freezeImageOrientation p i) == freezeImageOrientation p i@
 freezeImageOrientation :: Point -> Image -> Image
 freezeImageOrientation p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = False, freezeOrientation = True }
 
--- | Freeze both size and orientation
+-- | Freeze both the size and the orientation of an image.
+--
+-- @freezeImage p i == 'freezeImageSize' p i ('freezeImageOrientation' p i)@
 freezeImage :: Point -> Image -> Image
 freezeImage p = mapCurves (freezeCurve fr p)
   where
@@ -104,46 +151,76 @@ instance Transformable Image where
 
 infixl 8 ++>
 infixr 7 +++, <++
-(+++) :: Image -> Image -> Image
-ICurve c1 +++ ICurve c2 = ICurve $ joinCurve c1 c2
-i +++ IEmpty = i
-IEmpty +++ i = i
-Combine f i j +++ c = Combine f i (j +++ c)
-c +++ Combine f i j = Combine f (c +++ i) j
 
+-- | Join the right-most curve of the first image to the left-most curve of the
+--   second image. The 'Graphics.EasyImage.Style.Style' is inherited from the
+--   curve of the first image. If the end point of the first curve does not
+--   coincide with the starting point of the second curve a straight line is
+--   added to connect the two. This combinator is useful when using
+--   parameterized line styles (such as 'Graphics.EasyImage.Style.dashed').
+(+++) :: Image -> Image -> Image
+ICurve c1     +++ ICurve c2     = ICurve $ joinCurve c1 c2
+i             +++ IEmpty        = i
+IEmpty        +++ i             = i
+Combine f i j +++ c             = Combine f i (j +++ c)
+c             +++ Combine f i j = Combine f (c +++ i) j
+
+-- | Prepend a point to the left-most curve of an image. @p <++ i@ is equivalent
+--   to (but more efficient than) @'line' p q '+++' i@ if @q@ is the starting
+--   point of the left-most curve of @i@.
 (<++) :: Point -> Image -> Image
 p <++ ICurve c      = ICurve $ prependPoint p c
 p <++ Combine b i j = Combine b (p <++ i) j
-_ <++ IEmpty        = error "_ <++ mempty"
+p <++ IEmpty        = point p
 
+-- | Append a point to the right-most curve of an image. @i ++> p@ is
+--   equivalent to (but more efficient than) @i +++ 'line' q p@ if @q@ is the
+--   end point of the right-most curve of @i@.
 (++>) :: Image -> Point -> Image
 ICurve c      ++> p = ICurve $ appendPoint c p
-IEmpty        ++> _ = error "mempty ++> _"
+IEmpty        ++> p = point p
 Combine b i j ++> p = Combine b i (j ++> p)
 
+-- | A straight line between two points.
 line :: Point -> Point -> Image
 line p q = curve (interpolate p q) 0 1
 
+-- | A single point.
 point :: Point -> Image
 point p = curve (const p) 0 1
 
+-- | A circle given by its center and radius.
 circle :: Point -> Scalar -> Image
 circle p r = circleSegment p r 0 (2 * pi)
 
+-- | A circle segment. The third and fourth arguments are the start and end
+--   angle of the segment. If the start angle is bigger than the end angle it's
+--   the clockwise segment, otherwise the counterclockwise segment. For instance,
+--   @circleSegment 0 1 0 pi@ is the top half circle starting in 'unitX' and
+--   ending in @-'unitX'@, whereas @circleSegment 0 1 0 (-pi)@ is the bottow
+--   half circle with the same start and end points.
 circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
+circleSegment c r a b | b < a = reverseImage $ circleSegment c r b a
 circleSegment (Vec x y) r a b =
   curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
 
+-- | A connected sequence of straight lines. The list must have at least two
+--   elements.
 lineStrip :: [Point] -> Image
 lineStrip (p:q:ps) = foldl (++>) (line p q) ps
 lineStrip _ = error "lineStrip: list too short"
 
+-- | A polygon.
+--
+-- > poly ps = lineStrip (ps ++ [head ps])
 poly :: [Point] -> Image
 poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
 poly [] = error "poly: []"
 
 -- B-Splines --------------------------------------------------------------
 
+-- | A <http://en.wikipedia.org/wiki/B-spline#Uniform_cubic_B-splines uniform cubic B-spline>
+--   with the given control points.
 bSpline :: [Point] -> Image
 bSpline ps = foldl1 (+++) $ map seg (takeWhile ((>=4).length) $ map (take 4) (tails ps))
   where
@@ -156,9 +233,15 @@ bSpline ps = foldl1 (+++) $ map seg (takeWhile ((>=4).length) $ map (take 4) (ta
       where
         f t = vmul (coefs t) ps
 
+-- | A closed B-spline.
+--
+-- > closedBSpline ps = bSpline (ps ++ take 3 ps)
 closedBSpline :: [Point] -> Image
 closedBSpline ps = bSpline $ ps ++ take 3 ps
 
+-- | A B-spline which starts in the first control point and ends in the last
+-- control point. This is achieved by adding two extra copies of the first and
+-- last points.
 bSpline' (p:ps) = bSpline $ p:p:p:ps ++ replicate 2 (last (p:ps))
 bSpline' [] = error "bSpline': empty list"
 

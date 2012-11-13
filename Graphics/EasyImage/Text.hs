@@ -1,5 +1,8 @@
 {-# LANGUAGE BangPatterns #-}
-module Graphics.EasyImage.Text where
+module Graphics.EasyImage.Text
+  ( Alignment(..)
+  , stringImage, stringImage', label
+  ) where
 
 import Data.Monoid
 

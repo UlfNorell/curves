@@ -1,5 +1,8 @@
 {-# LANGUAGE DeriveFunctor, TypeSynonymInstances, FlexibleInstances #-}
-{-| Top level blah blah.
+{-| EasyImage provides an easy to use library for creating images. The basic
+    primitive is a curve, which, in the simplest case, is a continuous function
+    from a 'Scalar' parameter to a 2-dimensional 'Point' on the 'curve'. Images
+    are rendered ('renderImage') as PNG images.
 -}
 module Graphics.EasyImage
   (
@@ -21,12 +24,12 @@ module Graphics.EasyImage
   , (<>)
   , (><), (<->)
     -- * Image attributes
+    -- | Image attributes control things like the colour and width of curves.
   , module Graphics.EasyImage.Attribute
   , module Graphics.EasyImage.Style
     -- * Rendering
   , autoFit
   , renderImage
-  , ImageElement(..)
   )
   where
 
@@ -40,6 +43,8 @@ import Graphics.EasyImage.Compile
 import Graphics.EasyImage.Attribute
 import Graphics.EasyImage.Style
 
+-- | Scale the an image to fit inside the the box given by the two points
+--   (bottom-left and top-right corners).
 autoFit :: Point -> Point -> Image -> Image
 autoFit p q = loop
   where
@@ -65,14 +70,14 @@ autoFit' p0 p1 i =
 -- ImageElement -----------------------------------------------------------
 
 class Transformable a => ImageElement a where
-  render :: a -> Image
+  toImage :: a -> Image
 
 instance ImageElement Image where
-  render = id
+  toImage = id
 
 instance ImageElement Segment where
-  render (Seg p q) = line p q
+  toImage (Seg p q) = line p q
 
 instance ImageElement Vec where
-  render = point
+  toImage = point
 
