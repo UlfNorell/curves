@@ -52,8 +52,8 @@ dashedOpen a b =
 
 -- | A dashed line style. The first argument is the approximate length (in
 --   pixels) of the dashes and the second argument of the gaps. The lengths are
---   adjusted to make the curve always end in a gap so that there's a smooth
---   transition where the end of the curve meets the start for closed curves.
+--   adjusted to make the curve always end in a gap so closed curves have a
+--   smooth transition where the end of the curve meets the start.
 dashedClosed :: Scalar -> Scalar -> Style
 dashedClosed a b =
   dashed a b ++

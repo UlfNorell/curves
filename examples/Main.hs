@@ -89,7 +89,7 @@ main =
     (mconcat [ line p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
       `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50) <>
     (foldr1 (+++) [ fractal 1 p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
-      `with` [FillColour := opacity 0.3 blue, LineColour := transparent, FillBlur := 2.2, LineBlur := 0.8]
+      `with` [FillColour := opacity 0.3 blue, LineColour := Colour 0 0 0.5 0.5, FillBlur := 20, LineBlur := 0.8]
   where
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
@@ -158,6 +158,11 @@ fractal' res f = curve' (const f) frac 0 1
 --      - geometry
 --      - graphs
 --      - charts
+--    * make use of bindCurve (or similar) to make it easier to do things like
+--      the fractal
+--    * more curve combinators
+--      - zipCurves
+--      - differentiate
 --    * tidier examples
 --    * text
 --      - auto kerning (how?)
