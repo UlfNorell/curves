@@ -3,12 +3,14 @@
              UndecidableInstances #-}
 module Graphics.EasyImage.Curve where
 
-import Control.Arrow ((***))
+import Control.Arrow ((***), (&&&))
 
 import Graphics.EasyImage.Math
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.BoundingBox
 import Graphics.EasyImage.Attribute
+
+import Debug.Trace
 
 data Curve = forall a. Transformable a =>
              Curve { curveFunction :: Scalar -> a
@@ -139,6 +141,26 @@ prependPoint p (Curve f g s) = Curve f' g' s
     g' t (SecondPart p) = g (2 * t - 1) p
     g' t FirstPart{}    = error "prependPoint: impossible"
 
+differentiateCurve :: Curve -> Curve
+differentiateCurve (Curve f g s) = Curve (const f) g' s
+  where
+    eps  = 0.01
+    eps2 = eps ^ 2
+    minus a b = max (a - b) 0
+    plus  a b = min (a + b) 1
+    g' t f = norm (p1 - p0)
+      where
+        h t = g t (f t)
+        p   = h t
+        farEnough q = squareDistance p q > eps2
+        (t0, p0) = maybe (0, h 0) id $ findThreshold (\e -> h (t - e)) farEnough 1.0e-6 0 t
+        (t1, p1) = maybe (1, h 1) id $ findThreshold (\e -> h (t + e)) farEnough 1.0e-6 0 (1 - t)
+
+zipCurve :: (Point -> Point -> Point) -> Curve -> Curve -> Curve
+zipCurve h (Curve f1 g1 s) (Curve f2 g2 _) = Curve (f1 &&& f2) g' s
+  where
+    g' t (x, y) = h (g1 t x) (g2 t y)
+
 data AnnotatedSegment a = AnnSeg { annotation :: a
                                  , theSegment :: Segment }
   deriving (Functor)
@@ -154,7 +176,7 @@ instance DistanceToPoint (AnnotatedSegment a) where
 -- Each segment is annotated with the distance from the start of the curve.
 curveToSegments :: Scalar -> Curve -> BBTree (AnnotatedSegment (Scalar, Scalar))
 curveToSegments r (Curve f g _) =
-    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
+    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry $ subdivide 64) ss
   where
     h t = g t (f t)
     res = r^2
@@ -173,10 +195,12 @@ curveToSegments r (Curve f g _) =
       let t = fromIntegral i / fromIntegral n
       return (t, h t)
 
-    subdivide x@(t0, p0) y@(t1, p1)
-      | squareDistance p0 p1 > res = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
+    subdivide fuel x@(t0, p0) y@(t1, p1)
+      | fuel == 0                  = [(x, y)]
+      | squareDistance p0 p1 > res = subdivide (fuel - 1) (t0, p0) (t, p) ++ subdivide (fuel - 1) (t, p) (t1, p1)
       | otherwise                  = [(x, y)]
       where
+        sh (t, p) = "  f " ++ show t ++ " = " ++ show p
         t = (t0 + t1) / 2
         p = h t
 

@@ -21,7 +21,7 @@ import Debug.Trace
 -- Rendering --------------------------------------------------------------
 
 sampleSegments :: FillStyle -> Segments -> Point -> Maybe Colour
-sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(Vec x y) =
+sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour lineWidth lineBlur)) s p@(Vec x y) =
   case isLine of
     Nothing -> fill <|> do
         let b = fillBlur
@@ -32,10 +32,10 @@ sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour w b)) s p@(V
   where
     isZero x = round (255 * x) == 0
     isLine = do
-      let inner = w/2
-          outer = inner + b
-      (d, seg) <- distanceAtMost' outer s p
+      (d, seg) <- distanceAtMost' (lineWidth/2 + lineBlur) s p
       let LineStyle c w b = annotation seg
+          inner = w/2
+          outer = inner + b
           α | d <= inner = 1
             | d >  outer = 0
             | otherwise  = 1 - (d - inner) / b

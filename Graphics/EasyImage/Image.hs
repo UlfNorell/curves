@@ -217,6 +217,17 @@ poly :: [Point] -> Image
 poly (p:ps) = lineStrip ([p] ++ ps ++ [p])
 poly [] = error "poly: []"
 
+-- | Differentiating the curves of an image
+differentiate :: Image -> Image
+differentiate = mapCurves differentiateCurve
+
+-- | Zipping two image. Both images must have the same shape.
+zipImage :: (Point -> Point -> Point) -> Image -> Image -> Image
+zipImage f (ICurve c) (ICurve c') = ICurve (zipCurve f c c')
+zipImage f IEmpty IEmpty = IEmpty
+zipImage f (Combine g a b) (Combine _ c d) =
+  Combine g (zipImage f a c) (zipImage f b d)
+
 -- B-Splines --------------------------------------------------------------
 
 -- | A <http://en.wikipedia.org/wiki/B-spline#Uniform_cubic_B-splines uniform cubic B-spline>

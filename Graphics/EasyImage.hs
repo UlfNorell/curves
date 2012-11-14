@@ -16,6 +16,7 @@ module Graphics.EasyImage
   , bSpline, bSpline', closedBSpline
   , reverseImage
   , (+++), (<++), (++>)
+  , differentiate, zipImage
   , freezeImageSize, freezeImageOrientation, freezeImage
     -- ** Combining images
   , BlendFunc
@@ -23,6 +24,8 @@ module Graphics.EasyImage
   , unionBlend, intersectBlend, diffBlend
   , (<>)
   , (><), (<->)
+    -- * Query functions
+  , imageBounds
     -- * Image attributes
     -- | Image attributes control things like the colour and width of curves.
   , module Graphics.EasyImage.Attribute
@@ -66,6 +69,22 @@ autoFit' p0 p1 i =
     k      = diag $ vuncurry min (screen / world)
     world' = k * world
     offs   = 0.5 * (screen - world')
+
+-- | Compute the bounds of an image, returning a line segment from the bottom
+--   left corner to the top right corner of the bounding box. This function
+--   ignores line widths. Note that using pixel based features (for instance,
+--   produced by 'freezeImageSize') means that the bounds may become invalid if
+--   the image is scaled.
+imageBounds :: Image -> Segment
+imageBounds i0
+  | d < 50    = getBounds (50 / d) i
+  | otherwise = s
+  where
+    i = i0 `with` [LineWidth := 0, LineBlur := 0, FillBlur := 0]
+    s@(Seg p q) = getBounds 1 i
+    d = vuncurry max (q - p)
+    getBounds k' i = scale (1/k) $ bboxToSegment $ bounds $ compileImage $ scale k i
+      where k = diag k'
 
 -- ImageElement -----------------------------------------------------------
 

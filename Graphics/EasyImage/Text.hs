@@ -6,12 +6,7 @@ module Graphics.EasyImage.Text
 
 import Data.Monoid
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Compile
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Curve
+import Graphics.EasyImage
 
 center   = Vec 0.5 1
 topLeft  = Vec 0 2
@@ -214,11 +209,6 @@ charImage '@' = f (charImage 'c') <>
     f = translate (Vec 0 0.3) . scaleFrom (bot 0.5) 0.7
 charImage '&' =
   bSpline [right 0.5, right 0.25, bot 0.75, botLeft, left 0.4, coord 0.85 0.75, top 0.85, top 0.15, coord 0.15 0.75, botRight, botRight, botRight]
--- charImage '&' = reverseImage (circleSegInBox botLeft (right 0.5) (3/4 * pi) (2 * pi)) +++
---                 circleSegInBox (coord x 0.75) (top (x + w)) (-pi/4) (5/4 * pi - 0.28) +++ line botRight botRight
---   where
---     w = 0.7
---     x = 0.1
 charImage 'Α' = charImage 'A'
 charImage 'Β' = charImage 'B'
 charImage 'Γ' = lineStrip [topRight, topLeft, botLeft]
@@ -281,11 +271,9 @@ charImage '°' = circle (vcenter 0.9) 0.2
 charImage _   = poly [0, Vec 1 0, Vec 1 2, Vec 0 2]
 
 charPos ' ' = (0, 0.3)
-charPos c = (getX p / k, getX (q - p) / k)
+charPos c = (getX p, getX (q - p))
   where
-    k = 10
-    i = scale (diag k) (charImage c)
-    Seg p q = bboxToSegment $ bounds $ compileImage i
+    Seg p q = imageBounds (charImage c)
 
 data Alignment = LeftAlign | RightAlign | CenterAlign
 
@@ -304,7 +292,7 @@ stringImage' align spacing s =
         (dx, w) = charPos c
         (i, w') = render (x + w + spacing) s
 
-stringImage = stringImage' LeftAlign 0.1
+stringImage = stringImage' LeftAlign 0.2
 
 label :: Point -> Scalar -> String -> Image
 label p h s = translate p $ freezeImage 0 $ scale (diag $ h/2) $ translate (Vec 0 (-1)) $ stringImage' CenterAlign 0.1 s

@@ -21,6 +21,8 @@ module Graphics.EasyImage.Math
     -- * Transformations
   , Transformable(..)
   , translate, scale, scaleFrom, rotate, rotateAround
+    -- * Function analysis
+  , findThreshold
   ) where
 
 import Control.Applicative
@@ -93,6 +95,7 @@ rot90 (Vec x y) = Vec (-y) x
 --
 -- > norm v = v / abs v
 norm :: Vec -> Vec
+norm v | v == 0 = v
 norm v = v / abs v
 
 -- | The counterclockwise angle between two vectors.
@@ -225,6 +228,14 @@ instance (Transformable a, Transformable b) => Transformable (a, b) where
 instance (Transformable a, Transformable b, Transformable c) => Transformable (a, b, c) where
   transform f (x, y, z) = (transform f x, transform f y, transform f z)
 
+-- | A rigid object is not affected by transformations. Can be used to pack up
+--   non-transformable objected in otherwise transformable structures.
+newtype Rigid a = Rigid { unRigid :: a }
+
+-- | @'transform' f x = x@
+instance Transformable (Rigid a) where
+  transform f x = x
+
 -- | > translate v = transform (+ v)
 translate :: Transformable a => Vec -> a -> a
 translate v = transform (v +)
@@ -263,3 +274,35 @@ defaultBasis = Basis 0 unitX unitY
 instance Transformable Basis where
   transform f (Basis o x y) = Basis (transform f o) (transform f x) (transform f y)
 
+-- Searching --------------------------------------------------------------
+
+-- | Find the smallest value making a function satisfy a given predicate. Needs
+--   the function to be monotone in the predicate to work properly.
+findThreshold :: (Scalar -> a)  -- ^ The function to analyze.
+              -> (a -> Bool)    -- ^ The predicate.
+              -> Scalar         -- ^ Precision. The actual smallest value will
+                                --   be less than this much smaller than the
+                                --   returned value.
+              -> Scalar         -- ^ A minimum value. No solution smaller than
+                                --   this will be returned.
+              -> Scalar         -- ^ A maximum value. If no solution is found
+                                --   below this value, 'Nothing' is returned.
+              -> Maybe (Scalar, a)
+findThreshold f ok eps guess cap
+  | ok y      = Just (guess, y)
+  | otherwise = up 0.01 guess guess y
+  where
+    y = f guess
+    up step x0 x y
+      | ok y      = bin x0 x y
+      | x == cap  = Nothing
+      | otherwise = up (step * 2) x x' (f x')
+      where x' = min cap (x + step)
+
+    bin x0 x1 y1
+      | x1 - x0 < eps = Just (x1, y1)
+      | ok y          = bin x0 x y
+      | otherwise     = bin x x1 y1
+      where
+        x = (x0 + x1) / 2
+        y = f x

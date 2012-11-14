@@ -9,6 +9,7 @@ import Graphics.EasyImage
 import Graphics.EasyImage.Chart
 import Graphics.EasyImage.Text
 import Graphics.EasyImage.Geometry
+import Graphics.EasyImage.Graph
 import Debug.Trace
 
 circle' :: Point -> Scalar -> Image
@@ -22,9 +23,6 @@ ellipse (Vec x y) r d = curve f 0 (2 * pi) `with` lineStyle 3 5 (opacity 0.7 blu
       where
         s = (d^2 + r^2 - 2 * d * r * cos α) / (2 * r - 2 * d * cos α)
 
-graph :: Scalar -> Scalar -> (Scalar -> Scalar) -> Image
-graph x0 x1 f = curve (\x -> Vec x (f x)) x0 x1
-
 save i = renderImage "test.png" 800 600 white i
 
 outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
@@ -32,6 +30,12 @@ outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
 
 main =
   save $ autoFit (Vec 20 20) (Vec 780 580) $
+    -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
+    -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
+    --   `with` ([LineColour := red] ++ brushStyle 10 200)
+    -- <> (arrow (-unitX) (unitX) <>
+    --  arrow (-0.2 * unitY) (2.2 * unitY))
+    --   `with` [LineColour := opacity 0.5 black]
     -- circle 0 3 `with` [ LineWidth 1, LineBlur 20, LineColour red ] <>
     -- poly [-1, Vec 1 (-1), Vec 0 1]
     -- image1
@@ -85,12 +89,22 @@ main =
     --   ]
     -- barChart (map fromIntegral [25,24..1])
     -- line (-unitX) unitX `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50)
-    circle 0 1 `with` ([LineWidth := 4] ++ gradient red blue 50 ++ dashedClosed 250 10) <>
-    (mconcat [ line p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
-      `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50) <>
-    (foldr1 (+++) [ fractal 1 p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
-      `with` [FillColour := opacity 0.3 blue, LineColour := Colour 0 0 0.5 0.5, FillBlur := 20, LineBlur := 0.8]
+    -- circle 0 1 `with` ([LineWidth := 4] ++ gradient red blue 50 ++ dashedClosed 250 10) <>
+    -- (mconcat [ line p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
+    --   `with` ([LineWidth := 2, LineBlur := 3] ++ dashedOpen 30 50) <>
+    -- (foldr1 (+++) [ fractal 1 p q | (p, q) <- let ps = [unitX, rotate (4/3 * pi) unitX, rotate (2/3 * pi) unitX] in zip ps (tail ps ++ [head ps]) ])
+    --   `with` [FillColour := opacity 0.3 blue, LineColour := Colour 0 0 0.5 0.5, FillBlur := 20, LineBlur := 0.8]
+    -- drawBBox (circle 0 1)
+    -- zipImage (+) (point 0) (differentiate (circle 0 1)) `with` [LineColour := red]
+    outline 100 (bSpline [0, unitY, 1, unitX, 2])
+    -- outline 100 (line 0 unitX)
   where
+    outline d i = zipImage (\p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
+                  zipImage (\p v -> p - rot90 (d * norm v)) i i' <>
+                  i `with` [LineColour := opacity 0.3 blue]
+      where i' = differentiate i
+    drawBBox i = i <> rectangle p q `with` [LineColour := transparent, FillColour := opacity 0.2 red]
+      where Seg p q = imageBounds i
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
       translate p $
@@ -99,7 +113,7 @@ main =
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)
     text s = mconcat $ zipWith f (iterate (subtract 2.7) 0) (lines s)
-      where f y s = translate (Vec 0 y) (stringImage' LeftAlign 0 s)
+      where f y s = translate (Vec 0 y) (stringImage s)
     angleTest =
       mconcat [ poly [p0, p1, p2]
               , labelledAngle "α" 40 p0 p1 p2
@@ -137,23 +151,40 @@ fractal res p q = fractal' res $
     c = (p + q) / 2
     r = distance p q / 2
 
-fractal' res f = curve' (const f) frac 0 1
+-- | Range 0 to 1.
+type Animation a = Scalar -> a
+
+joinAnimations :: [Animation a] -> Animation a
+joinAnimations fs = foo $ zip (map fromIntegral [1..]) fs
+  where
+    n = fromIntegral $ length fs
+    foo ((i, f):fs) t
+      | t <= i/n  = f (n * t - i + 1)
+      | otherwise = foo fs t
+    foo [] _ = error "impossible"
+
+splitAnimation :: Int -> Animation a -> [Animation a]
+splitAnimation n f =
+  [ \t -> f ((t + i) / n') | i <- map fromIntegral [0..n - 1] ]
+  where
+    n' = fromIntegral n
+
+fractal' res f = curve' (const f) (flip frac) 0 1
   where
     r = res^2
-    frac t f
+    frac f t
       | squareDistance p q <= r = f t
-      | t <= 0.25 = frac (4 * t - 0) $ \t -> f (t / 3)
-      | t <= 0.50 = frac (4 * t - 1) $ \t -> rotateAround p'  (pi/3) $ f ((t + 1) / 3)
-      | t <= 0.75 = frac (4 * t - 2) $ \t -> rotateAround q' (-pi/3) $ f ((t + 1) / 3)
-      | otherwise = frac (4 * t - 3) $ \t -> f ((t + 2) / 3)
+      | otherwise = flip joinAnimations t $ map frac
+                      [ f1, rotateAround p'  (pi/3) f2,
+                            rotateAround q' (-pi/3) f2, f3 ]
       where
+        [f1, f2, f3] = splitAnimation 3 f
         p  = f 0
         q  = f 1
         p' = f (1/3)
         q' = f (2/3)
 
 -- TODO
---    * Clean up interfaces, add Haddock comments
 --    * Make it compile with ghc-7.0 (also 6.12?)
 --    * libraries on top
 --      - geometry
@@ -164,13 +195,14 @@ fractal' res f = curve' (const f) frac 0 1
 --    * more curve combinators
 --      - zipCurves
 --      - differentiate
---    * brush style
---    * function to compute the bounding box of an image
+--      - unfreezing
 --    * tidier examples
 --    * text
 --      - auto kerning (how?)
 --      - formulas (fractions, sub/superscript etc)
---      - make it not use internal stuff (compileImage)
+--      - read svg font format
+--    * Bézier curves
 --    * 3D
 --      - shading would require parameterized fill colour
+--    * Look at the diagrams package for inspiration
 --  BUGS

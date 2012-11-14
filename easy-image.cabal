@@ -18,6 +18,7 @@ Library
                     Graphics.EasyImage.Chart
                     Graphics.EasyImage.Colour
                     Graphics.EasyImage.Geometry
+                    Graphics.EasyImage.Graph
                     Graphics.EasyImage.Math
                     Graphics.EasyImage.Style
                     Graphics.EasyImage.Text

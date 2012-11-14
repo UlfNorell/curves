@@ -2,7 +2,7 @@
 module Graphics.EasyImage.Style
   ( CurveAttribute(..)
   , Style
-  , lineStyle, fillStyle
+  , lineStyle, fillStyle, brushStyle
   , gradient, dashedOpen, dashedClosed, dashed
   ) where
 
@@ -11,6 +11,8 @@ import Graphics.EasyImage.Image
 import Graphics.EasyImage.Colour
 import Graphics.EasyImage.Curve
 import Graphics.EasyImage.Attribute
+
+import Debug.Trace
 
 -- | A style is a list of attribute assignments.
 type Style = [Assignment Image]
@@ -21,7 +23,18 @@ lineStyle w b c = [LineWidth := w, LineBlur := b, LineColour := c]
 
 -- | Setting the fill blur and colour.
 fillStyle :: Scalar -> Colour -> Style
-fillStyle b c   = [FillColour := c, FillBlur := b]
+fillStyle b c = [FillColour := c, FillBlur := b]
+
+brushStyle w d =
+  [VarLineWidth := \x r ->
+    let total = x/r in
+    if | r == 0        -> 0
+       | x < d         -> w * f (2 * x / d - 1)
+       | x > total - d -> w * f (2 * (total - x) / d - 1)
+       | otherwise     -> w
+  ]
+  where
+    f t = (1 + t + sin (pi * t) / pi) / 2
 
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
