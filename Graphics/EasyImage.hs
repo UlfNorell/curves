@@ -18,6 +18,7 @@ module Graphics.EasyImage
   , (+++), (<++), (++>)
   , differentiate, zipImage
   , freezeImageSize, freezeImageOrientation, freezeImage
+  , unfreezeImage
     -- ** Combining images
   , BlendFunc
   , combine

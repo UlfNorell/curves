@@ -143,6 +143,13 @@ freezeImage p = mapCurves (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
+-- | Unfreeze an image. After unfreezing any frozen features will be affected
+--   by transformations again.
+unfreezeImage :: Image -> Image
+unfreezeImage = mapCurves unfreeze
+  where
+    unfreeze (Curve f g s) = Curve (\t -> g t (f t)) (const id) s
+
 instance HasAttribute CurveAttribute Image where
   modifyAttribute attr f = mapCurves (modifyAttribute attr f)
 

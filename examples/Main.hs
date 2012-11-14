@@ -96,7 +96,7 @@ main =
     --   `with` [FillColour := opacity 0.3 blue, LineColour := Colour 0 0 0.5 0.5, FillBlur := 20, LineBlur := 0.8]
     -- drawBBox (circle 0 1)
     -- zipImage (+) (point 0) (differentiate (circle 0 1)) `with` [LineColour := red]
-    outline 100 (bSpline [0, unitY, 1, unitX, 2])
+    unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
     -- outline 100 (line 0 unitX)
   where
     outline d i = zipImage (\p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
@@ -192,10 +192,6 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --      - charts
 --    * make use of bindCurve (or similar) to make it easier to do things like
 --      the fractal
---    * more curve combinators
---      - zipCurves
---      - differentiate
---      - unfreezing
 --    * tidier examples
 --    * text
 --      - auto kerning (how?)
