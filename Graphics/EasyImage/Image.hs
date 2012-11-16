@@ -228,7 +228,8 @@ poly [] = error "poly: []"
 differentiate :: Image -> Image
 differentiate = mapCurves differentiateCurve
 
--- | Zipping two image. Both images must have the same shape.
+-- | Zipping two images. Both images must have the same number of curves
+--   'combine'd in the same order.
 zipImage :: (Point -> Point -> Point) -> Image -> Image -> Image
 zipImage f (ICurve c) (ICurve c') = ICurve (zipCurve f c c')
 zipImage f IEmpty IEmpty = IEmpty

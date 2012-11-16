@@ -17,6 +17,7 @@ module Graphics.EasyImage
   , reverseImage
   , (+++), (<++), (++>)
   , differentiate, zipImage
+    -- ** Freezing and unfreezing images
   , freezeImageSize, freezeImageOrientation, freezeImage
   , unfreezeImage
     -- ** Combining images
@@ -25,7 +26,7 @@ module Graphics.EasyImage
   , unionBlend, intersectBlend, diffBlend
   , (<>)
   , (><), (<->)
-    -- * Query functions
+    -- ** Query functions
   , imageBounds
     -- * Image attributes
     -- | Image attributes control things like the colour and width of curves.

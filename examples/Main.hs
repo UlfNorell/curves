@@ -96,8 +96,9 @@ main =
     --   `with` [FillColour := opacity 0.3 blue, LineColour := Colour 0 0 0.5 0.5, FillBlur := 20, LineBlur := 0.8]
     -- drawBBox (circle 0 1)
     -- zipImage (+) (point 0) (differentiate (circle 0 1)) `with` [LineColour := red]
-    unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
+    -- unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
     -- outline 100 (line 0 unitX)
+    graph 0 (3 * pi) $ \x -> 10 * sin x * cos x ^ 2
   where
     outline d i = zipImage (\p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
                   zipImage (\p v -> p - rot90 (d * norm v)) i i' <>
