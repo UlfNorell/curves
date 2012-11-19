@@ -230,7 +230,7 @@ differentiate = mapCurves differentiateCurve
 
 -- | Zipping two images. Both images must have the same number of curves
 --   'combine'd in the same order.
-zipImage :: (Point -> Point -> Point) -> Image -> Image -> Image
+zipImage :: (Scalar -> Point -> Point -> Point) -> Image -> Image -> Image
 zipImage f (ICurve c) (ICurve c') = ICurve (zipCurve f c c')
 zipImage f IEmpty IEmpty = IEmpty
 zipImage f (Combine g a b) (Combine _ c d) =
@@ -263,4 +263,21 @@ closedBSpline ps = bSpline $ ps ++ take 3 ps
 -- last points.
 bSpline' (p:ps) = bSpline $ p:p:p:ps ++ replicate 2 (last (p:ps))
 bSpline' [] = error "bSpline': empty list"
+
+-- Bézier curves ----------------------------------------------------------
+
+-- | A Bézier curve of degree n with the given control points @[p0 .. pn]@.
+bezierSegment :: [Point] -> Image
+bezierSegment []  = error "bezierSegment: empty list"
+bezierSegment [p] = point p
+bezierSegment ps  = zipImage (\t p q -> interpolate p q t) (bezierSegment (init ps)) (bezierSegment (tail ps))
+
+-- | A strip of cubic Bézier curves.
+bezier :: [Point] -> Image
+bezier ps | n < 4 || mod n 3 /= 1 = error "bezier: needs 3k + 1 points (k > 0)"
+  where n = length ps
+bezier ps = foldr1 (+++) (map bezierSegment $ quads ps)
+  where
+    quads [p] = []
+    quads (p0:p1:p2:p3:ps) = [p0, p1, p2, p3] : quads (p3:ps)
 

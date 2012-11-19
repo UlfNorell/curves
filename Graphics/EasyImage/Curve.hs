@@ -156,10 +156,10 @@ differentiateCurve (Curve f g s) = Curve (const f) g' s
         (t0, p0) = maybe (0, h 0) id $ findThreshold (\e -> h (t - e)) farEnough 1.0e-6 0 t
         (t1, p1) = maybe (1, h 1) id $ findThreshold (\e -> h (t + e)) farEnough 1.0e-6 0 (1 - t)
 
-zipCurve :: (Point -> Point -> Point) -> Curve -> Curve -> Curve
+zipCurve :: (Scalar -> Point -> Point -> Point) -> Curve -> Curve -> Curve
 zipCurve h (Curve f1 g1 s) (Curve f2 g2 _) = Curve (f1 &&& f2) g' s
   where
-    g' t (x, y) = h (g1 t x) (g2 t y)
+    g' t (x, y) = h t (g1 t x) (g2 t y)
 
 data AnnotatedSegment a = AnnSeg { annotation :: a
                                  , theSegment :: Segment }

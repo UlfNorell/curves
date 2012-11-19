@@ -14,6 +14,7 @@ module Graphics.EasyImage
   , curve, curve'
   , point, line, lineStrip, poly, circle, circleSegment
   , bSpline, bSpline', closedBSpline
+  , bezier, bezierSegment
   , reverseImage
   , (+++), (<++), (++>)
   , differentiate, zipImage

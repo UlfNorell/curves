@@ -98,10 +98,11 @@ main =
     -- zipImage (+) (point 0) (differentiate (circle 0 1)) `with` [LineColour := red]
     -- unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
     -- outline 100 (line 0 unitX)
-    rotate (pi/6) $ scale (Vec 1 0.5) $ graph (-pi) (12 * pi) $ \x -> 10 * sin x * cos x ^ 2 + sin (x * 1.7) + ((x - 15)/3)^2
+    -- scale (Vec 1 0.5) $ graph (-pi) (12 * pi) $ \x -> 10 * sin x * cos x ^ 2 + sin (x * 1.7) + ((x - 15)/3)^2
+    bezierSegment [0, unitY, 1, unitX, Vec 1 (-1), Vec 2 (-1), 2 * unitX]
   where
-    outline d i = zipImage (\p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
-                  zipImage (\p v -> p - rot90 (d * norm v)) i i' <>
+    outline d i = zipImage (\_ p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
+                  zipImage (\_ p v -> p - rot90 (d * norm v)) i i' <>
                   i `with` [LineColour := opacity 0.3 blue]
       where i' = differentiate i
     drawBBox i = i <> rectangle p q `with` [LineColour := transparent, FillColour := opacity 0.2 red]
@@ -196,6 +197,8 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --        - auto kerning (how?)
 --        - formulas (fractions, sub/superscript etc)
 --        - read svg font format
+--      - fractals, procedural generation stuff
+--        - trees?
 --    * make use of bindCurve (or similar) to make it easier to do things like
 --      the fractal
 --    * tidier examples
