@@ -11,10 +11,12 @@ module Graphics.EasyImage
     -- * Image
   , Image
     -- ** Curves
-  , curve, curve'
   , point, line, lineStrip, poly, circle, circleSegment
+    -- ** Advanced curves
+  , curve, curve'
   , bSpline, bSpline', closedBSpline
   , bezier, bezierSegment
+    -- ** Operating on curves
   , reverseImage
   , (+++), (<++), (++>)
   , differentiate, zipImage

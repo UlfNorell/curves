@@ -81,7 +81,7 @@ a <-> b = combine diffBlend a b
 --
 --   For example, a straight line between points @p@ and @q@ can be implemented as
 --
---   @curve (\\t -> p + 'diag' t * (q - p)) 0 1@
+--   @curve ('interpolate' p q) 0 1@
 curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
 curve f = curve' f (const id)
 

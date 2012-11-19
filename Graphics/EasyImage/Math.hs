@@ -109,8 +109,7 @@ angle (Vec x1 y1) (Vec x2 y2)
 
 -- | The weighted average of two points.
 --
--- > interpolate p q 0 == p
--- > interpolate p q 1 == q
+-- > interpolate p q t == t * p + (1 - t) * q
 interpolate :: Point -> Point -> Scalar -> Point
 interpolate p q t = p + diag t * (q - p)
 
