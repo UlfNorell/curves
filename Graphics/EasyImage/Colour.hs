@@ -50,6 +50,8 @@ blend :: Colour -> Colour -> Colour
 blend (Colour r1 g1 b1 a1) (Colour r2 g2 b2 a2) =
   Colour (f r1 r2) (f g1 g2) (f b1 b2) (a1 + a2 * (1 - a1))
   where
-    f x1 x2 = x1 * a1 + x2 * a2 * (1 - a1)
+    a = a1 + a2 * (1 - a1)
+    f x1 x2 | a == 0    = 0
+            | otherwise = (x1 * a1 + x2 * a2 * (1 - a1)) / a
 
 

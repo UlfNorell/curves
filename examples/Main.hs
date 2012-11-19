@@ -98,7 +98,7 @@ main =
     -- zipImage (+) (point 0) (differentiate (circle 0 1)) `with` [LineColour := red]
     -- unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
     -- outline 100 (line 0 unitX)
-    graph 0 (3 * pi) $ \x -> 10 * sin x * cos x ^ 2
+    rotate (pi/6) $ scale (Vec 1 0.5) $ graph (-pi) (12 * pi) $ \x -> 10 * sin x * cos x ^ 2 + sin (x * 1.7) + ((x - 15)/3)^2
   where
     outline d i = zipImage (\p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
                   zipImage (\p v -> p - rot90 (d * norm v)) i i' <>
@@ -190,16 +190,18 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --    * libraries on top
 --      - geometry
 --      - graphs
+--        - graph property record to configure the graph
 --      - charts
+--      - text
+--        - auto kerning (how?)
+--        - formulas (fractions, sub/superscript etc)
+--        - read svg font format
 --    * make use of bindCurve (or similar) to make it easier to do things like
 --      the fractal
 --    * tidier examples
---    * text
---      - auto kerning (how?)
---      - formulas (fractions, sub/superscript etc)
---      - read svg font format
 --    * Bézier curves
 --    * 3D
 --      - shading would require parameterized fill colour
 --    * Look at the diagrams package for inspiration
+--      - backend for the diagrams package?
 --  BUGS

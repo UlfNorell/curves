@@ -31,25 +31,25 @@ type BlendFunc = Maybe Colour -> Maybe Colour -> Maybe Colour
 
 -- | Alpha 'blend' the first colour on top of the second colour.
 unionBlend :: BlendFunc
-unionBlend c1 c2 = case (visible =<< c1, visible =<< c2) of
+unionBlend c1 c2 = case (c1, c2) of
   (Nothing, c)       -> c
   (c, Nothing)       -> c
-  (Just c1, Just c2) -> visible (blend c1 c2)
+  (Just c1, Just c2) -> Just (blend c1 c2)
 
 -- | The alpha value of the result is the product of the alpha values of the
 --   two inputs.
 intersectBlend :: BlendFunc
-intersectBlend c1 c2 = case (visible =<< c1, visible =<< c2) of
+intersectBlend c1 c2 = case (c1, c2) of
   (_, Nothing)       -> Nothing
   (Nothing, _)       -> Nothing
-  (Just c1, Just c2) -> visible $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
+  (Just c1, Just c2) -> Just $ setAlpha (getAlpha c2 * getAlpha c1) (blend c1 c2)
 
 -- | Multiplies the alpha value of the first colour by 1 - the alpha value of
 --   the second colour.
 diffBlend :: BlendFunc
-diffBlend c c' = case visible =<< c' of
-  Nothing -> visible =<< c
-  Just c' -> visible . opacity (1 - getAlpha c') =<< c
+diffBlend c c' = case c' of
+  Nothing -> c
+  Just c' -> opacity (1 - getAlpha c') <$> c
 
 -- | 'mappend' = 'combine' 'unionBlend'
 instance Monoid Image where
