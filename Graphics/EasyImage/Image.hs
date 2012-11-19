@@ -60,8 +60,8 @@ instance Monoid Image where
 combine :: BlendFunc -> Image -> Image -> Image
 combine f a b = Combine f a b
 
-infixr 6 ><
-infixl 7 <->
+infixr 7 ><
+infixl 8 <->
 
 -- | The intersection of two images.
 --
@@ -156,8 +156,8 @@ instance HasAttribute CurveAttribute Image where
 instance Transformable Image where
   transform f = mapCurves (transform f)
 
-infixl 8 ++>
-infixr 7 +++, <++
+infixl 9 ++>
+infixr 8 +++, <++
 
 -- | Join the right-most curve of the first image to the left-most curve of the
 --   second image. The 'Graphics.EasyImage.Style.Style' is inherited from the

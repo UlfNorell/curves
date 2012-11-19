@@ -18,6 +18,7 @@ class HasAttribute f a where
 setAttribute :: HasAttribute f a => f b -> b -> a -> a
 setAttribute t x = modifyAttribute t (const x)
 
+infixl 7 `with`
 -- | Apply a sequence of attribute assignments to an object (applied
 --   left-to-right).
 with :: a -> [Assignment a] -> a
