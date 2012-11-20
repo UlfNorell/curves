@@ -37,7 +37,7 @@ main = do
             _ -> "AB0d"
   font <- parseFile "fonts/Calligraffiti-webfont.svg"
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    drawString font s `with` [LineColour := black, FillColour := opacity 0.3 red]
+    drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -215,8 +215,5 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --    * Look at the diagrams package for inspiration
 --      - backend for the diagrams package?
 --    * Filling disjointed curves
---      - necessary for svg fonts
---      - for example, drawing a filled 'o' as two concentric circles
---      - need another layer of curve: list of curves, shouldn't be hard though
---      - also need image combinators to construct
+--      - Update documentation
 --  BUGS

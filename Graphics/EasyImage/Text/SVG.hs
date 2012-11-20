@@ -175,7 +175,7 @@ drawGlyph :: Glyph -> Image
 drawGlyph g = snd $ foldl drawPath (DrawState 0 0 0, mempty) (glyphPath g)
   where
     drawPath (ds, i) cmd = case cmd of
-      MoveTo ct p -> (newSubCurve p', i <> point p')
+      MoveTo ct p -> (newSubCurve p', i +.+ point p')
         where p' = pt ds ct p
       LineTo ct p -> (newPt ds p', i ++> p')
         where p' = pt ds ct p

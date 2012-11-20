@@ -19,7 +19,7 @@ type Op a = a -> a -> a
 
 -- TODO: - explicit transformation matrices (for efficiency?)
 -- | The image type.
-data Image = ICurve Curve
+data Image = ICurve Curves
            | Combine (Op (Maybe Colour)) Image Image
            | IEmpty
 
@@ -98,19 +98,22 @@ curve f = curve' f (const id)
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curve (f . tr) (g . tr) defaultCurveStyle 1
+curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) 1] defaultCurveStyle
   where
     tr t = t0 + t * (t1 - t0)
 
-mapCurves :: (Curve -> Curve) -> Image -> Image
+mapCurves :: (Curves -> Curves) -> Image -> Image
 mapCurves f IEmpty          = IEmpty
 mapCurves f (ICurve c)      = ICurve (f c)
 mapCurves f (Combine b i j) = Combine b (mapCurves f i) (mapCurves f j)
 
+mapCurve :: (Curve -> Curve) -> Image -> Image
+mapCurve f = mapCurves (\(Curves cs s) -> Curves (map f cs) s)
+
 -- | Reverse the direction of all curves in an image. Useful in conjunction
 --   with '+++'.
 reverseImage :: Image -> Image
-reverseImage = mapCurves reverseCurve
+reverseImage = mapCurve reverseCurve
 
 -- | Freeze the size of an image around the given point. Scaling the image will
 --   only affect the position of the image, not the size. Translation and
@@ -121,7 +124,7 @@ reverseImage = mapCurves reverseCurve
 --   Scaling with non-uniform scale factors will still distort the image,
 --   however.
 freezeImageSize :: Point -> Image -> Image
-freezeImageSize p = mapCurves (freezeCurve fr p)
+freezeImageSize p = mapCurve (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = False }
 
@@ -131,7 +134,7 @@ freezeImageSize p = mapCurves (freezeCurve fr p)
 --
 --   @'rotateAround' p a (freezeImageOrientation p i) == freezeImageOrientation p i@
 freezeImageOrientation :: Point -> Image -> Image
-freezeImageOrientation p = mapCurves (freezeCurve fr p)
+freezeImageOrientation p = mapCurve (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = False, freezeOrientation = True }
 
@@ -139,16 +142,16 @@ freezeImageOrientation p = mapCurves (freezeCurve fr p)
 --
 -- @freezeImage p i == 'freezeImageSize' p i ('freezeImageOrientation' p i)@
 freezeImage :: Point -> Image -> Image
-freezeImage p = mapCurves (freezeCurve fr p)
+freezeImage p = mapCurve (freezeCurve fr p)
   where
     fr = Freeze{ freezeSize = True, freezeOrientation = True }
 
 -- | Unfreeze an image. After unfreezing any frozen features will be affected
 --   by transformations again.
 unfreezeImage :: Image -> Image
-unfreezeImage = mapCurves unfreeze
+unfreezeImage = mapCurve unfreeze
   where
-    unfreeze (Curve f g s n) = Curve (\t -> g t (f t)) (const id) s n
+    unfreeze (Curve f g n) = Curve (\t -> g t (f t)) (const id) n
 
 instance HasAttribute CurveAttribute Image where
   modifyAttribute attr f = mapCurves (modifyAttribute attr f)
@@ -184,9 +187,17 @@ p <++ IEmpty        = point p
 --   equivalent to (but more efficient than) @i +++ 'line' q p@ if @q@ is the
 --   end point of the right-most curve of @i@.
 (++>) :: Image -> Point -> Image
-ICurve c      ++> p = ICurve $ appendPoint c p
+ICurve cs     ++> p = ICurve $ appendPoint cs p
 IEmpty        ++> p = point p
 Combine b i j ++> p = Combine b i (j ++> p)
+
+-- | Like '+++' but doesn't join the end points of the curves.
+(+.+) :: Image -> Image -> Image
+ICurve (Curves cs1 s) +.+ ICurve (Curves cs2 _) = ICurve $ Curves (cs1 ++ cs2) s
+i                     +.+ IEmpty                = i
+IEmpty                +.+ i                     = i
+Combine f i j         +.+ c                     = Combine f i (j +.+ c)
+c                     +.+ Combine f i j         = Combine f (c +.+ i) j
 
 -- | A straight line between two points.
 line :: Point -> Point -> Image
@@ -226,12 +237,12 @@ poly [] = error "poly: []"
 
 -- | Differentiating the curves of an image
 differentiate :: Image -> Image
-differentiate = mapCurves differentiateCurve
+differentiate = mapCurve differentiateCurve
 
 -- | Zipping two images. Both images must have the same number of curves
 --   'combine'd in the same order.
 zipImage :: (Scalar -> Point -> Point -> Point) -> Image -> Image -> Image
-zipImage f (ICurve c) (ICurve c') = ICurve (zipCurve f c c')
+zipImage f (ICurve c) (ICurve c') = ICurve (zipCurves f c c')
 zipImage f IEmpty IEmpty = IEmpty
 zipImage f (Combine g a b) (Combine _ c d) =
   Combine g (zipImage f a c) (zipImage f b d)

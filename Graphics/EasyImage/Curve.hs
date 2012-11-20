@@ -12,10 +12,12 @@ import Graphics.EasyImage.Attribute
 
 import Debug.Trace
 
+data Curves = Curves { curvePaths :: [Curve]
+                     , curveStyle :: CurveStyle }
+
 data Curve = forall a. Transformable a =>
              Curve { curveFunction :: Scalar -> a
                    , curveRender   :: Scalar -> a -> Point
-                   , curveStyle    :: CurveStyle
                    , curveDensity  :: Int   -- ^ Number of subcurves that have been joined into this one
                    }
 
@@ -57,8 +59,8 @@ instance HasAttribute CurveAttribute CurveStyle where
   modifyAttribute FillColour    f s = s { fillColour = f $ fillColour s }
   modifyAttribute FillBlur      f s = s { fillBlur   = f $ fillBlur s }
 
-instance HasAttribute a CurveStyle => HasAttribute a Curve where
-  modifyAttribute attr f c = c { curveStyle = modifyAttribute attr f $ curveStyle c }
+instance HasAttribute a CurveStyle => HasAttribute a Curves where
+  modifyAttribute attr f (Curves cs s) = Curves cs (modifyAttribute attr f s)
 
 defaultCurveStyle =
   CurveStyle { lineWidth  = \_ _ -> 0.0
@@ -68,10 +70,13 @@ defaultCurveStyle =
              , fillBlur   = 1.2 }
 
 instance Transformable Curve where
-  transform h (Curve f g s n) = Curve (transform h f) g s n
+  transform h (Curve f g n) = Curve (transform h f) g n
+
+instance Transformable Curves where
+  transform f (Curves cs s) = Curves (transform f cs) s
 
 reverseCurve :: Curve -> Curve
-reverseCurve (Curve f g s n) = Curve f' g' s n
+reverseCurve (Curve f g n) = Curve f' g' n
   where
     f' t = f (1 - t)
     g' t p = g (1 - t) p
@@ -80,7 +85,7 @@ data Freezing = Freeze { freezeSize, freezeOrientation :: Bool }
 
 -- | Freeze dimension to pixels.
 freezeCurve :: Freezing -> Point -> Curve -> Curve
-freezeCurve fr p0 (Curve f g s n) = Curve (const basis) g' s n
+freezeCurve fr p0 (Curve f g n) = Curve (const basis) g' n
   where
     fsize = freezeSize fr
     fdir  = freezeOrientation fr
@@ -96,13 +101,17 @@ freezeCurve fr p0 (Curve f g s n) = Curve (const basis) g' s n
           | fsize         = (norm (px - o), norm (py - o))
 
 bindCurve :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Curve) -> Curve
-bindCurve f g = Curve f g' defaultCurveStyle 1  -- not quite the right density
+bindCurve f g = Curve f g' 1  -- not quite the right density
   where
-    g' t x = case g t x of Curve i j _ _ -> j t (i t)
+    g' t x = case g t x of Curve i j _ -> j t (i t)
 
-joinCurve :: Curve -> Curve -> Curve
-joinCurve (Curve f f' s n) (Curve g g' _ m) =
-    Curve h h' s (n + m)
+joinCurve :: Curves -> Curves -> Curves
+joinCurve (Curves cs s) (Curves (c:cs2) _) =
+  Curves (init cs ++ [joinCurve' (last cs) c] ++ cs2) s
+
+joinCurve' :: Curve -> Curve -> Curve
+joinCurve' (Curve f f' n) (Curve g g' m) =
+    Curve h h' (n + m)
   where
     mid = fromIntegral n / fromIntegral (n + m)
     lo t = t / mid
@@ -114,8 +123,11 @@ joinCurve (Curve f f' s n) (Curve g g' _ m) =
     h' t (Left p)  = f' (lo t) p
     h' t (Right p) = g' (hi t) p
 
-appendPoint :: Curve -> Point -> Curve
-appendPoint (Curve f g s n) p = Curve f' g' s (n + 1)
+appendPoint :: Curves -> Point -> Curves
+appendPoint (Curves cs s) p = Curves (init cs ++ [appendPoint' (last cs) p]) s
+
+appendPoint' :: Curve -> Point -> Curve
+appendPoint' (Curve f g n) p = Curve f' g' (n + 1)
   where
     mid   = fromIntegral n / fromIntegral (n + 1)
     lo t  = t / mid
@@ -126,8 +138,11 @@ appendPoint (Curve f g s n) p = Curve f' g' s (n + 1)
     g' t (Left p)       = g (lo t) p
     g' t (Right (p, q)) = interpolate (g 1 p) q (hi t)
 
-prependPoint :: Point -> Curve -> Curve
-prependPoint p (Curve f g s n) = Curve f' g' s (n + 1)
+prependPoint :: Point -> Curves -> Curves
+prependPoint p (Curves (c:cs) s) = Curves (prependPoint' p c : cs) s
+
+prependPoint' :: Point -> Curve -> Curve
+prependPoint' p (Curve f g n) = Curve f' g' (n + 1)
   where
     mid     = 1 / fromIntegral (n + 1)
     lo t    = t / mid
@@ -139,7 +154,7 @@ prependPoint p (Curve f g s n) = Curve f' g' s (n + 1)
     g' t (Right p)     = g (hi t) p
 
 differentiateCurve :: Curve -> Curve
-differentiateCurve (Curve f g s n) = Curve (const f) g' s n
+differentiateCurve (Curve f g n) = Curve (const f) g' n
   where
     eps  = 0.01
     eps2 = eps ^ 2
@@ -153,8 +168,11 @@ differentiateCurve (Curve f g s n) = Curve (const f) g' s n
         (t0, p0) = maybe (0, h 0) id $ findThreshold (\e -> h (t - e)) farEnough 1.0e-6 0 t
         (t1, p1) = maybe (1, h 1) id $ findThreshold (\e -> h (t + e)) farEnough 1.0e-6 0 (1 - t)
 
+zipCurves :: (Scalar -> Point -> Point -> Point) -> Curves -> Curves -> Curves
+zipCurves f (Curves cs1 s) (Curves cs2 _) = Curves (zipWith (zipCurve f) cs1 cs2) s
+
 zipCurve :: (Scalar -> Point -> Point -> Point) -> Curve -> Curve -> Curve
-zipCurve h (Curve f1 g1 s n) (Curve f2 g2 _ m) = Curve (f1 &&& f2) g' s (max n m)
+zipCurve h (Curve f1 g1 n) (Curve f2 g2 m) = Curve (f1 &&& f2) g' (max n m)
   where
     g' t (x, y) = h t (g1 t x) (g2 t y)
 
@@ -171,37 +189,39 @@ instance DistanceToPoint (AnnotatedSegment a) where
   squareDistance   = squareDistance . theSegment
 
 -- Each segment is annotated with the distance from the start of the curve.
-curveToSegments :: Scalar -> Curve -> BBTree (AnnotatedSegment (Scalar, Scalar))
-curveToSegments r (Curve f g _ _) =
-    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
+curveToSegments :: Scalar -> Curves -> BBTree (AnnotatedSegment (Scalar, Scalar))
+curveToSegments r (Curves cs _) =
+    buildBBTree $ concatMap toSegments cs
   where
-    h t = g t (f t)
-    res = r^2
-    n = 20  -- minimum number of segments
-    pairs xs = zip xs (tail xs)
-
-    annotate ss = annotate' total 0 ss
+    toSegments (Curve f g _) = annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
       where
-        total = sum $ map segmentLength ss
+        h t = g t (f t)
+        res = r^2
+        pairs xs = zip xs (tail xs)
 
-    annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
-    annotate' _ _ [] = []
+        annotate ss = annotate' total 0 ss
+          where
+            total = sum $ map segmentLength ss
 
-    ss = pairs $ do
-      i <- [0..n]
-      let t = fromIntegral i / fromIntegral n
-      return (t, h t)
+        annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
+        annotate' _ _ [] = []
 
-    subdivide x@(t0, p0) y@(t1, p1)
-      | stop      = [(x, y)]
-      | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
-      | otherwise = [(x, y)]
-      where
-        d = squareDistance p0 p1
-        -- Using this instead of (==) due to serious weird shit
-        x === y = decodeFloat x == decodeFloat y
-        stop = t === t0 || t === t1 -- we've run out of precision
-        sh (t, p) = "  f " ++ show t ++ " = " ++ show p
-        t = (t0 + t1) / 2
-        p = h t
+        ss = pairs $ do
+          let n = 20  -- minimum number of segments
+          i <- [0..n]
+          let t = fromIntegral i / fromIntegral n
+          return (t, h t)
+
+        subdivide x@(t0, p0) y@(t1, p1)
+          | stop      = [(x, y)]
+          | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
+          | otherwise = [(x, y)]
+          where
+            d = squareDistance p0 p1
+            -- Using this instead of (==) due to serious weird shit
+            x === y = decodeFloat x == decodeFloat y
+            stop = t === t0 || t === t1 -- we've run out of precision
+            sh (t, p) = "  f " ++ show t ++ " = " ++ show p
+            t = (t0 + t1) / 2
+            p = h t
 

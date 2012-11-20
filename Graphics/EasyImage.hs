@@ -18,7 +18,7 @@ module Graphics.EasyImage
   , bezier, bezierSegment
     -- ** Operating on curves
   , reverseImage
-  , (+++), (<++), (++>)
+  , (+++), (+.+), (<++), (++>)
   , differentiate, zipImage
     -- ** Freezing and unfreezing images
   , freezeImageSize, freezeImageOrientation, freezeImage
