@@ -176,7 +176,7 @@ instance DistanceToPoint (AnnotatedSegment a) where
 -- Each segment is annotated with the distance from the start of the curve.
 curveToSegments :: Scalar -> Curve -> BBTree (AnnotatedSegment (Scalar, Scalar))
 curveToSegments r (Curve f g _) =
-    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry $ subdivide 64) ss
+    buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
   where
     h t = g t (f t)
     res = r^2
@@ -195,12 +195,13 @@ curveToSegments r (Curve f g _) =
       let t = fromIntegral i / fromIntegral n
       return (t, h t)
 
-    subdivide fuel x@(t0, p0) y@(t1, p1)
-      | fuel == 0                  = [(x, y)]
-      | squareDistance p0 p1 > res = subdivide (fuel - 1) (t0, p0) (t, p) ++ subdivide (fuel - 1) (t, p) (t1, p1)
+    subdivide x@(t0, p0) y@(t1, p1)
+      | stop                       = [(x, y)]
+      | squareDistance p0 p1 > res = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
       | otherwise                  = [(x, y)]
       where
         sh (t, p) = "  f " ++ show t ++ " = " ++ show p
         t = (t0 + t1) / 2
+        stop = t == t0 || t == t1   -- we've run out of precision
         p = h t
 
