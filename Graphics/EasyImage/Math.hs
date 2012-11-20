@@ -212,6 +212,10 @@ instance Transformable Segment where
 instance Transformable a => Transformable (Maybe a) where
   transform f = fmap (transform f)
 
+instance (Transformable a, Transformable b) => Transformable (Either a b) where
+  transform f (Left a)  = Left $ transform f a
+  transform f (Right b) = Right $ transform f b
+
 instance Transformable a => Transformable [a] where
   transform f = map (transform f)
 

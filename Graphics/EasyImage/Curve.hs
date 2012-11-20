@@ -94,13 +94,6 @@ freezeCurve fr p0 (Curve f g s) = Curve (const basis) g' s
           | fdir          = (Vec (distance px o) 0, Vec 0 (distance py o))
           | fsize         = (norm (px - o), norm (py - o))
 
-data Join a b = FirstPart a | Gap a b | SecondPart b
-
-instance (Transformable a, Transformable b) => Transformable (Join a b) where
-  transform f (FirstPart a)  = FirstPart $ transform f a
-  transform f (Gap p q)      = Gap (transform f p) (transform f q)
-  transform f (SecondPart b) = SecondPart $ transform f b
-
 bindCurve :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Curve) -> Curve
 bindCurve f g = Curve f g' defaultCurveStyle
   where
@@ -109,13 +102,11 @@ bindCurve f g = Curve f g' defaultCurveStyle
 joinCurve :: Curve -> Curve -> Curve
 joinCurve (Curve f f' s) (Curve g g' _) =
     Curve (\ t ->
-              if | t <= 1/3  -> FirstPart $ f (3 * t)
-                 | t <= 2/3  -> Gap p q
-                 | otherwise -> SecondPart $ g (3 * t - 2))
+              if | t <= 0.5  -> Left  $ f (2 * t)
+                 | otherwise -> Right $ g (2 * t - 1))
           (\ t r -> case r of
-            FirstPart p  -> f' (3 * t) p
-            Gap p q      -> interpolate (f' 1 p) (g' 0 q) (3 * t - 1)
-            SecondPart p -> g' (3 * t - 2) p
+            Left p  -> f' (2 * t) p
+            Right p -> g' (2 * t - 1) p
           ) s
   where
     p = f 1
@@ -124,22 +115,22 @@ joinCurve (Curve f f' s) (Curve g g' _) =
 appendPoint :: Curve -> Point -> Curve
 appendPoint (Curve f g s) p = Curve f' g' s
   where
+    mid   = 0.9999
     endPt = f 1
-    f' t | t <= 0.5  = FirstPart $ f (2 * t)
-         | otherwise = Gap endPt p
-    g' t (FirstPart p) = g (2 * t) p
-    g' t (Gap p q)     = interpolate (g 1 p) q (2 * t - 1)
-    g' t SecondPart{}  = error "appendPoint: impossible"
+    f' t | t <= mid  = Left $ f (t / mid)
+         | otherwise = Right (endPt, p)
+    g' t (Left p)       = g (t / mid) p
+    g' t (Right (p, q)) = interpolate (g 1 p) q ((t - mid)/(1 - mid))
 
 prependPoint :: Point -> Curve -> Curve
 prependPoint p (Curve f g s) = Curve f' g' s
   where
+    mid     = 0.0001
     startPt = f 0
-    f' t | t >= 0.5  = SecondPart $ f (2 * t - 1)
-         | otherwise = Gap p startPt
-    g' t (Gap p q)      = interpolate p (g 0 q) (2 * t)
-    g' t (SecondPart p) = g (2 * t - 1) p
-    g' t FirstPart{}    = error "prependPoint: impossible"
+    f' t | t >= mid  = Right $ f ((t - mid) / (1 - mid))
+         | otherwise = Left (p, startPt)
+    g' t (Left (p, q)) = interpolate p (g 0 q) (t / mid)
+    g' t (Right p)     = g ((t - mid) / (1 - mid)) p
 
 differentiateCurve :: Curve -> Curve
 differentiateCurve (Curve f g s) = Curve (const f) g' s
