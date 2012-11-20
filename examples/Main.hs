@@ -37,7 +37,7 @@ main = do
             _ -> "AB0d"
   font <- parseFile "fonts/Calligraffiti-webfont.svg"
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+    dropShadow (Vec 3 (-3)) 0.3 $ drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 1.2]
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -134,6 +134,11 @@ main = do
         p0 = 0
         p1 = Vec 2 0
         p2 = Vec 2 1
+
+dropShadow v o i =
+  i <> mapColour (opacity o)
+        (mapImage (\_ p -> p + v) i `with`
+          [LineBlur := 8, FillBlur := 8])
 
 chunks n [] = []
 chunks n xs = ys : chunks n zs

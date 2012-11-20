@@ -19,13 +19,13 @@ module Graphics.EasyImage
     -- ** Operating on curves
   , reverseImage
   , (+++), (+.+), (<++), (++>)
-  , differentiate, zipImage
-    -- ** Freezing and unfreezing images
+  , differentiate, mapImage, zipImage
+    -- ** Advanced image manipulation
   , freezeImageSize, freezeImageOrientation, freezeImage
   , unfreezeImage
     -- ** Combining images
   , BlendFunc
-  , combine
+  , combine, mapColour
   , unionBlend, intersectBlend, diffBlend
   , (<>)
   , (><), (<->)

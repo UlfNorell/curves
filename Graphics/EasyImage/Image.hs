@@ -60,6 +60,10 @@ instance Monoid Image where
 combine :: BlendFunc -> Image -> Image -> Image
 combine f a b = Combine f a b
 
+-- | Map a function over the colours of an image.
+mapColour :: (Colour -> Colour) -> Image -> Image
+mapColour f = combine (const $ fmap f) IEmpty
+
 infixr 7 ><
 infixl 8 <->
 
@@ -239,8 +243,18 @@ poly [] = error "poly: []"
 differentiate :: Image -> Image
 differentiate = mapCurve differentiateCurve
 
+-- | Apply a function to all points of an image. The function also gets the
+--   curve parameter (between 0 and 1) of the given point. This applies after
+--   all transformations so the points are measured in pixels, unless the image
+--   is later unfrozen with 'unfreezeImage'.
+mapImage :: (Scalar -> Point -> Point) -> Image -> Image
+mapImage h = mapCurve pp
+  where
+    pp (Curve f g n) = Curve f (\t -> h t . g t) n
+
 -- | Zipping two images. Both images must have the same number of curves
---   'combine'd in the same order.
+--   'combine'd in the same order. As with 'mapImage' the zipping takes place
+--   after all transformations.
 zipImage :: (Scalar -> Point -> Point -> Point) -> Image -> Image -> Image
 zipImage f (ICurve c) (ICurve c') = ICurve (zipCurves f c c')
 zipImage f IEmpty IEmpty = IEmpty
