@@ -4,12 +4,14 @@ import System.Environment
 import Control.Applicative
 import Data.List
 import Data.Monoid
+import System.Environment
 
 import Graphics.EasyImage
 import Graphics.EasyImage.Chart
 import Graphics.EasyImage.Text
 import Graphics.EasyImage.Geometry
 import Graphics.EasyImage.Graph
+import Graphics.EasyImage.Text.SVG
 import Debug.Trace
 
 circle' :: Point -> Scalar -> Image
@@ -28,8 +30,14 @@ save i = renderImage "test.png" 800 600 white i
 outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
             (i `with` [ LineWidth := 5, LineColour := Colour 0.8 0 0.6 1 ])
 
-main =
+main = do
+  args <- getArgs
+  let s = case args of
+            s:_ -> s
+            _ -> "Hello World"
+  font <- parseFile "fonts/Calligraffiti-webfont.svg"
   save $ autoFit (Vec 20 20) (Vec 780 580) $
+    drawString font s `with` [LineColour := transparent, FillColour := black]
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -99,7 +107,7 @@ main =
     -- unfreezeImage (outline 1 (bSpline [0, unitY, 1, unitX, 2]))
     -- outline 100 (line 0 unitX)
     -- scale (Vec 1 0.5) $ graph (-pi) (12 * pi) $ \x -> 10 * sin x * cos x ^ 2 + sin (x * 1.7) + ((x - 15)/3)^2
-    bezierSegment [0, unitY, 1, unitX, Vec 1 (-1), Vec 2 (-1), 2 * unitX]
+    -- bezierSegment [0, unitY, 1, unitX, Vec 1 (-1), Vec 2 (-1), 2 * unitX]
   where
     outline d i = zipImage (\_ p v -> p + rot90 (d * norm v)) i i' `with` [LineColour := red] <>
                   zipImage (\_ p v -> p - rot90 (d * norm v)) i i' <>
@@ -202,9 +210,19 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --    * make use of bindCurve (or similar) to make it easier to do things like
 --      the fractal
 --    * tidier examples
---    * Bézier curves
 --    * 3D
 --      - shading would require parameterized fill colour
 --    * Look at the diagrams package for inspiration
 --      - backend for the diagrams package?
+--    * Keep track of the number of +++'d curves in a curve and do a fair
+--      distribution of precision
+--      - otherwise we get funny behaviour in very right nested curves
+--        (left-nesting isn't as big of a problem since we have better precision
+--        close to 0 than close to 1)
+--      - demostrate this before changing
+--    * Filling disjointed curves
+--      - necessary for svg fonts
+--      - for example, drawing a filled 'o' as two concentric circles
+--      - need another layer of curve: list of curves, shouldn't be hard though
+--      - also need image combinators to construct
 --  BUGS

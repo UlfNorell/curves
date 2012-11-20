@@ -11,6 +11,8 @@ Library
   Build-Depends:    base >= 3.0,
                     bytestring >= 0.10,
                     QuickCheck >= 2.5,
+                    HaXml >= 1.23,
+                    containers >= 0.4,
                     JuicyPixels >= 2.0
   Exposed-Modules:  
                     Graphics.EasyImage
@@ -22,6 +24,7 @@ Library
                     Graphics.EasyImage.Math
                     Graphics.EasyImage.Style
                     Graphics.EasyImage.Text
+                    Graphics.EasyImage.Text.SVG
   Other-Modules:    
                     Graphics.EasyImage.BoundingBox
                     Graphics.EasyImage.Compile
