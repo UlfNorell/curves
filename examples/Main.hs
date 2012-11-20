@@ -34,10 +34,10 @@ main = do
   args <- getArgs
   let s = case args of
             s:_ -> s
-            _ -> "Hello World"
+            _ -> "AB0d"
   font <- parseFile "fonts/Calligraffiti-webfont.svg"
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    drawString font s `with` [LineColour := transparent, FillColour := black]
+    drawString font s `with` [LineColour := black, FillColour := opacity 0.3 red]
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -214,12 +214,6 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --      - shading would require parameterized fill colour
 --    * Look at the diagrams package for inspiration
 --      - backend for the diagrams package?
---    * Keep track of the number of +++'d curves in a curve and do a fair
---      distribution of precision
---      - otherwise we get funny behaviour in very right nested curves
---        (left-nesting isn't as big of a problem since we have better precision
---        close to 0 than close to 1)
---      - demostrate this before changing
 --    * Filling disjointed curves
 --      - necessary for svg fonts
 --      - for example, drawing a filled 'o' as two concentric circles

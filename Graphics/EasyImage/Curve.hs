@@ -16,6 +16,7 @@ data Curve = forall a. Transformable a =>
              Curve { curveFunction :: Scalar -> a
                    , curveRender   :: Scalar -> a -> Point
                    , curveStyle    :: CurveStyle
+                   , curveDensity  :: Int   -- ^ Number of subcurves that have been joined into this one
                    }
 
 data CurveStyle = CurveStyle
@@ -67,10 +68,10 @@ defaultCurveStyle =
              , fillBlur   = 1.2 }
 
 instance Transformable Curve where
-  transform h (Curve f g s) = Curve (transform h f) g s
+  transform h (Curve f g s n) = Curve (transform h f) g s n
 
 reverseCurve :: Curve -> Curve
-reverseCurve (Curve f g s) = Curve f' g' s
+reverseCurve (Curve f g s n) = Curve f' g' s n
   where
     f' t = f (1 - t)
     g' t p = g (1 - t) p
@@ -79,7 +80,7 @@ data Freezing = Freeze { freezeSize, freezeOrientation :: Bool }
 
 -- | Freeze dimension to pixels.
 freezeCurve :: Freezing -> Point -> Curve -> Curve
-freezeCurve fr p0 (Curve f g s) = Curve (const basis) g' s
+freezeCurve fr p0 (Curve f g s n) = Curve (const basis) g' s n
   where
     fsize = freezeSize fr
     fdir  = freezeOrientation fr
@@ -95,45 +96,50 @@ freezeCurve fr p0 (Curve f g s) = Curve (const basis) g' s
           | fsize         = (norm (px - o), norm (py - o))
 
 bindCurve :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Curve) -> Curve
-bindCurve f g = Curve f g' defaultCurveStyle
+bindCurve f g = Curve f g' defaultCurveStyle 1  -- not quite the right density
   where
-    g' t x = case g t x of Curve i j _ -> j t (i t)
+    g' t x = case g t x of Curve i j _ _ -> j t (i t)
 
 joinCurve :: Curve -> Curve -> Curve
-joinCurve (Curve f f' s) (Curve g g' _) =
-    Curve (\ t ->
-              if | t <= 0.5  -> Left  $ f (2 * t)
-                 | otherwise -> Right $ g (2 * t - 1))
-          (\ t r -> case r of
-            Left p  -> f' (2 * t) p
-            Right p -> g' (2 * t - 1) p
-          ) s
+joinCurve (Curve f f' s n) (Curve g g' _ m) =
+    Curve h h' s (n + m)
   where
+    mid = fromIntegral n / fromIntegral (n + m)
+    lo t = t / mid
+    hi t = (t - mid) / (1 - mid)
     p = f 1
     q = g 0
+    h t | t <= mid   = Left  $ f (lo t)
+         | otherwise = Right $ g (hi t)
+    h' t (Left p)  = f' (lo t) p
+    h' t (Right p) = g' (hi t) p
 
 appendPoint :: Curve -> Point -> Curve
-appendPoint (Curve f g s) p = Curve f' g' s
+appendPoint (Curve f g s n) p = Curve f' g' s (n + 1)
   where
-    mid   = 0.9999
+    mid   = fromIntegral n / fromIntegral (n + 1)
+    lo t  = t / mid
+    hi t  = (t - mid) / (1 - mid)
     endPt = f 1
-    f' t | t <= mid  = Left $ f (t / mid)
+    f' t | t <= mid  = Left $ f (lo t)
          | otherwise = Right (endPt, p)
-    g' t (Left p)       = g (t / mid) p
-    g' t (Right (p, q)) = interpolate (g 1 p) q ((t - mid)/(1 - mid))
+    g' t (Left p)       = g (lo t) p
+    g' t (Right (p, q)) = interpolate (g 1 p) q (hi t)
 
 prependPoint :: Point -> Curve -> Curve
-prependPoint p (Curve f g s) = Curve f' g' s
+prependPoint p (Curve f g s n) = Curve f' g' s (n + 1)
   where
-    mid     = 0.0001
+    mid     = 1 / fromIntegral (n + 1)
+    lo t    = t / mid
+    hi t    = (t - mid) / (1 - mid)
     startPt = f 0
-    f' t | t >= mid  = Right $ f ((t - mid) / (1 - mid))
-         | otherwise = Left (p, startPt)
-    g' t (Left (p, q)) = interpolate p (g 0 q) (t / mid)
-    g' t (Right p)     = g ((t - mid) / (1 - mid)) p
+    f' t | t <= mid  = Left (p, startPt)
+         | otherwise = Right $ f (hi t)
+    g' t (Left (p, q)) = interpolate p (g 0 q) (lo t)
+    g' t (Right p)     = g (hi t) p
 
 differentiateCurve :: Curve -> Curve
-differentiateCurve (Curve f g s) = Curve (const f) g' s
+differentiateCurve (Curve f g s n) = Curve (const f) g' s n
   where
     eps  = 0.01
     eps2 = eps ^ 2
@@ -148,7 +154,7 @@ differentiateCurve (Curve f g s) = Curve (const f) g' s
         (t1, p1) = maybe (1, h 1) id $ findThreshold (\e -> h (t + e)) farEnough 1.0e-6 0 (1 - t)
 
 zipCurve :: (Scalar -> Point -> Point -> Point) -> Curve -> Curve -> Curve
-zipCurve h (Curve f1 g1 s) (Curve f2 g2 _) = Curve (f1 &&& f2) g' s
+zipCurve h (Curve f1 g1 s n) (Curve f2 g2 _ m) = Curve (f1 &&& f2) g' s (max n m)
   where
     g' t (x, y) = h t (g1 t x) (g2 t y)
 
@@ -166,7 +172,7 @@ instance DistanceToPoint (AnnotatedSegment a) where
 
 -- Each segment is annotated with the distance from the start of the curve.
 curveToSegments :: Scalar -> Curve -> BBTree (AnnotatedSegment (Scalar, Scalar))
-curveToSegments r (Curve f g _) =
+curveToSegments r (Curve f g _ _) =
     buildBBTree $ annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
   where
     h t = g t (f t)
@@ -187,12 +193,15 @@ curveToSegments r (Curve f g _) =
       return (t, h t)
 
     subdivide x@(t0, p0) y@(t1, p1)
-      | stop                       = [(x, y)]
-      | squareDistance p0 p1 > res = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
-      | otherwise                  = [(x, y)]
+      | stop      = [(x, y)]
+      | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
+      | otherwise = [(x, y)]
       where
+        d = squareDistance p0 p1
+        -- Using this instead of (==) due to serious weird shit
+        x === y = decodeFloat x == decodeFloat y
+        stop = t === t0 || t === t1 -- we've run out of precision
         sh (t, p) = "  f " ++ show t ++ " = " ++ show p
         t = (t0 + t1) / 2
-        stop = t == t0 || t == t1   -- we've run out of precision
         p = h t
 

@@ -98,7 +98,7 @@ curve f = curve' f (const id)
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curve (f . tr) (g . tr) defaultCurveStyle
+curve' f g t0 t1 = ICurve $ Curve (f . tr) (g . tr) defaultCurveStyle 1
   where
     tr t = t0 + t * (t1 - t0)
 
@@ -148,7 +148,7 @@ freezeImage p = mapCurves (freezeCurve fr p)
 unfreezeImage :: Image -> Image
 unfreezeImage = mapCurves unfreeze
   where
-    unfreeze (Curve f g s) = Curve (\t -> g t (f t)) (const id) s
+    unfreeze (Curve f g s n) = Curve (\t -> g t (f t)) (const id) s n
 
 instance HasAttribute CurveAttribute Image where
   modifyAttribute attr f = mapCurves (modifyAttribute attr f)
