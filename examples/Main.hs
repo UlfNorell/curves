@@ -36,11 +36,14 @@ main = do
   let s = case args of
             s:_ -> s
             _ -> "AB0d"
-  -- font <- loadSVGFont "fonts/LiberationSerif-Regular.svg" -- Calligraffiti-webfont.svg"
-  let font = liberation Serif []
+  font <- loadSVGFont "fonts/GentiumPlus-R.svg" -- Calligraffiti-webfont.svg"
+  -- let font = liberation Serif []
   save $ autoFit (Vec 20 20) (Vec 780 580) $
     dropShadow (Vec 3 (-3)) 0.3 $
-    drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+    let i       = drawString_ font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+        i'      = drawString  font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+        Seg p q = imageBounds i in
+    i <> mapImage (\_ p -> p + Vec 0 30) (translate (Vec 0 $ getY $ q - p) i')
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -213,7 +216,9 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --        - formulas (fractions, sub/superscript etc)
 --        - text on curve (actually can be a general combinator)
 --        - svg
---          - kerning (handle multiple chars and ranges in kern tags)
+--          - kerning
+--            - handle multiple chars and ranges in kern tags
+--            - handle glyph names
 --          - documentation
 --        - parse ttf?
 --          - use MacOS api functions to do it?

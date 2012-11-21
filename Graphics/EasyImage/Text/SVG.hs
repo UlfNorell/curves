@@ -1,7 +1,8 @@
-
+{-# LANGUAGE DeriveFunctor, TupleSections #-}
 module Graphics.EasyImage.Text.SVG where
 
 import Control.Applicative
+import Control.Monad
 import Data.Map (Map)
 import Data.Char
 import Data.Monoid
@@ -10,6 +11,47 @@ import qualified Data.Map as Map
 import Text.XML.HaXml hiding (with)
 
 import Graphics.EasyImage
+
+-- Tries ------------------------------------------------------------------
+
+data Trie a b = Node (Maybe b) (Map a (Trie a b))
+  deriving (Functor, Show)
+
+instance (Ord a, Monoid b) => Monoid (Trie a b) where
+  mempty = trieEmpty
+  mappend (Node v m) (Node v' m') =
+    Node (mappend v v') (Map.unionWith mappend m m')
+
+trieEmpty :: Trie a b
+trieEmpty = Node Nothing Map.empty
+
+trieLookup :: Ord a => [a] -> Trie a b -> Maybe b
+trieLookup []     (Node v _) = v
+trieLookup (k:ks) (Node _ t) = trieLookup ks =<< Map.lookup k t
+
+-- | Lookup the longest prefix of the key that's in the trie
+trieLookup' :: Ord a => [a] -> Trie a b -> Maybe (b, [a], [a])
+trieLookup' ks (Node v t) =
+  case ks of
+    []   -> done
+    k:ks -> (cons k <$> (trieLookup' ks =<< Map.lookup k t)) `mplus` done
+  where
+    done = (,,) <$> v <*> pure [] <*> pure ks
+    cons k (v, ks, ks') = (v, k:ks, ks')
+
+trieSingleton :: [a] -> b -> Trie a b
+trieSingleton [] v = Node (Just v) Map.empty
+trieSingleton (k:ks) v = Node Nothing $ Map.singleton k (trieSingleton ks v)
+
+trieUnion :: Ord a => Trie a b -> Trie a b -> Trie a b
+trieUnion (Node u s) (Node v t) =
+  Node (mplus u v) (Map.unionWith trieUnion s t)
+
+trieInsert :: Ord a => [a] -> b -> Trie a b -> Trie a b
+trieInsert ks v t = trieUnion (trieSingleton ks v) t
+
+trieFromList :: Ord a => [([a], b)] -> Trie a b
+trieFromList = foldr (uncurry trieInsert) trieEmpty
 
 type Path = [PathCmd]
 
@@ -114,7 +156,7 @@ data SVGFont = SVGFont { fontId           :: String
                        , fontAscent       :: Scalar
                        , fontDescent      :: Scalar
                        , fontMissingGlyph :: Glyph
-                       , fontGlyphs       :: Map Char Glyph
+                       , fontGlyphs       :: Trie Char Glyph
                        , fontKerning      :: Map (Char, Char) Scalar
                        }
   deriving Show
@@ -148,7 +190,7 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
           , fontAscent     = attribute' "ascent" fontface
           , fontDescent    = attribute' "descent" fontface
           , fontMissingGlyph = parseGlyph defaultAdv missing
-          , fontGlyphs       = Map.fromList $ map mkGlyph glyphs
+          , fontGlyphs       = trieFromList $ map mkGlyph glyphs
           , fontKerning      = Map.fromList $ map mkKern kerning
           }
   where
@@ -158,10 +200,10 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
     [fontface] = (tag "font" /> tag "font-face") font
     [missing]  = (tag "font" /> tag "missing-glyph") font
     glyphs     = (tag "font" /> (tag "glyph" `o` attr "unicode")) font
-    kerning    = (tag "font" /> tag "hkern") font
+    kerning    = (tag "font" /> (tag "hkern" `o` attr "u1" `o` attr "u2")) font
 
     mkKern k = ((toChar $ attribute_ "u1" k, toChar $ attribute_ "u2" k), attribute' "k" k)
-    mkGlyph c = (toChar $ attribute_ "unicode" c, parseGlyph defaultAdv c)
+    mkGlyph c = (attribute_ "unicode" c, parseGlyph defaultAdv c)
     toChar [c] = c
     toChar s = error $ "not a char: \"" ++ s ++ "\""
 
@@ -209,7 +251,12 @@ drawGlyph g = snd $ foldl drawPath (DrawState 0 0 0, mempty) (glyphPath g)
 
 charGlyph :: SVGFont -> Char -> Glyph
 charGlyph font c =
-  fromMaybe (fontMissingGlyph font) $ Map.lookup c (fontGlyphs font)
+  fromMaybe (fontMissingGlyph font) $ trieLookup [c] (fontGlyphs font)
+
+stringGlyph :: SVGFont -> String -> (Glyph, String, String)
+stringGlyph font s =
+  fromMaybe (fontMissingGlyph font, take 1 s, drop 1 s) $
+  trieLookup' s (fontGlyphs font)
 
 drawChar :: SVGFont -> Char -> Image
 drawChar font c = drawGlyph $ charGlyph font c
@@ -217,15 +264,26 @@ drawChar font c = drawGlyph $ charGlyph font c
 charWidth :: SVGFont -> Char -> Scalar
 charWidth font c = glyphHorizAdv $ charGlyph font c
 
+-- | No kerning or combined characters.
+drawString_ :: SVGFont -> String -> Image
+drawString_ font s = draw 0 Nothing s
+  where
+    draw p _ [] = mempty
+    draw p prev (c:s) = translate p (drawChar font c) <> draw p' (Just c) s
+      where
+        p' = p + Vec (charWidth font c) 0
+
 drawString :: SVGFont -> String -> Image
 drawString font s = draw 0 Nothing s
   where
     draw p _ [] = mempty
-    draw p prev (c:s) = translate p' (drawChar font c) <> draw p'' (Just c) s
+    draw p prev (c:s) = translate p' (drawGlyph g) <> draw p'' (Just $ last cs) s'
       where
+        (g, cs, s') = stringGlyph font (c:s)
         p'  = p - Vec kern 0
-        p'' = p' + Vec (charWidth font c) 0
+        p'' = p' + Vec (glyphHorizAdv g) 0
         kern = fromMaybe 0 $ do
           c' <- prev
           k  <- Map.lookup (c', c) $ fontKerning font
           return k
+
