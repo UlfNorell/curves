@@ -54,13 +54,14 @@ import Graphics.EasyImage.Style
 -- | Scale the an image to fit inside the the box given by the two points
 --   (bottom-left and top-right corners).
 autoFit :: Point -> Point -> Image -> Image
-autoFit p q = loop
+autoFit p q = loop 0
   where
     -- Repeat autoFit until reasonably stable. This makes it work for features
     -- that are scaling insensitive (line widths and frozen images).
-    loop i
-      | abs (k - 1) < 0.01 = i'
-      | otherwise          = loop i'
+    loop oldk i
+      | abs (k - 1) < 0.01    = i'
+      | abs (oldk - k) < 0.01 = i'  -- not making progress
+      | otherwise             = loop k i'
       where
         (k, i') = autoFit' p q i
 
