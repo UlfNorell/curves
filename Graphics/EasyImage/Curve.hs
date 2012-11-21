@@ -35,10 +35,13 @@ data CurveStyle = CurveStyle
 -- attribute.  All line attributes can be parameterized by the absolute (in
 -- pixels) and relative distance from the start of the curve.
 --
--- Closed curves can be filled using a fill colour ('transparent' for no fill).
--- The fill blur is the width of the band outside the curve in which the fill
--- colour fades to full transparency. Setting the fill colour of a non-closed
--- curve results in unspecified behaviour.
+-- A set of closed curves combined with <Graphics-EasyImage.html#plusdotplus +.+>
+-- can be filled using a fill colour ('transparent' for no fill). A point is
+-- deemed inside the curves if a ray starting at the point intersects with the
+-- curves an odd number of times. The fill blur is the width of the band
+-- outside the curve in which the fill colour fades to full transparency.
+-- Setting the fill colour of a non-closed curve results in unspecified
+-- behaviour.
 data CurveAttribute :: * -> * where
   LineWidth     :: CurveAttribute Scalar
   LineBlur      :: CurveAttribute Scalar

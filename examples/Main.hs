@@ -36,7 +36,7 @@ main = do
   let s = case args of
             s:_ -> s
             _ -> "AB0d"
-  font <- loadSVGFont "fonts/GentiumPlus-R.svg" -- Calligraffiti-webfont.svg"
+  font <- loadSVGFont "fonts/FreeSerif.svg" -- Calligraffiti-webfont.svg"
   -- let font = liberation Serif []
   save $ autoFit (Vec 20 20) (Vec 780 580) $
     dropShadow (Vec 3 (-3)) 0.3 $
@@ -233,8 +233,6 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --      - shading would require parameterized fill colour
 --    * Look at the diagrams package for inspiration
 --      - backend for the diagrams package?
---    * Filling disjointed curves
---      - Update documentation
 --    * Better filling anti-aliasing
 --      - fonts look a bit blurry in smaller sizes
 --      - two methods (used for fonts):
@@ -242,6 +240,8 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --          (a narrow rectangle will be shifted to contain pixel coords)
 --        + subpixel rendering (take advantage of RGB display layout)
 --      - not sure how to do hinting, but subpixel rendering should be possible
+--      - Rethink fill blur. Fill blur 0 should still generate anti-aliased
+--        pixels (opacity = ratio of pixel inside the area).
 --  BUGS
 --    * autoFit loops if entire image is frozen
 

@@ -172,6 +172,7 @@ infixr 8 +++, <++
 --   coincide with the starting point of the second curve a straight line is
 --   added to connect the two. This combinator is useful when using
 --   parameterized line styles (such as 'Graphics.EasyImage.Style.dashed').
+--   #plusdotplus#
 (+++) :: Image -> Image -> Image
 ICurve c1     +++ ICurve c2     = ICurve $ joinCurve c1 c2
 i             +++ IEmpty        = i
@@ -180,16 +181,16 @@ Combine f i j +++ c             = Combine f i (j +++ c)
 c             +++ Combine f i j = Combine f (c +++ i) j
 
 -- | Prepend a point to the left-most curve of an image. @p <++ i@ is equivalent
---   to (but more efficient than) @'line' p q '+++' i@ if @q@ is the starting
---   point of the left-most curve of @i@.
+--   to  @'line' p q '+++' i@ if @q@ is the starting point of the left-most
+--   curve of @i@.
 (<++) :: Point -> Image -> Image
 p <++ ICurve c      = ICurve $ prependPoint p c
 p <++ Combine b i j = Combine b (p <++ i) j
 p <++ IEmpty        = point p
 
 -- | Append a point to the right-most curve of an image. @i ++> p@ is
---   equivalent to (but more efficient than) @i +++ 'line' q p@ if @q@ is the
---   end point of the right-most curve of @i@.
+--   equivalent to @i '+++' 'line' q p@ if @q@ is the end point of the right-most
+--   curve of @i@.
 (++>) :: Image -> Point -> Image
 ICurve cs     ++> p = ICurve $ appendPoint cs p
 IEmpty        ++> p = point p
