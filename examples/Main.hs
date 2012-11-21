@@ -12,6 +12,7 @@ import Graphics.EasyImage.Text
 import Graphics.EasyImage.Geometry
 import Graphics.EasyImage.Graph
 import Graphics.EasyImage.Text.SVG
+import Graphics.EasyImage.Text.Fonts.Liberation
 import Debug.Trace
 
 circle' :: Point -> Scalar -> Image
@@ -35,9 +36,11 @@ main = do
   let s = case args of
             s:_ -> s
             _ -> "AB0d"
-  font <- parseFile "fonts/Calligraffiti-webfont.svg"
+  -- font <- loadSVGFont "fonts/LiberationSerif-Regular.svg" -- Calligraffiti-webfont.svg"
+  let font = liberation Serif []
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    dropShadow (Vec 3 (-3)) 0.3 $ drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 1.2]
+    dropShadow (Vec 3 (-3)) 0.3 $
+    drawString font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -207,9 +210,15 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --        - graph property record to configure the graph
 --      - charts
 --      - text
---        - auto kerning (how?)
 --        - formulas (fractions, sub/superscript etc)
---        - read svg font format
+--        - text on curve (actually can be a general combinator)
+--        - svg
+--          - kerning (handle multiple chars and ranges in kern tags)
+--          - documentation
+--        - parse ttf?
+--          - use MacOS api functions to do it?
+--          - might be more work than it's worth, the Liberation open source
+--            fonts can be converted to svg
 --      - fractals, procedural generation stuff
 --        - trees?
 --    * make use of bindCurve (or similar) to make it easier to do things like
@@ -221,4 +230,13 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --      - backend for the diagrams package?
 --    * Filling disjointed curves
 --      - Update documentation
+--    * Better filling anti-aliasing
+--      - fonts look a bit blurry in smaller sizes
+--      - two methods (used for fonts):
+--        + hinting: tweak shapes to make integral pixel coords fall inside
+--          (a narrow rectangle will be shifted to contain pixel coords)
+--        + subpixel rendering (take advantage of RGB display layout)
+--      - not sure how to do hinting, but subpixel rendering should be possible
 --  BUGS
+--    * autoFit loops if entire image is frozen
+

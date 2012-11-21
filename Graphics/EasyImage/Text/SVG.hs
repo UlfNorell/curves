@@ -115,6 +115,7 @@ data SVGFont = SVGFont { fontId           :: String
                        , fontDescent      :: Scalar
                        , fontMissingGlyph :: Glyph
                        , fontGlyphs       :: Map Char Glyph
+                       , fontKerning      :: Map (Char, Char) Scalar
                        }
   deriving Show
 
@@ -148,6 +149,7 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
           , fontDescent    = attribute' "descent" fontface
           , fontMissingGlyph = parseGlyph defaultAdv missing
           , fontGlyphs       = Map.fromList $ map mkGlyph glyphs
+          , fontKerning      = Map.fromList $ map mkKern kerning
           }
   where
     defaultAdv = attribute' "horiz-adv-x" font
@@ -155,14 +157,16 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
     [font]     = (tag "defs" /> tag "font") =<< c
     [fontface] = (tag "font" /> tag "font-face") font
     [missing]  = (tag "font" /> tag "missing-glyph") font
-    glyphs     = (tag "font" /> tag "glyph") font
+    glyphs     = (tag "font" /> (tag "glyph" `o` attr "unicode")) font
+    kerning    = (tag "font" /> tag "hkern") font
 
+    mkKern k = ((toChar $ attribute_ "u1" k, toChar $ attribute_ "u2" k), attribute' "k" k)
     mkGlyph c = (toChar $ attribute_ "unicode" c, parseGlyph defaultAdv c)
     toChar [c] = c
     toChar s = error $ "not a char: \"" ++ s ++ "\""
 
-parseFile :: FilePath -> IO SVGFont
-parseFile file = do
+loadSVGFont :: FilePath -> IO SVGFont
+loadSVGFont file = do
   s <- readFile file
   return $ svgFont $ xmlParse "debug.out" s
 
@@ -214,9 +218,14 @@ charWidth :: SVGFont -> Char -> Scalar
 charWidth font c = glyphHorizAdv $ charGlyph font c
 
 drawString :: SVGFont -> String -> Image
-drawString font s = draw 0 s
+drawString font s = draw 0 Nothing s
   where
-    draw p [] = mempty
-    draw p (c:s) = translate p (drawChar font c) <> draw p' s
+    draw p _ [] = mempty
+    draw p prev (c:s) = translate p' (drawChar font c) <> draw p'' (Just c) s
       where
-        p' = p + Vec (charWidth font c) 0
+        p'  = p - Vec kern 0
+        p'' = p' + Vec (charWidth font c) 0
+        kern = fromMaybe 0 $ do
+          c' <- prev
+          k  <- Map.lookup (c', c) $ fontKerning font
+          return k
