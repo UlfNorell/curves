@@ -39,11 +39,25 @@ main = do
   font <- loadSVGFont "fonts/FreeSerif.svg" -- Calligraffiti-webfont.svg"
   -- let font = liberation Serif []
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    dropShadow (Vec 3 (-3)) 0.3 $
-    let i       = drawString_ font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
-        i'      = drawString  font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
-        Seg p q = imageBounds i in
-    i <> mapImage (\_ p -> p + Vec 0 30) (translate (Vec 0 $ getY $ q - p) i')
+    let fill = [LineColour := transparent, FillColour := black]
+        i    = drawString font s `with` fill
+        h    = 14
+        Seg p q = imageBounds i
+        k = diag $ h / getY (q - p)
+        is = mconcat [ translate (Vec 0 (y * (h + 5))) $
+                       scale k $ translate (-p) $
+                       drawString font (s ++ " " ++ show i) `with` (fill ++ b)
+                     | (y, i) <- zip (iterate (+ 1) (-8)) $ map Just [0,2..14] ++ [Nothing] ++ map Just [16..30]
+                     , let b = maybe [] (\b -> [FillBlur := (b / 10)]) i
+                     ]
+    in
+    circle (-10 * unitX) 1 <>
+    freezeImageSize 0 is
+    -- dropShadow (Vec 3 (-3)) 0.3 $
+    -- let i       = drawString_ font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+    --     i'      = drawString  font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
+    --     Seg p q = imageBounds i in
+    -- i <> mapImage (\_ p -> p + Vec 0 30) (translate (Vec 0 $ getY $ q - p) i')
     -- graph (-1) 1 (\x -> 1 + cos (pi * x)) `with` brushStyle 15 200 <>
     -- graph (-1) 1 (\x -> 1 + x + sin (pi * x) / pi)
     --   `with` ([LineColour := red] ++ brushStyle 10 200)
@@ -233,15 +247,11 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --      - shading would require parameterized fill colour
 --    * Look at the diagrams package for inspiration
 --      - backend for the diagrams package?
---    * Better filling anti-aliasing
---      - fonts look a bit blurry in smaller sizes
---      - two methods (used for fonts):
---        + hinting: tweak shapes to make integral pixel coords fall inside
---          (a narrow rectangle will be shifted to contain pixel coords)
---        + subpixel rendering (take advantage of RGB display layout)
---      - not sure how to do hinting, but subpixel rendering should be possible
---      - Rethink fill blur. Fill blur 0 should still generate anti-aliased
---        pixels (opacity = ratio of pixel inside the area).
+--    * Advanced font rendering techniques
+--      - hinting: tweak shapes to make integral pixel coords fall inside
+--        (a narrow rectangle will be shifted to contain pixel coords)
+--      - subpixel rendering (take advantage of RGB display layout)
+--      - not sure how to do hinting, but subpixel rendering might be possible
 --  BUGS
---    * autoFit loops if entire image is frozen
+--    * autoFit behaves strangely if entire image is frozen
 

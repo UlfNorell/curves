@@ -35,7 +35,7 @@ instance HasBoundingBox CompiledImage where
   bounds (Segments fs b) = relaxBoundingBox (max fw lw) $ bounds b
     where
       fw = case fs of
-             FillStyle c w _ | not $ isTransparent c -> w
+             FillStyle c w _ | not $ isTransparent c -> w/2
              _ -> 0
       lw = case fs of
              FillStyle _ _ (LineStyle c w b) | not $ isTransparent c -> w + b

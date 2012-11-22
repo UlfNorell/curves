@@ -38,10 +38,9 @@ data CurveStyle = CurveStyle
 -- A set of closed curves combined with <Graphics-EasyImage.html#plusdotplus +.+>
 -- can be filled using a fill colour ('transparent' for no fill). A point is
 -- deemed inside the curves if a ray starting at the point intersects with the
--- curves an odd number of times. The fill blur is the width of the band
--- outside the curve in which the fill colour fades to full transparency.
--- Setting the fill colour of a non-closed curve results in unspecified
--- behaviour.
+-- curves an odd number of times. The fill blur is the width of the band around
+-- the curve edge in which the fill colour fades to full transparency.  Setting
+-- the fill colour of a non-closed curve results in unspecified behaviour.
 data CurveAttribute :: * -> * where
   LineWidth     :: CurveAttribute Scalar
   LineBlur      :: CurveAttribute Scalar
@@ -70,7 +69,7 @@ defaultCurveStyle =
              , lineBlur   = \_ _ -> 1.2
              , lineColour = \_ _ -> black
              , fillColour = transparent
-             , fillBlur   = 1.2 }
+             , fillBlur   = sqrt 2 }
 
 instance Transformable Curve where
   transform h (Curve f g n) = Curve (transform h f) g n

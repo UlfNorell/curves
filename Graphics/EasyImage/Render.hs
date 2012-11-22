@@ -23,11 +23,15 @@ import Debug.Trace
 sampleSegments :: FillStyle -> Segments -> Point -> Maybe Colour
 sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour lineWidth lineBlur)) s p@(Vec x y) =
   case isLine of
-    Nothing -> fill <|> do
-        let b = fillBlur
-        d <- distanceAtMost b s p
-        guard (d < b)
-        return $ opacity (1 - d/b) fillColour
+    Nothing -> edge <|> fill
+      where
+        edge = do
+          let b = fillBlur / 2
+          d <- distanceAtMost b s p
+          guard (d < b)
+          let o | isJust fill = 1 - (b - d) / fillBlur
+                | otherwise   = 1 - (b + d) / fillBlur
+          return $ opacity o fillColour
     Just (α, c) -> Just $ opacity (getAlpha c) $ addFill (getAlpha c) $ setAlpha α c
   where
     isZero x = round (255 * x) == 0
