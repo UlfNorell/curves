@@ -48,6 +48,7 @@ Library
                     Graphics.EasyImage.Image
                     Graphics.EasyImage.Render
                     Graphics.EasyImage.Tests
+                    Graphics.EasyImage.Trie
                     Paths_easy_image
   GHC-Options:      -O2 -funbox-strict-fields
 

@@ -9,49 +9,10 @@ import Data.Monoid
 import Data.Maybe
 import qualified Data.Map as Map
 import Text.XML.HaXml hiding (with)
+import qualified Graphics.EasyImage.Trie as Trie
+import Graphics.EasyImage.Trie (Trie)
 
 import Graphics.EasyImage
-
--- Tries ------------------------------------------------------------------
-
-data Trie a b = Node (Maybe b) (Map a (Trie a b))
-  deriving (Functor, Show)
-
-instance (Ord a, Monoid b) => Monoid (Trie a b) where
-  mempty = trieEmpty
-  mappend (Node v m) (Node v' m') =
-    Node (mappend v v') (Map.unionWith mappend m m')
-
-trieEmpty :: Trie a b
-trieEmpty = Node Nothing Map.empty
-
-trieLookup :: Ord a => [a] -> Trie a b -> Maybe b
-trieLookup []     (Node v _) = v
-trieLookup (k:ks) (Node _ t) = trieLookup ks =<< Map.lookup k t
-
--- | Lookup the longest prefix of the key that's in the trie
-trieLookup' :: Ord a => [a] -> Trie a b -> Maybe (b, [a], [a])
-trieLookup' ks (Node v t) =
-  case ks of
-    []   -> done
-    k:ks -> (cons k <$> (trieLookup' ks =<< Map.lookup k t)) `mplus` done
-  where
-    done = (,,) <$> v <*> pure [] <*> pure ks
-    cons k (v, ks, ks') = (v, k:ks, ks')
-
-trieSingleton :: [a] -> b -> Trie a b
-trieSingleton [] v = Node (Just v) Map.empty
-trieSingleton (k:ks) v = Node Nothing $ Map.singleton k (trieSingleton ks v)
-
-trieUnion :: Ord a => Trie a b -> Trie a b -> Trie a b
-trieUnion (Node u s) (Node v t) =
-  Node (mplus u v) (Map.unionWith trieUnion s t)
-
-trieInsert :: Ord a => [a] -> b -> Trie a b -> Trie a b
-trieInsert ks v t = trieUnion (trieSingleton ks v) t
-
-trieFromList :: Ord a => [([a], b)] -> Trie a b
-trieFromList = foldr (uncurry trieInsert) trieEmpty
 
 type Path = [PathCmd]
 
@@ -190,7 +151,7 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
           , fontAscent     = attribute' "ascent" fontface
           , fontDescent    = attribute' "descent" fontface
           , fontMissingGlyph = parseGlyph defaultAdv missing
-          , fontGlyphs       = trieFromList $ map mkGlyph glyphs
+          , fontGlyphs       = Trie.fromList $ map mkGlyph glyphs
           , fontKerning      = Map.fromList $ map mkKern kerning
           }
   where
@@ -251,12 +212,12 @@ drawGlyph g = snd $ foldl drawPath (DrawState 0 0 0, mempty) (glyphPath g)
 
 charGlyph :: SVGFont -> Char -> Glyph
 charGlyph font c =
-  fromMaybe (fontMissingGlyph font) $ trieLookup [c] (fontGlyphs font)
+  fromMaybe (fontMissingGlyph font) $ Trie.lookup [c] (fontGlyphs font)
 
 stringGlyph :: SVGFont -> String -> (Glyph, String, String)
 stringGlyph font s =
   fromMaybe (fontMissingGlyph font, take 1 s, drop 1 s) $
-  trieLookup' s (fontGlyphs font)
+  Trie.lookupPrefix s (fontGlyphs font)
 
 drawChar :: SVGFont -> Char -> Image
 drawChar font c = drawGlyph $ charGlyph font c
