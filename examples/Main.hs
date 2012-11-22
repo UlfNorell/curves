@@ -33,11 +33,11 @@ outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
 
 main = do
   args <- getArgs
-  let s = case args of
-            s:_ -> s
-            _ -> "AB0d"
-  font <- loadSVGFont "fonts/FreeSerif.svg" -- Calligraffiti-webfont.svg"
-  -- let font = liberation Serif []
+  s <- case args of
+            s:_ -> return s
+            _ -> getContents
+  -- font <- loadSVGFont "fonts/FreeSerif.svg"
+  let font = liberation Serif []
   save $ autoFit (Vec 20 20) (Vec 780 580) $
     let fill = [LineColour := transparent, FillColour := black]
         i    = drawString font s `with` fill
@@ -45,7 +45,8 @@ main = do
         h    = 50
         Seg p q = imageBounds i
         k = diag $ h / getY (q - p)
-    in i <> mapImage (\_ p -> p + Vec 0 20) (translate (Vec 0 (getY (q - p))) i')
+        l y = line (Vec 0 y) (Vec (getX (q - p)) y) `with` [LineColour := opacity 0.5 blue]
+    in freezeImageSize 0 (scale 10 i)
     -- circle (-10 * unitX) 1 <>
     -- freezeImageSize 0 (scale k $ translate (-p) i)
     -- dropShadow (Vec 3 (-3)) 0.3 $

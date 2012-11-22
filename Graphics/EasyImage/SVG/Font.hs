@@ -26,6 +26,7 @@ data Glyph = Glyph { glyphHorizAdv :: Scalar
 
 data SVGFont = SVGFont { fontId           :: String
                        , fontUnitsPerEm   :: Scalar
+                       , fontCapHeight    :: Scalar
                        , fontAscent       :: Scalar
                        , fontDescent      :: Scalar
                        , fontMissingGlyph :: Glyph
@@ -71,6 +72,7 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
   SVGFont { fontId         = attribute_ "id" font
           , fontUnitsPerEm = attribute' "units-per-em" fontface
           , fontAscent     = attribute' "ascent" fontface
+          , fontCapHeight  = maybe ascent read $ attribute "cap-height" fontface
           , fontDescent    = attribute' "descent" fontface
           , fontMissingGlyph = parseGlyph defaultAdv missing
           , fontGlyphs       = glyphMap
@@ -85,6 +87,7 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
     [missing]  = (tag "font" /> tag "missing-glyph") font
     glyphTags  = (tag "font" /> (tag "glyph" `o` attr "unicode")) font
     kerning    = (tag "font" /> tag "hkern") font
+    ascent     = attribute' "ascent" fontface
 
     glyphs = map mkGlyph glyphTags
     glyphMap = Trie.fromList glyphs
@@ -171,8 +174,12 @@ drawString_ font s = draw 0 Nothing s
         p' = p + Vec (charWidth font c) 0
 
 drawString :: SVGFont -> String -> Image
-drawString font s = draw 0 Nothing s
+drawString font s =
+  scale (diag $ 1 / fontCapHeight font) $
+  mconcat [ translate (Vec 0 (-l * lineSep)) $ draw 0 Nothing s
+          | (l, s) <- zip [0..] $ lines s ]
   where
+    lineSep = fontAscent font - fontDescent font
     draw p _ [] = mempty
     draw p prev (c:s) = translate p' (drawGlyph g) <> draw p'' (Just x) s'
       where
