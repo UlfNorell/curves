@@ -214,38 +214,3 @@ fractal' res f = curve' (const f) (flip frac) 0 1
         p' = f (1/3)
         q' = f (2/3)
 
--- TODO
---    * Make it compile with ghc-7.0 (also 6.12?)
---    * libraries on top
---      - geometry
---      - graphs
---        - graph property record to configure the graph
---      - charts
---      - text
---        - formulas (fractions, sub/superscript etc)
---        - text on curve (actually can be a general combinator)
---        - svg
---          - kerning
---            - handle char ranges in kern tags
---          - documentation
---        - parse ttf?
---          - use MacOS api functions to do it?
---          - might be more work than it's worth, the Liberation open source
---            fonts can be converted to svg
---      - fractals, procedural generation stuff
---        - trees?
---    * make use of bindCurve (or similar) to make it easier to do things like
---      the fractal
---    * tidier examples
---    * 3D
---      - shading would require parameterized fill colour
---    * Look at the diagrams package for inspiration
---      - backend for the diagrams package?
---    * Advanced font rendering techniques
---      - hinting: tweak shapes to make integral pixel coords fall inside
---        (a narrow rectangle will be shifted to contain pixel coords)
---      - subpixel rendering (take advantage of RGB display layout)
---      - not sure how to do hinting, but subpixel rendering might be possible
---  BUGS
---    * autoFit behaves strangely if entire image is frozen
-
