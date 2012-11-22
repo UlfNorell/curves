@@ -11,7 +11,7 @@ import Graphics.EasyImage.Chart
 import Graphics.EasyImage.Text
 import Graphics.EasyImage.Geometry
 import Graphics.EasyImage.Graph
-import Graphics.EasyImage.Text.SVG
+import Graphics.EasyImage.SVG.Font
 import Graphics.EasyImage.Text.Fonts.Liberation
 import Debug.Trace
 
@@ -41,18 +41,13 @@ main = do
   save $ autoFit (Vec 20 20) (Vec 780 580) $
     let fill = [LineColour := transparent, FillColour := black]
         i    = drawString font s `with` fill
-        h    = 14
+        i'   = drawString_ font s `with` fill
+        h    = 50
         Seg p q = imageBounds i
         k = diag $ h / getY (q - p)
-        is = mconcat [ translate (Vec 0 (y * (h + 5))) $
-                       scale k $ translate (-p) $
-                       drawString font (s ++ " " ++ show i) `with` (fill ++ b)
-                     | (y, i) <- zip (iterate (+ 1) (-8)) $ map Just [0,2..14] ++ [Nothing] ++ map Just [16..30]
-                     , let b = maybe [] (\b -> [FillBlur := (b / 10)]) i
-                     ]
-    in
-    circle (-10 * unitX) 1 <>
-    freezeImageSize 0 is
+    in i <> mapImage (\_ p -> p + Vec 0 20) (translate (Vec 0 (getY (q - p))) i')
+    -- circle (-10 * unitX) 1 <>
+    -- freezeImageSize 0 (scale k $ translate (-p) i)
     -- dropShadow (Vec 3 (-3)) 0.3 $
     -- let i       = drawString_ font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
     --     i'      = drawString  font s `with` [LineColour := transparent, FillColour := black, FillBlur := 0.9]
@@ -231,8 +226,7 @@ fractal' res f = curve' (const f) (flip frac) 0 1
 --        - text on curve (actually can be a general combinator)
 --        - svg
 --          - kerning
---            - handle multiple chars and ranges in kern tags
---            - handle glyph names
+--            - handle char ranges in kern tags
 --          - documentation
 --        - parse ttf?
 --          - use MacOS api functions to do it?

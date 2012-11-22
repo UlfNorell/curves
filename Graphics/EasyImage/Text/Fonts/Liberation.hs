@@ -2,7 +2,7 @@
 module Graphics.EasyImage.Text.Fonts.Liberation where
 
 import Data.List
-import Graphics.EasyImage.Text.SVG
+import Graphics.EasyImage.SVG.Font
 import System.IO.Unsafe
 import System.FilePath
 import Paths_easy_image

@@ -38,8 +38,9 @@ Library
                     Graphics.EasyImage.Graph
                     Graphics.EasyImage.Math
                     Graphics.EasyImage.Style
+                    Graphics.EasyImage.SVG.Font
+                    Graphics.EasyImage.SVG.Path
                     Graphics.EasyImage.Text
-                    Graphics.EasyImage.Text.SVG
                     Graphics.EasyImage.Text.Fonts.Liberation
   Other-Modules:    
                     Graphics.EasyImage.BoundingBox
