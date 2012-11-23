@@ -13,7 +13,8 @@ module Graphics.EasyImage.Math
     -- * Line segments
   , Segment(..)
   , segmentLength, squareSegmentLength
-  , leftOf, intersectSegment
+  , leftOf, intersectSegment, intersectLine
+  , intersectLineSegment
     -- * Basis
   , Basis(..), defaultBasis
     -- * Distances
@@ -153,7 +154,13 @@ intersectSegment :: Segment -> Segment -> Maybe Point
 intersectSegment l1@(Seg p0 p1) l2@(Seg q0 q1)
   | leftOf p0 l2 == leftOf p1 l2 = Nothing
   | leftOf q0 l1 == leftOf q1 l1 = Nothing
-  | otherwise = Just $ Vec x y
+  | otherwise = intersectLine l1 l2
+
+-- | Compute the intersection point of two lines, if any.
+intersectLine :: Segment -> Segment -> Maybe Point
+intersectLine l1@(Seg p0 p1) l2@(Seg q0 q1)
+  | p # q == 0 = Nothing  -- parallel
+  | otherwise  = Just $ Vec x y
   where
     p = p1 - p0
     q = q1 - q0
@@ -161,6 +168,12 @@ intersectSegment l1@(Seg p0 p1) l2@(Seg q0 q1)
 
     x = (getX q * (p # p0) - getX p * (q # q0)) / (p # q)
     y = (getY q * (p # p0) - getY p * (q # q0)) / (p # q)
+
+-- | Compute the intersection point of a line and a segment, if any.
+intersectLineSegment :: Segment -> Segment -> Maybe Point
+intersectLineSegment l@(Seg p0 p1) s@(Seg q0 q1)
+  | leftOf q0 l == leftOf q1 l = Nothing
+  | otherwise = intersectLine l s
 
 -- | Is a point to the left of a line segment, as seen from the start of the
 --   segment looking a the end?
