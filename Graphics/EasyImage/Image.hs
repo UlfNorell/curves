@@ -230,8 +230,13 @@ circleSegment (Vec x y) r a b =
 -- | A connected sequence of straight lines. The list must have at least two
 --   elements.
 lineStrip :: [Point] -> Image
-lineStrip (p:q:ps) = foldl (++>) (line p q) ps
-lineStrip _ = error "lineStrip: list too short"
+lineStrip [] = error "lineStrip: []"
+lineStrip [p]       = point p
+lineStrip [p, q]    = line p q
+lineStrip [p, q, r] = p <++ line q r
+lineStrip ps        = lineStrip qs +++ lineStrip rs
+  where
+    (qs, rs) = splitAt (div (length ps) 2) ps
 
 -- | A polygon.
 --
