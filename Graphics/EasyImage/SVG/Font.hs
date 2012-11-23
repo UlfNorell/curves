@@ -1,5 +1,12 @@
 {-# LANGUAGE DeriveFunctor, TupleSections #-}
-module Graphics.EasyImage.SVG.Font where
+{-| This module contains functions to render text using fonts specified in the
+    <http://www.w3.org/TR/SVG/fonts.html SVG format>.
+-}
+module Graphics.EasyImage.SVG.Font
+  ( SVGFont
+  , loadFont
+  , drawString
+  ) where
 
 import Control.Applicative
 import Control.Monad
@@ -20,10 +27,10 @@ type GlyphName = String
 data Glyph = Glyph { glyphHorizAdv :: Scalar
                    , glyphName     :: GlyphName
                    , glyphPath     :: Path
-                   , glyphChars    :: String
+                   , glyphChars    :: [Char]
                    }
-  deriving Show
 
+-- | Contains all the data necessary to render text.
 data SVGFont = SVGFont { fontId           :: String
                        , fontUnitsPerEm   :: Scalar
                        , fontCapHeight    :: Scalar
@@ -34,7 +41,6 @@ data SVGFont = SVGFont { fontId           :: String
                        , fontKerning      :: Map (GlyphName, GlyphName) Scalar
                        , fontGlyphsByName :: Map GlyphName Glyph
                        }
-  deriving Show
 
 uncomma s = unc (filter (not . isSpace) s)
   where
@@ -62,7 +68,7 @@ attribute' attr c =
 parseGlyph :: Scalar -> Content i -> Glyph
 parseGlyph defaultAdv c =
   Glyph { glyphHorizAdv = maybe defaultAdv read $ attribute "horiz-adv-x" c
-        , glyphPath     = maybe [] (parsePath . lexPath) $ attribute "d" c
+        , glyphPath     = maybe [] parsePath $ attribute "d" c
         , glyphName     = maybe "missing-glyph" (head . uncomma) $ attribute "glyph-name" c
         , glyphChars    = fromMaybe "" $ attribute "unicode" c
         }
@@ -107,47 +113,14 @@ svgFont (Document _ _ (Elem _ _ c0) _) =
     toChar [c] = c
     toChar s = error $ "not a char: \"" ++ s ++ "\""
 
-loadSVGFont :: FilePath -> IO SVGFont
-loadSVGFont file = do
+-- | Read a font from an SVG file.
+loadFont :: FilePath -> IO SVGFont
+loadFont file = do
   s <- readFile file
   return $ svgFont $ xmlParse "debug.out" s
 
-data DrawState =
-  DrawState { dsCurrentPoint     :: Point
-            , dsLastControlPoint :: Point
-            , dsStartOfSubCurve  :: Point }
-
 drawGlyph :: Glyph -> Image
-drawGlyph g = snd $ foldl drawPath (DrawState 0 0 0, mempty) (glyphPath g)
-  where
-    drawPath (ds, i) cmd = case cmd of
-      MoveTo ct p -> (newSubCurve p', i +.+ point p')
-        where p' = pt ds ct p
-      LineTo ct p -> (newPt ds p', i ++> p')
-        where p' = pt ds ct p
-      HorLineTo ct x -> (newPt ds p', i ++> p')
-        where Vec _ y  = dsCurrentPoint ds
-              Vec x' _ = pt ds ct (Vec x 0)
-              p'       = Vec x' y
-      VerLineTo ct y -> (newPt ds p', i ++> p')
-        where Vec x _  = dsCurrentPoint ds
-              Vec _ y' = pt ds ct (Vec 0 y)
-              p'       = Vec x y'
-      BezierTo ct ps -> (newPt ds (last ps'), i +++ bezierSegment (dsCurrentPoint ds : ps'))
-        where ps' = map (pt ds ct) ps
-      SmoothBezierTo ct ps -> (newPt ds (last ps'), i +++ bezierSegment (p0 : cp : ps'))
-        where ps' = map (pt ds ct) ps
-              p0  = dsCurrentPoint ds
-              cp  = 2 * p0 - dsLastControlPoint ds
-      ArcTo{} -> error "TODO: elliptical arcs"
-      ClosePath -> (newPt ds p, i ++> p)
-        where p = dsStartOfSubCurve ds
-
-    pt ds Absolute p = p
-    pt ds Relative p = p + dsCurrentPoint ds
-
-    newPt ds p = ds { dsCurrentPoint = p, dsLastControlPoint = p }
-    newSubCurve p = DrawState p p p
+drawGlyph g = drawPath (glyphPath g)
 
 charGlyph :: SVGFont -> Char -> Glyph
 charGlyph font c =
@@ -164,15 +137,8 @@ drawChar font c = drawGlyph $ charGlyph font c
 charWidth :: SVGFont -> Char -> Scalar
 charWidth font c = glyphHorizAdv $ charGlyph font c
 
--- | No kerning or combined characters.
-drawString_ :: SVGFont -> String -> Image
-drawString_ font s = draw 0 Nothing s
-  where
-    draw p _ [] = mempty
-    draw p prev (c:s) = translate p (drawChar font c) <> draw p' (Just c) s
-      where
-        p' = p + Vec (charWidth font c) 0
-
+-- | Render a string in the given font. The text starts at the origin an is
+--   scaled to make upper case letters 1 unit high.
 drawString :: SVGFont -> String -> Image
 drawString font s =
   scale (diag $ 1 / fontCapHeight font) $

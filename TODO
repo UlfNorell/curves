@@ -15,7 +15,6 @@ Libraries
   - svg
     - kerning
       - handle char ranges in kern tags
-    - documentation
     - left/right/center align
   - parse ttf?
     - use MacOS api functions to do it?

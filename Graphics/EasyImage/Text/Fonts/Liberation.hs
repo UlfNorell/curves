@@ -19,7 +19,7 @@ fontFileName s ms = getDataFileName $ "fonts" </> "Liberation" ++ show s ++ "-" 
       | otherwise = concatMap show $ nub $ sort ms
 
 fonts :: [((Style, [Modifier]), SVGFont)]
-fonts = [ (key, unsafePerformIO $ loadSVGFont =<< uncurry fontFileName key)
+fonts = [ (key, unsafePerformIO $ loadFont =<< uncurry fontFileName key)
         | s      <- [Mono, Sans, Serif]
         , bold   <- [False, True]
         , italic <- [False, True]
