@@ -2,9 +2,11 @@
 import System.Environment
 
 import Control.Applicative
+import Control.Monad
 import Data.List
 import Data.Monoid
 import System.Environment
+import System.Random
 
 import Graphics.EasyImage
 import Graphics.EasyImage.Chart
@@ -13,7 +15,8 @@ import Graphics.EasyImage.Geometry
 import Graphics.EasyImage.Graph
 import Graphics.EasyImage.SVG.Font
 import Graphics.EasyImage.Text.Fonts.Liberation
-import Debug.Trace
+
+import Fractals
 
 circle' :: Point -> Scalar -> Image
 circle' (Vec x y) r =
@@ -33,20 +36,25 @@ outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
 
 main = do
   args <- getArgs
-  s <- case args of
-            s:_ -> return s
-            _ -> getContents
-  -- font <- loadSVGFont "fonts/FreeSerif.svg"
-  let font = liberation Serif []
+  case args of
+    [a, b] -> setStdGen (read $ unwords args)
+    _      -> return ()
+  print =<< getStdGen
+  -- font <- loadFont "fonts/FreeSerif.svg"
+  -- let font = liberation Serif []
+  trees <- replicateM 1 $ randomTree defaultTree
   save $ autoFit (Vec 20 20) (Vec 780 580) $
-    let fill = [LineColour := transparent, FillColour := black]
-        i    = drawString font s `with` fill
-        i'   = drawString_ font s `with` fill
-        h    = 50
-        Seg p q = imageBounds i
-        k = diag $ h / getY (q - p)
-        l y = line (Vec 0 y) (Vec (getX (q - p)) y) `with` [LineColour := opacity 0.5 blue]
-    in freezeImageSize 0 (scale 10 i)
+    let droot = (-unitY, 0.6)
+        bs    = [(-0.3, 0.5, 0.2), (1.1, 0.4, 0.1)]
+        ps    = [ (rotate a (d * unitY), w) | (a, d, w) <- bs ]
+        draw (v, d) = line 0 v `with` [LineColour := opacity 0.5 blue] <>
+                      line u (v + u) <>
+                      line (-u) (v - u)
+          where
+            u = d/2 * norm (rot90 v)
+    in
+      -- mconcat $ map draw (droot : ps)
+      foldr1 (<||>) trees `with` [FillColour := Colour 0.6 0.4 0 1]
     -- circle (-10 * unitX) 1 <>
     -- freezeImageSize 0 (scale k $ translate (-p) i)
     -- dropShadow (Vec 3 (-3)) 0.3 $
@@ -156,11 +164,6 @@ dropShadow v o i =
         (mapImage (\_ p -> p + v) i `with`
           [LineBlur := 8, FillBlur := 8])
 
-chunks n [] = []
-chunks n xs = ys : chunks n zs
-  where
-    (ys, zs) = splitAt n xs
-
 image1 =
     rotateAround (Vec 400 325) (pi/6) (ellipse (Vec 400 300) 400 350) <>
     translate (Vec 250 300) (scale 200 $ circle (Vec 0 0) 1) <> point (Vec 250 300) <>
@@ -171,47 +174,5 @@ image1 =
   where
     f x = sin x + 0.5 * sin (3 * x)
 
-fractal res p q = fractal' res $
-  interpolate p q
-  -- \t -> rotateAround c (-t * pi) p
-  -- \t -> p + coord t (sin (t * 2 * pi) / 5)
-  where
-    xAxis = q - p
-    yAxis = rot90 xAxis
-    coord x y = diag x * xAxis + diag y * yAxis
-    c = (p + q) / 2
-    r = distance p q / 2
-
--- | Range 0 to 1.
-type Animation a = Scalar -> a
-
-joinAnimations :: [Animation a] -> Animation a
-joinAnimations fs = foo $ zip (map fromIntegral [1..]) fs
-  where
-    n = fromIntegral $ length fs
-    foo ((i, f):fs) t
-      | t <= i/n  = f (n * t - i + 1)
-      | otherwise = foo fs t
-    foo [] _ = error "impossible"
-
-splitAnimation :: Int -> Animation a -> [Animation a]
-splitAnimation n f =
-  [ \t -> f ((t + i) / n') | i <- map fromIntegral [0..n - 1] ]
-  where
-    n' = fromIntegral n
-
-fractal' res f = curve' (const f) (flip frac) 0 1
-  where
-    r = res^2
-    frac f t
-      | squareDistance p q <= r = f t
-      | otherwise = flip joinAnimations t $ map frac
-                      [ f1, rotateAround p'  (pi/3) f2,
-                            rotateAround q' (-pi/3) f2, f3 ]
-      where
-        [f1, f2, f3] = splitAnimation 3 f
-        p  = f 0
-        q  = f 1
-        p' = f (1/3)
-        q' = f (2/3)
-
+-- Bad seeds:
+--  181531473 1

@@ -6,7 +6,7 @@ hs_files = $(shell find Graphics -name '*.hs')
 
 default : examples/main tags
 
-examples/main : $(LIB) examples/Main.hs
+examples/main : $(LIB) $(wildcard examples/*.hs)
 	(cd examples; ghc --make Main.hs -o main $(FLAGS) -odir=../lib -hidir=../lib)
 
 prof : examples/main_p
