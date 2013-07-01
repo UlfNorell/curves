@@ -4,7 +4,7 @@ module Graphics.EasyImage.Render where
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as B
 
 import qualified Codec.Picture as Codec
 import qualified Codec.Picture.Png as Codec
