@@ -2,6 +2,7 @@
 module Graphics.EasyImage.Graph where
 
 import Data.Monoid
+import GHC.Float
 
 import Graphics.EasyImage
 import Graphics.EasyImage.Geometry
@@ -11,8 +12,8 @@ import Graphics.EasyImage.Text
 ceiling' :: Scalar -> Scalar -> Scalar
 ceiling' k x = k * fromIntegral (ceiling (x / k))
 
-grades :: Int -> Scalar -> Scalar -> [Scalar]
-grades n a b = takeWhile (<= b) $ iterate (+step) (ceiling' step a)
+grades :: Int -> Scalar -> Scalar -> (Int, [Scalar])
+grades n a b = (prec, takeWhile (<= b) $ iterate (+step) (ceiling' step a))
   where
     d = b - a
     k = d / fromIntegral n
@@ -27,6 +28,7 @@ grades n a b = takeWhile (<= b) $ iterate (+step) (ceiling' step a)
          | fbase < (base5 + 1) / 2     = 5
          | otherwise                   = 10
     step = coef * 10 ** ibase
+    prec = round $ max 0 (-ibase)
 
 data TextPos = Below | Above | LeftOf | RightOf
 
@@ -37,8 +39,9 @@ axis tp a b bot top =
     d = b - a
     p = diag (a - 0.1 * d) * unitX
     q = diag (b + 0.1 * d) * unitX
-    gradeMarks = mconcat $ map mark $ grades 10 a b
-    mark 0 = mempty
+    (prec, gs) = grades 10 a b
+    gradeMarks = mconcat $ map mark gs
+    mark x | abs x < d/1000 = mempty
     mark x = freezeImageSize c
         (line (c - 3 * unitY) (c + 3 * unitY) <> text x) <>
         line (c + Vec 0 bot) (c + Vec 0 top) `with` [LineColour := Colour 0.7 0.7 1 1, LineBlur := 0.8]
@@ -48,7 +51,7 @@ axis tp a b bot top =
           Below  -> translate (c - 20 * unitY) $ scale 6 $ stringImage' CenterAlign 0.3 s
           LeftOf -> translate (c + Vec (-6) 10) $ rotate (-pi/2) $ scale 6 $ stringImage' RightAlign 0.3 s
           where
-            s = show x
+            s = formatRealFloat FFFixed (Just prec) x
 
 graph :: Scalar -> Scalar -> (Scalar -> Scalar) -> Image
 graph x0 x1 f = g <> axis Below (getX p) (getX q) (getY p) (getY q)
