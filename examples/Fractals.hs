@@ -39,10 +39,10 @@ defaultTree =
                          , Seg (Vec (-2) 0) (Vec 2 2) )
           , treeDensity               = 200
           , treeRadiusOfInfluence     = 0.4
-          , treeKillDistance          = 0.2
+          , treeKillDistance          = 0.1
           , treeStepDistance          = 0.01
           , treeBranchThicknessFactor = 1.7
-          , treeLeafThickness         = 0.02
+          , treeLeafThickness         = 0.015
           }
 
 seedVolume :: (Applicative m, MonadRandom m) => TreeConfig -> m [Point]
@@ -147,16 +147,11 @@ pruneTree cfg t = mapBranchesDown prune t
                 p = (p1 + p2) / 2
                 d = min (distance (Seg p p1) p2) (distance (Seg p p2) p1)
 
-renderTree :: TreeConfig -> Vec -> Tree (Point, Scalar) -> Image
-renderTree cfg v t =
-  poly . untangle
-       . outline
-       . topDown branchPts
-       . fmap fleshOut
-       . mapBranchesUp sortBranches
-       . scanDown addDir (fst (value t) - v)
-       . pruneTree cfg
-       $ t
+tidyTree :: TreeConfig -> Vec -> Tree (Point, Scalar) -> Tree (Vec, Point, Scalar)
+tidyTree cfg v t =
+  mapBranchesUp sortBranches
+  . scanDown addDir (fst (value t) - v)
+  . pruneTree cfg $ t
   where
     addDir p0 (p, d) = (p, (p - p0, p, d))
     sortBranches (v, p, d) ts = sortBy (cmp `on` value) ts
@@ -165,6 +160,15 @@ renderTree cfg v t =
           | q1 == q2  = EQ
           | otherwise = compare (angle (-v) (q2 - p)) (angle (-v) (q1 - p))
           where
+
+renderTree :: TreeConfig -> Tree (Vec, Point, Scalar) -> Image
+renderTree cfg t =
+  poly . untangle
+       . outline
+       . topDown branchPts
+       . fmap fleshOut
+       $ t
+  where
     fleshOut (v, p, d) = (Seg (pl - v) pl, Seg (pr - v) pr)
       where
         pl = p + diag (d/2) * i
@@ -256,27 +260,54 @@ growTree cfg aps root n = grow aps (Node root []) n
 
         t1 = extendTree t $ \p ->
           let aps' = [ (a, d) | (a, Just (d, n)) <- annotated, n == p ]
-              v    = norm $ sum [ norm (a - p) | (a, _) <- aps' ]
+              g    = 0 -- unitY
+              v    = norm $ g + sum [ norm (a - p) | (a, _) <- aps' ]
               p'   = p + diag (treeStepDistance cfg) * v
               noProg = all (\(a, d) -> distance a p' > d) aps'
           in if null aps' || v == 0 || noProg
              then Nothing
              else Just $ leaf p'
 
+treeLeaves :: (Applicative m, MonadRandom m) => TreeConfig -> Tree (Vec, Point, Scalar) -> m [Image]
+treeLeaves cfg t = concat <$> flip mapM lps (\(v, p) -> do
+    let k = 0.75 :: Scalar
+    skip <- (< k) <$> getRandom
+    a <- getRandomR (-pi/3, pi/3)
+    g <- getRandomR (0.3, 0.7)
+    let r = min 0.2 (g / 2)
+    return [ translate p $ rotate a $ drawLeaf 0 (0.15 * norm v)
+                `with` [FillColour := Colour r g 0 1] | not skip ]
+  )
+  where
+    lps = foldMap (\(v, p, d) -> [ (v, p) | d < 0.03 ]) t
+
 randomTree :: (Applicative m, MonadRandom m) => TreeConfig -> m Image
 randomTree cfg = do
   ps <- seedVolume cfg
-  let tree n =
-        let tt = pruneTree cfg (branchThickness cfg t) in
+  let (ps', t) = growTree cfg ps 0 1000
+      tt       = pruneTree cfg (branchThickness cfg t)
+      tt'      = tidyTree cfg unitY tt
+      tree     =
         -- foldMap (point . fst) tt `with` [LineColour := red] <>
         -- wireFrameTree (fst <$> tt) `with` [LineColour := opacity 0.3 blue] <>
         -- renderThickness tt `with` [LineColour := opacity 0.3 red] <>
-        renderTree cfg unitY (branchThickness cfg t) -- `with` [LineColour :~ opacity 0.2]
+        renderTree cfg tt' -- `with` [LineColour :~ opacity 0.2]
         -- <> mconcat (map box ps') `with` [LineColour := opacity 0.3 red]
-        where (ps', t) = growTree cfg ps 0 n
-  return $ tree 1000
+  ls <- treeLeaves cfg tt'
+  return $ 
+    mconcat ls <> tree `with` [FillColour := Colour 0.6 0.4 0 1]
     -- <> mconcat (map box ps) `with` [LineColour := opacity 0.3 blue]
     -- grid $ chunks 3 $ map tree $ take 6 [100,140..]
+
+drawLeaf :: Point -> Point -> Image
+drawLeaf p q = bezier [p, pl, qr, q, ql, pr, p] `with` [FillColour := Colour 0.2 0.5 0 1]
+  where
+    pv = (q - p) / 3
+    qv = (p - q) / 3
+    pl = p + rotate (-pi/6) pv
+    pr = p + rotate ( pi/6) pv
+    ql = q + rotate (-pi/6) qv
+    qr = q + rotate ( pi/6) qv
 
 -- Snow flake fractal -----------------------------------------------------
 

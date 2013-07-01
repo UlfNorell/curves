@@ -54,7 +54,8 @@ main = do
             u = d/2 * norm (rot90 v)
     in
       -- mconcat $ map draw (droot : ps)
-      foldr1 (<||>) trees `with` [FillColour := Colour 0.6 0.4 0 1]
+      foldr1 (<||>) trees -- `with` [LineColour :~ opacity 0.7, LineBlur := 0.8]
+      -- <> line (Vec (-3) 0) (Vec 3 0)
     -- circle (-10 * unitX) 1 <>
     -- freezeImageSize 0 (scale k $ translate (-p) i)
     -- dropShadow (Vec 3 (-3)) 0.3 $
