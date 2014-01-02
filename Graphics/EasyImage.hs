@@ -36,7 +36,7 @@ module Graphics.EasyImage
   , module Graphics.EasyImage.Attribute
   , module Graphics.EasyImage.Style
     -- * Rendering
-  , autoFit
+  , autoFit, autoStretch
   , renderImage
   )
   where
@@ -73,6 +73,32 @@ autoFit' p0 p1 i =
     screen = p1 - p0
     world  = q1 - q0
     k      = diag $ vuncurry min (screen / world)
+    world' = k * world
+    offs   = 0.5 * (screen - world')
+
+-- | Scale the an image to fit inside the the box given by the two points
+--   (bottom-left and top-right corners). Does not preserve aspect ratio.
+autoStretch :: Point -> Point -> Image -> Image
+autoStretch p q = loop 0
+  where
+    -- Repeat autoStretch until reasonably stable. This makes it work for features
+    -- that are scaling insensitive (line widths and frozen images).
+    loop oldk i
+      | abs (getX k - 1) < 0.01 &&
+        abs (getY k - 1) < 0.01      = i'
+      | getX (abs $ oldk - k) < 0.01 = i'  -- not making progress
+      | otherwise                    = loop k i'
+      where
+        (k, i') = autoStretch' p q i
+
+autoStretch' :: Point -> Point -> Image -> (Vec, Image)
+autoStretch' p0 p1 i =
+  (k, translate (p0 - q0 + offs) $ scaleFrom q0 k i)
+  where
+    Seg q0 q1 = bboxToSegment $ bounds $ compileImage i
+    screen = p1 - p0
+    world  = q1 - q0
+    k      = screen / world
     world' = k * world
     offs   = 0.5 * (screen - world')
 
