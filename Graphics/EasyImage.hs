@@ -20,6 +20,7 @@ module Graphics.EasyImage
   , reverseImage
   , (+++), (+.+), (<++), (++>)
   , differentiate, mapImage, zipImage
+  , curveLength
     -- ** Advanced image manipulation
   , freezeImageSize, freezeImageOrientation, freezeImage
   , unfreezeImage

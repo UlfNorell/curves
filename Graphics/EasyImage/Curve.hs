@@ -192,38 +192,43 @@ instance DistanceToPoint (AnnotatedSegment a) where
 
 -- Each segment is annotated with the distance from the start of the curve.
 curveToSegments :: Scalar -> Curves -> BBTree (AnnotatedSegment (Scalar, Scalar))
-curveToSegments r (Curves cs _) =
-    buildBBTree $ concatMap toSegments cs
+curveToSegments r (Curves cs _) = buildBBTree $ concatMap (toSegments r) cs
+
+curveLength' :: Scalar -> Curve -> Scalar
+curveLength' r c = d + segmentLength s
+  where AnnSeg (d, _) s = last $ toSegments r c
+
+toSegments :: Scalar -> Curve -> [AnnotatedSegment (Scalar, Scalar)]
+toSegments r (Curve f g _) =
+    annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
   where
-    toSegments (Curve f g _) = annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
+    h t = g t (f t)
+    res = r^2
+    pairs xs = zip xs (tail xs)
+
+    annotate ss = annotate' total 0 ss
       where
-        h t = g t (f t)
-        res = r^2
-        pairs xs = zip xs (tail xs)
+        total = sum $ map segmentLength ss
 
-        annotate ss = annotate' total 0 ss
-          where
-            total = sum $ map segmentLength ss
+    annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
+    annotate' _ _ [] = []
 
-        annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
-        annotate' _ _ [] = []
+    ss = pairs $ do
+      let n = 20  -- minimum number of segments
+      i <- [0..n]
+      let t = fromIntegral i / fromIntegral n
+      return (t, h t)
 
-        ss = pairs $ do
-          let n = 20  -- minimum number of segments
-          i <- [0..n]
-          let t = fromIntegral i / fromIntegral n
-          return (t, h t)
-
-        subdivide x@(t0, p0) y@(t1, p1)
-          | stop      = [(x, y)]
-          | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
-          | otherwise = [(x, y)]
-          where
-            d = squareDistance p0 p1
-            -- Using this instead of (==) due to serious weird shit
-            x === y = decodeFloat x == decodeFloat y
-            stop = t === t0 || t === t1 -- we've run out of precision
-            sh (t, p) = "  f " ++ show t ++ " = " ++ show p
-            t = (t0 + t1) / 2
-            p = h t
+    subdivide x@(t0, p0) y@(t1, p1)
+      | stop      = [(x, y)]
+      | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
+      | otherwise = [(x, y)]
+      where
+        d = squareDistance p0 p1
+        -- Using this instead of (==) due to serious weird shit
+        x === y = decodeFloat x == decodeFloat y
+        stop = t === t0 || t === t1 -- we've run out of precision
+        sh (t, p) = "  f " ++ show t ++ " = " ++ show p
+        t = (t0 + t1) / 2
+        p = h t
 

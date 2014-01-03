@@ -106,6 +106,13 @@ curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) 1] defaultCurveStyle
   where
     tr t = t0 + t * (t1 - t0)
 
+-- | Compute the length of the curves of an image.  The first argument is the
+--   precision (small is more precise).
+curveLength :: Scalar -> Image -> Scalar
+curveLength _ IEmpty                 = 0
+curveLength r (ICurve (Curves cs _)) = sum $ map (curveLength' r) cs
+curveLength r (Combine _ i j)        = curveLength r i + curveLength r j
+
 mapCurves :: (Curves -> Curves) -> Image -> Image
 mapCurves f IEmpty          = IEmpty
 mapCurves f (ICurve c)      = ICurve (f c)
