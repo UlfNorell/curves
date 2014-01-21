@@ -1,3 +1,7 @@
+dist
 .*.swp
 .swo
 tags
+examples/main
+*.o
+*.hi
