@@ -194,7 +194,7 @@ class DistanceToPoint a where
   squareDistance :: a -> Point -> Scalar
 
   -- | The distance from an @a@ to a point if it's less than a given value.
-  --   @distanceAtMost d x p == Nothing@ iff @distance x p > d@.
+  --   @distanceAtMost d x p == Nothing@ implies that @distance x p > d@.
   distanceAtMost :: Scalar -> a -> Point -> Maybe Scalar
 
   distance x p       = sqrt (squareDistance x p)

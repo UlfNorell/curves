@@ -25,6 +25,9 @@ lineStyle w b c = [LineWidth := w, LineBlur := b, LineColour := c]
 fillStyle :: Scalar -> Colour -> Style
 fillStyle b c = [FillColour := c, FillBlur := b]
 
+-- | Dynamic line width style that tapers off at the end points. First argument
+--   is maximum width and the second the length of the tapering off part.
+brushStyle :: Scalar -> Scalar -> Style
 brushStyle w d =
   [VarLineWidth := \x r ->
     let total = x/r in

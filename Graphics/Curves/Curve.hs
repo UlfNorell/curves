@@ -35,7 +35,7 @@ data CurveStyle = CurveStyle
 -- attribute.  All line attributes can be parameterized by the absolute (in
 -- pixels) and relative distance from the start of the curve.
 --
--- A set of closed curves combined with <Graphics-EasyImage.html#plusdotplus +.+>
+-- A set of closed curves combined with 'Graphics.Curves.+++'
 -- can be filled using a fill colour ('transparent' for no fill). A point is
 -- deemed inside the curves if a ray starting at the point intersects with the
 -- curves an odd number of times. The fill blur is the width of the band around

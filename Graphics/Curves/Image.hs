@@ -179,7 +179,6 @@ infixr 8 +++, <++
 --   coincide with the starting point of the second curve a straight line is
 --   added to connect the two. This combinator is useful when using
 --   parameterized line styles (such as 'Graphics.Curves.Style.dashed').
---   #plusdotplus#
 (+++) :: Image -> Image -> Image
 ICurve c1     +++ ICurve c2     = ICurve $ joinCurve c1 c2
 i             +++ IEmpty        = i
