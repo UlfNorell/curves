@@ -1,7 +1,7 @@
 
 FLAGS   = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror
-VERSION = 1.0
-LIB			= dist/build/libHSeasy-image-$(VERSION).a
+VERSION = 1.0.0
+LIB			= dist/build/libHScurves-$(VERSION).a
 hs_files = $(shell find Graphics -name '*.hs')
 
 default : examples/main tags
@@ -16,11 +16,11 @@ examples/main_p : library examples/Main.hs
 
 library : $(LIB)
 
-dist/build/libHSeasy-image-$(VERSION).a : dist/setup-config $(hs_files)
+dist/build/libHScurves-$(VERSION).a : dist/setup-config $(hs_files)
 	cabal build
 	cabal install --reinstall
 
-dist/setup-config : easy-image.cabal
+dist/setup-config : curves.cabal
 	cabal configure
 
 tags : $(hs_files)

@@ -8,13 +8,12 @@ import Data.Monoid
 import System.Environment
 import System.Random
 
-import Graphics.EasyImage
-import Graphics.EasyImage.Chart
-import Graphics.EasyImage.Text
-import Graphics.EasyImage.Geometry
-import Graphics.EasyImage.Graph
-import Graphics.EasyImage.SVG.Font
-import Graphics.EasyImage.Text.Fonts.Liberation
+import Graphics.Curves
+import Graphics.Curves.Text
+import Graphics.Curves.Geometry
+import Graphics.Curves.Graph
+import Graphics.Curves.SVG.Font
+import Graphics.Curves.Text.Fonts.Liberation
 
 import Fractals
 

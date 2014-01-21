@@ -6,14 +6,15 @@ import Control.Arrow ((***), (&&&))
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Writer
-import Control.Monad.Random
 import Data.List hiding (sum, minimum, foldr1, concatMap, concat, all)
 import Data.Maybe
 import Data.Monoid
 import Data.Function
 import Data.Foldable
-import Graphics.EasyImage
-import Graphics.EasyImage.Geometry
+import Graphics.Curves
+import Graphics.Curves.Geometry
+
+import MonadRandom
 
 -- Trees ------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ seedVolume cfg = seed (treeDensity cfg)
     (inside, Seg p0 p1) = treeVolume cfg
     seed 0 = return []
     seed n = do
-      p <- Vec <$> getRandomR (getX p0, getX p1) <*> getRandomR (getY p0, getY p1)
+      p <- Vec <$> randomR (getX p0, getX p1) <*> randomR (getY p0, getY p1)
       if inside p
         then (p :) <$> seed (n - 1)
         else seed n
@@ -271,9 +272,9 @@ growTree cfg aps root n = grow aps (Node root []) n
 treeLeaves :: (Applicative m, MonadRandom m) => TreeConfig -> Tree (Vec, Point, Scalar) -> m [Image]
 treeLeaves cfg t = concat <$> flip mapM lps (\(v, p) -> do
     let k = 0.75 :: Scalar
-    skip <- (< k) <$> getRandom
-    a <- getRandomR (-pi/3, pi/3)
-    g <- getRandomR (0.3, 0.7)
+    skip <- (< k) <$> random
+    a <- randomR (-pi/3, pi/3)
+    g <- randomR (0.3, 0.7)
     let r = min 0.2 (g / 2)
     return [ translate p $ rotate a $ drawLeaf 0 (0.15 * norm v)
                 `with` [FillColour := Colour r g 0 1] | not skip ]
