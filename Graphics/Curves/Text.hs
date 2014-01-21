@@ -280,6 +280,9 @@ charPos c = (getX p, getX (q - p))
 
 data Alignment = LeftAlign | RightAlign | CenterAlign
 
+-- | Draw a string at the origin with the given text alignment. The second
+--   argument specifies the spacing between characters. Upper-case letters are
+--   2 units high.
 stringImage' :: Alignment -> Scalar -> String -> Image
 stringImage' _ _ "" = mempty
 stringImage' align spacing s =
@@ -295,8 +298,12 @@ stringImage' align spacing s =
         (dx, w) = charPos c
         (i, w') = render (x + w + spacing) s
 
+-- | Equivalent to @'stringImage'' LeftAlign 0.2@.
+stringImage :: String -> Image
 stringImage = stringImage' LeftAlign 0.2
 
+-- | Draw a string centered at a given point. The second argument specifies the
+--   font height in pixels, invariant under scaling.
 label :: Point -> Scalar -> String -> Image
 label p h s = translate p $ freezeImage 0 $ scale (diag $ h/2) $ translate (Vec 0 (-1)) $ stringImage' CenterAlign 0.1 s
 

@@ -137,7 +137,7 @@ drawChar font c = drawGlyph $ charGlyph font c
 charWidth :: SVGFont -> Char -> Scalar
 charWidth font c = glyphHorizAdv $ charGlyph font c
 
--- | Render a string in the given font. The text starts at the origin an is
+-- | Render a string in the given font. The text starts at the origin and is
 --   scaled to make upper case letters 1 unit high.
 drawString :: SVGFont -> String -> Image
 drawString font s =
