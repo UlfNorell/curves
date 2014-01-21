@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, TypeSynonymInstances, FlexibleInstances #-}
-{-| EasyImage provides an easy to use library for creating images. The basic
+{-| Curves is an easy to use library for creating images. The basic
     primitive is a curve, which, in the simplest case, is a continuous function
     from a 'Scalar' parameter to a 2-dimensional 'Point' on the 'curve'. Images
     are rendered ('renderImage') as PNG images.
