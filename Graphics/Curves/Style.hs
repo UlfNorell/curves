@@ -1,16 +1,16 @@
 {-# LANGUAGE MultiWayIf #-}
-module Graphics.EasyImage.Style
+module Graphics.Curves.Style
   ( CurveAttribute(..)
   , Style
   , lineStyle, fillStyle, brushStyle
   , gradient, dashedOpen, dashedClosed, dashed
   ) where
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Curve
-import Graphics.EasyImage.Attribute
+import Graphics.Curves.Math
+import Graphics.Curves.Image
+import Graphics.Curves.Colour
+import Graphics.Curves.Curve
+import Graphics.Curves.Attribute
 
 import Debug.Trace
 

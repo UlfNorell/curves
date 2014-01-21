@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
-module Graphics.EasyImage.BoundingBox where
+module Graphics.Curves.BoundingBox where
 
 import Prelude hiding (minimum, maximum, any, or, and)
 import Control.Applicative
@@ -9,7 +9,7 @@ import Data.Function
 import Data.Foldable hiding (concatMap)
 import Test.QuickCheck
 
-import Graphics.EasyImage.Math
+import Graphics.Curves.Math
 
 -- Bounding boxes ---------------------------------------------------------
 

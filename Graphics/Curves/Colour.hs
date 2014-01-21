@@ -1,8 +1,8 @@
 {-| RGBA colour values.
 -}
-module Graphics.EasyImage.Colour where
+module Graphics.Curves.Colour where
 
-import Graphics.EasyImage.Math
+import Graphics.Curves.Math
 
 -- | RGBA values in the range 0.0 to 1.0.
 data Colour = Colour { getRed, getGreen, getBlue, getAlpha :: !Scalar }

@@ -1,5 +1,5 @@
 
-module Graphics.EasyImage.Render where
+module Graphics.Curves.Render where
 
 import Control.Applicative
 import Control.Monad
@@ -9,12 +9,12 @@ import qualified Data.ByteString.Lazy as B
 import qualified Codec.Picture as Codec
 import qualified Codec.Picture.Png as Codec
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.Compile
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Curve
+import Graphics.Curves.Math
+import Graphics.Curves.BoundingBox
+import Graphics.Curves.Image
+import Graphics.Curves.Compile
+import Graphics.Curves.Colour
+import Graphics.Curves.Curve
 
 import Debug.Trace
 

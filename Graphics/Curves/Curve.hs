@@ -1,14 +1,14 @@
 {-# LANGUAGE MultiWayIf, ExistentialQuantification, BangPatterns, DeriveFunctor, GADTs,
              KindSignatures, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts,
              UndecidableInstances #-}
-module Graphics.EasyImage.Curve where
+module Graphics.Curves.Curve where
 
 import Control.Arrow ((***), (&&&))
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Attribute
+import Graphics.Curves.Math
+import Graphics.Curves.Colour
+import Graphics.Curves.BoundingBox
+import Graphics.Curves.Attribute
 
 import Debug.Trace
 

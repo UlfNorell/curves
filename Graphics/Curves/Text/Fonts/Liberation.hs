@@ -1,11 +1,11 @@
 
-module Graphics.EasyImage.Text.Fonts.Liberation where
+module Graphics.Curves.Text.Fonts.Liberation where
 
 import Data.List
-import Graphics.EasyImage.SVG.Font
+import Graphics.Curves.SVG.Font
 import System.IO.Unsafe
 import System.FilePath
-import Paths_easy_image
+import Paths_curves
 
 data Modifier = Bold | Italic
   deriving (Show, Eq, Ord)

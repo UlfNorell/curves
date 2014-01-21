@@ -1,7 +1,7 @@
 {-# LANGUAGE ExistentialQuantification, MultiParamTypeClasses #-}
 {-| Write-only attributes.
  -}
-module Graphics.EasyImage.Attribute where
+module Graphics.Curves.Attribute where
 
 -- | Representation of an attribute update for an element of type @a@.
 data Assignment a

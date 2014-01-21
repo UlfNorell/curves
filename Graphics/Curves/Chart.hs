@@ -1,10 +1,10 @@
 
-module Graphics.EasyImage.Chart where
+module Graphics.Curves.Chart where
 
 import Data.Monoid
 
-import Graphics.EasyImage
-import Graphics.EasyImage.Geometry
+import Graphics.Curves
+import Graphics.Curves.Geometry
 
 barChart :: [Scalar] -> Image
 barChart ys =

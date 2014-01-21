@@ -1,11 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
-module Graphics.EasyImage.Geometry where
+module Graphics.Curves.Geometry where
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.Curve
-import Graphics.EasyImage.Text
-import Graphics.EasyImage.Attribute
+import Graphics.Curves.Math
+import Graphics.Curves.Image
+import Graphics.Curves.Curve
+import Graphics.Curves.Attribute
+import Graphics.Curves.Text
 
 rectangle :: Point -> Point -> Image
 rectangle p q = poly [p, Vec (getX q) (getY p), q, Vec (getX p) (getY q)]

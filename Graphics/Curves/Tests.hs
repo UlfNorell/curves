@@ -1,10 +1,10 @@
 
-module Graphics.EasyImage.Tests where
+module Graphics.Curves.Tests where
 
 import Control.Applicative
 import Test.QuickCheck
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.BoundingBox
+import Graphics.Curves.Math
+import Graphics.Curves.BoundingBox
 
 -- Testing ----------------------------------------------------------------
 

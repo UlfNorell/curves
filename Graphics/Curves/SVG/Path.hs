@@ -1,12 +1,12 @@
 
-module Graphics.EasyImage.SVG.Path
+module Graphics.Curves.SVG.Path
   ( Path, CoordType(..), PathCmd(..)
   , parsePath, drawPath
   ) where
 
 import Data.Char
 import Data.Monoid
-import Graphics.EasyImage
+import Graphics.Curves
 
 -- | A path is a sequence of path commands.
 type Path = [PathCmd]

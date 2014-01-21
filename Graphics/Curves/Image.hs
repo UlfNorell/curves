@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
-module Graphics.EasyImage.Image
-  ( module Graphics.EasyImage.Image
+module Graphics.Curves.Image
+  ( module Graphics.Curves.Image
   , (<>) )
   where
 
@@ -9,11 +9,11 @@ import Data.Monoid
 import Data.List
 import Data.Maybe
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Curve
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Attribute
+import Graphics.Curves.Math
+import Graphics.Curves.Colour
+import Graphics.Curves.Curve
+import Graphics.Curves.BoundingBox
+import Graphics.Curves.Attribute
 
 type Op a = a -> a -> a
 
@@ -97,7 +97,7 @@ curve f = curve' f (const id)
 --   only to the (result of the) first function. This means that the points
 --   computed by the second function are measured in pixels of the final image.
 --
---   For an example, see the 'Graphics.EasyImage.Geometry.arrow' combinator,
+--   For an example, see the 'Graphics.Curves.Geometry.arrow' combinator,
 --   which uses a line 'Segment' as the intermediate type and computes the
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
@@ -174,11 +174,11 @@ infixl 9 ++>
 infixr 8 +++, <++
 
 -- | Join the right-most curve of the first image to the left-most curve of the
---   second image. The 'Graphics.EasyImage.Style.Style' is inherited from the
+--   second image. The 'Graphics.Curves.Style.Style' is inherited from the
 --   curve of the first image. If the end point of the first curve does not
 --   coincide with the starting point of the second curve a straight line is
 --   added to connect the two. This combinator is useful when using
---   parameterized line styles (such as 'Graphics.EasyImage.Style.dashed').
+--   parameterized line styles (such as 'Graphics.Curves.Style.dashed').
 --   #plusdotplus#
 (+++) :: Image -> Image -> Image
 ICurve c1     +++ ICurve c2     = ICurve $ joinCurve c1 c2

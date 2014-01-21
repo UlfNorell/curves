@@ -1,12 +1,15 @@
 {-# LANGUAGE BangPatterns #-}
-module Graphics.EasyImage.Text
+{-| Simple (ugly) hand-crafted text. See "Graphics.Curves.SVG.Font" for prettier
+    text.
+ -}
+module Graphics.Curves.Text
   ( Alignment(..)
   , stringImage, stringImage', label
   ) where
 
 import Data.Monoid
 
-import Graphics.EasyImage
+import Graphics.Curves
 
 center   = Vec 0.5 1
 topLeft  = Vec 0 2

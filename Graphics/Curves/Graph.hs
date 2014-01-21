@@ -1,12 +1,12 @@
 
-module Graphics.EasyImage.Graph where
+module Graphics.Curves.Graph where
 
 import Data.Monoid
 import GHC.Float
 
-import Graphics.EasyImage
-import Graphics.EasyImage.Geometry
-import Graphics.EasyImage.Text
+import Graphics.Curves
+import Graphics.Curves.Geometry
+import Graphics.Curves.Text
 
 -- | ceiling' k x = smallest n * k with integer n and n * k ≥ x
 ceiling' :: Scalar -> Scalar -> Scalar

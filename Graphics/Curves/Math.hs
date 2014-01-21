@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-| Simple two-dimensional linear algebra.
  -}
-module Graphics.EasyImage.Math
+module Graphics.Curves.Math
   (
     -- * Vectors
     Scalar, Vec(..), Point

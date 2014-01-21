@@ -1,16 +1,16 @@
 
-module Graphics.EasyImage.Compile where
+module Graphics.Curves.Compile where
 
 import Prelude hiding (minimum, maximum, any, or, and)
 import Control.Applicative
 import Data.Foldable
 import Data.Monoid
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Curve
+import Graphics.Curves.Math
+import Graphics.Curves.BoundingBox
+import Graphics.Curves.Image
+import Graphics.Curves.Colour
+import Graphics.Curves.Curve
 
 import Debug.Trace
 

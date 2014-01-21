@@ -1,6 +1,6 @@
-Name:               easy-image
-Version:            1.0
-Description:        Library for drawing simple pictures
+Name:               curves
+Version:            1.0.0
+Description:        Library for drawing curve based images.
 License:            MIT
 License-file:       LICENSE
 Author:             Ulf Norell
@@ -30,26 +30,25 @@ Library
                     filepath >= 1.3,
                     JuicyPixels >= 2.0
   Exposed-Modules:  
-                    Graphics.EasyImage
-                    Graphics.EasyImage.Attribute
-                    Graphics.EasyImage.Chart
-                    Graphics.EasyImage.Colour
-                    Graphics.EasyImage.Geometry
-                    Graphics.EasyImage.Graph
-                    Graphics.EasyImage.Math
-                    Graphics.EasyImage.Style
-                    Graphics.EasyImage.SVG.Font
-                    Graphics.EasyImage.SVG.Path
-                    Graphics.EasyImage.Text
-                    Graphics.EasyImage.Text.Fonts.Liberation
+                    Graphics.Curves
+                    Graphics.Curves.Attribute
+                    Graphics.Curves.Colour
+                    Graphics.Curves.Geometry
+                    Graphics.Curves.Graph
+                    Graphics.Curves.Math
+                    Graphics.Curves.Style
+                    Graphics.Curves.SVG.Font
+                    Graphics.Curves.SVG.Path
+                    Graphics.Curves.Text
+                    Graphics.Curves.Text.Fonts.Liberation
   Other-Modules:    
-                    Graphics.EasyImage.BoundingBox
-                    Graphics.EasyImage.Compile
-                    Graphics.EasyImage.Curve
-                    Graphics.EasyImage.Image
-                    Graphics.EasyImage.Render
-                    Graphics.EasyImage.Tests
-                    Graphics.EasyImage.Trie
-                    Paths_easy_image
+                    Graphics.Curves.BoundingBox
+                    Graphics.Curves.Compile
+                    Graphics.Curves.Curve
+                    Graphics.Curves.Image
+                    Graphics.Curves.Render
+                    Graphics.Curves.Tests
+                    Graphics.Curves.Trie
+                    Paths_curves
   GHC-Options:      -O2 -funbox-strict-fields
 

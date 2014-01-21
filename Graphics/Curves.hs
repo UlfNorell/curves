@@ -4,10 +4,10 @@
     from a 'Scalar' parameter to a 2-dimensional 'Point' on the 'curve'. Images
     are rendered ('renderImage') as PNG images.
 -}
-module Graphics.EasyImage
+module Graphics.Curves
   (
-    module Graphics.EasyImage.Math
-  , module Graphics.EasyImage.Colour
+    module Graphics.Curves.Math
+  , module Graphics.Curves.Colour
     -- * Image
   , Image
     -- ** Curves
@@ -34,23 +34,23 @@ module Graphics.EasyImage
   , imageBounds
     -- * Image attributes
     -- | Image attributes control things like the colour and width of curves.
-  , module Graphics.EasyImage.Attribute
-  , module Graphics.EasyImage.Style
+  , module Graphics.Curves.Attribute
+  , module Graphics.Curves.Style
     -- * Rendering
   , autoFit, autoStretch
   , renderImage
   )
   where
 
-import Graphics.EasyImage.Math
-import Graphics.EasyImage.BoundingBox
-import Graphics.EasyImage.Curve
-import Graphics.EasyImage.Image
-import Graphics.EasyImage.Colour
-import Graphics.EasyImage.Render
-import Graphics.EasyImage.Compile
-import Graphics.EasyImage.Attribute
-import Graphics.EasyImage.Style
+import Graphics.Curves.Math
+import Graphics.Curves.BoundingBox
+import Graphics.Curves.Curve
+import Graphics.Curves.Image
+import Graphics.Curves.Colour
+import Graphics.Curves.Render
+import Graphics.Curves.Compile
+import Graphics.Curves.Attribute
+import Graphics.Curves.Style
 
 -- | Scale the an image to fit inside the the box given by the two points
 --   (bottom-left and top-right corners).

@@ -2,7 +2,7 @@
 {-| This module contains functions to render text using fonts specified in the
     <http://www.w3.org/TR/SVG/fonts.html SVG format>.
 -}
-module Graphics.EasyImage.SVG.Font
+module Graphics.Curves.SVG.Font
   ( SVGFont
   , loadFont
   , drawString
@@ -16,11 +16,11 @@ import Data.Monoid
 import Data.Maybe
 import qualified Data.Map as Map
 import Text.XML.HaXml hiding (with)
-import qualified Graphics.EasyImage.Trie as Trie
-import Graphics.EasyImage.Trie (Trie)
+import qualified Graphics.Curves.Trie as Trie
+import Graphics.Curves.Trie (Trie)
 
-import Graphics.EasyImage
-import Graphics.EasyImage.SVG.Path
+import Graphics.Curves
+import Graphics.Curves.SVG.Path
 
 type GlyphName = String
 

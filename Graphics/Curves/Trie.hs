@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, GeneralizedNewtypeDeriving #-}
-module Graphics.EasyImage.Trie
+module Graphics.Curves.Trie
   ( Trie
   , empty, lookup, lookupPrefix
   , toList, fromList, union, insert
