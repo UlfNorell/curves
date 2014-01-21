@@ -1,5 +1,5 @@
 
-module Graphics.Curves.Graph where
+module Graphics.Curves.Graph (graph) where
 
 import Data.Monoid
 import GHC.Float
@@ -53,6 +53,7 @@ axis tp a b bot top =
           where
             s = formatRealFloat FFFixed (Just prec) x
 
+-- | Draw the graph of a function together with axis and some guides.
 graph :: Scalar -> Scalar -> (Scalar -> Scalar) -> Image
 graph x0 x1 f = g <> axis Below (getX p) (getX q) (getY p) (getY q)
                   <> rotate (pi/2) (axis LeftOf (getY p) (getY q) (-getX p) (-getX q))
