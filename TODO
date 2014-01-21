@@ -1,4 +1,3 @@
-Make it compile with ghc-7.0 (also 6.12?)
 
 Libraries
 
@@ -22,14 +21,10 @@ Libraries
       fonts can be converted to svg
 
 - fractals, procedural generation stuff
-  - trees?
   - make use of bindCurve (or similar) to make it easier to do things like
-    the fractal
+    fractals
 
 tidier examples
-
-3D
-  - shading would require parameterized fill colour
 
 Look at the diagrams package for inspiration
   - backend for the diagrams package?
