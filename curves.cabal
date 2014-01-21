@@ -1,6 +1,7 @@
 Name:               curves
 Version:            1.0.0
 Description:        Library for drawing curve based images.
+Category:           Graphics
 License:            MIT
 License-file:       LICENSE
 Author:             Ulf Norell
