@@ -24,7 +24,7 @@ Libraries
   - make use of bindCurve (or similar) to make it easier to do things like
     fractals
 
-tidier examples
+Tidier examples
 
 Look at the diagrams package for inspiration
   - backend for the diagrams package?

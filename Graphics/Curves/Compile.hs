@@ -18,7 +18,7 @@ import Debug.Trace
 
 type Segments = BBTree (AnnotatedSegment LineStyle)
 
-data FillStyle = FillStyle Colour Scalar LineStyle
+data FillStyle = FillStyle FillColour Scalar Basis LineStyle
 data LineStyle = LineStyle Colour Scalar Scalar
 
 instance Monoid LineStyle where
@@ -35,10 +35,10 @@ instance HasBoundingBox CompiledImage where
   bounds (Segments fs b) = relaxBoundingBox (max fw lw) $ bounds b
     where
       fw = case fs of
-             FillStyle c w _ | not $ isTransparent c -> w/2
-             _ -> 0
+             FillStyle (SolidFill c) _ _ _ | isTransparent c -> 0
+             FillStyle _ w _ _ -> w / 2
       lw = case fs of
-             FillStyle _ _ (LineStyle c w b) | not $ isTransparent c -> w + b
+             FillStyle _ _ _ (LineStyle c w b) | not $ isTransparent c -> w + b
              _ -> 0
   bounds (CIUnion _ b _ _) = b
   bounds CIEmpty           = Empty
@@ -55,7 +55,7 @@ compileImage' :: Scalar -> Image -> CompiledImage
 compileImage' res (ICurve c) = Segments fs ss
   where
     s  = curveStyle c
-    fs = FillStyle (fillColour s) (fillBlur s) (foldMap annotation ss)
+    fs = FillStyle (fillColour s) (fillBlur s) (textureBasis s) (foldMap annotation ss)
     ss = setLineStyle (curveStyle c) <$> curveToSegments res c
 compileImage' res IEmpty = CIEmpty
 compileImage' res (Combine blend a b) =

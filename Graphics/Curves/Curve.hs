@@ -22,12 +22,19 @@ data Curve = forall a. Transformable a =>
                    }
 
 data CurveStyle = CurveStyle
-      { lineWidth  :: Scalar -> Scalar -> Scalar
-      , lineBlur   :: Scalar -> Scalar -> Scalar
-      , lineColour :: Scalar -> Scalar -> Colour
-      , fillColour :: Colour
-      , fillBlur   :: Scalar
+      { lineWidth    :: Scalar -> Scalar -> Scalar
+      , lineBlur     :: Scalar -> Scalar -> Scalar
+      , lineColour   :: Scalar -> Scalar -> Colour
+      , fillColour   :: FillColour
+      , textureBasis :: Basis
+      , fillBlur     :: Scalar
       }
+
+data FillColour = SolidFill Colour | TextureFill (Point -> Point -> Colour)
+
+getFillColour :: FillColour -> Point -> Point -> Colour
+getFillColour (SolidFill c)   _ _ = c
+getFillColour (TextureFill t) p r = t p r
 
 -- | Style attributes of a curve. The line width is with width in pixels of the
 -- solid part of the curve. Outside the line width the curve fades to
@@ -36,11 +43,18 @@ data CurveStyle = CurveStyle
 -- pixels) and relative distance from the start of the curve.
 --
 -- A set of closed curves combined with 'Graphics.Curves.+++'
--- can be filled using a fill colour ('transparent' for no fill). A point is
--- deemed inside the curves if a ray starting at the point intersects with the
--- curves an odd number of times. The fill blur is the width of the band around
--- the curve edge in which the fill colour fades to full transparency.  Setting
--- the fill colour of a non-closed curve results in unspecified behaviour.
+-- can be filled using a fill colour ('transparent' for no fill) or a texture.
+-- A texture is a function that computes a colour value given the position of the
+-- point being filled, both in absolute pixels and relative to the texture
+-- basis. The texture basis is 'defaultBasis' by default and is transformed
+-- with the image. Typically you would use the absolute position for
+-- rasterisation and the relative position for textures.
+--
+-- A point is deemed inside the curves if a ray starting at the point
+-- intersects with the curves an odd number of times. The fill blur is the
+-- width of the band around the curve edge in which the fill colour fades to
+-- full transparency.  Setting the fill colour of a non-closed curve results in
+-- unspecified behaviour.
 data CurveAttribute :: * -> * where
   LineWidth     :: CurveAttribute Scalar
   LineBlur      :: CurveAttribute Scalar
@@ -50,32 +64,51 @@ data CurveAttribute :: * -> * where
   VarLineColour :: CurveAttribute (Scalar -> Scalar -> Colour)
   FillBlur      :: CurveAttribute Scalar
   FillColour    :: CurveAttribute Colour
+  Texture       :: CurveAttribute (Point -> Point -> Colour)
+  TextureBasis  :: CurveAttribute Basis
 
 instance HasAttribute CurveAttribute CurveStyle where
-  modifyAttribute LineWidth     f s = s { lineWidth  = \d r -> f (lineWidth s d r) }
-  modifyAttribute LineBlur      f s = s { lineBlur   = \d r -> f (lineBlur s d r) }
-  modifyAttribute LineColour    f s = s { lineColour = \d r -> f (lineColour s d r) }
-  modifyAttribute VarLineWidth  f s = s { lineWidth  = f $ lineWidth s }
-  modifyAttribute VarLineBlur   f s = s { lineBlur   = f $ lineBlur s }
-  modifyAttribute VarLineColour f s = s { lineColour = f $ lineColour s }
-  modifyAttribute FillColour    f s = s { fillColour = f $ fillColour s }
-  modifyAttribute FillBlur      f s = s { fillBlur   = f $ fillBlur s }
+  modifyAttribute LineWidth     f s = s { lineWidth    = \d r -> f (lineWidth s d r) }
+  modifyAttribute LineBlur      f s = s { lineBlur     = \d r -> f (lineBlur s d r) }
+  modifyAttribute LineColour    f s = s { lineColour   = \d r -> f (lineColour s d r) }
+  modifyAttribute VarLineWidth  f s = s { lineWidth    = f $ lineWidth s }
+  modifyAttribute VarLineBlur   f s = s { lineBlur     = f $ lineBlur s }
+  modifyAttribute VarLineColour f s = s { lineColour   = f $ lineColour s }
+  modifyAttribute FillBlur      f s = s { fillBlur     = f $ fillBlur s }
+  modifyAttribute TextureBasis  f s = s { textureBasis = f $ textureBasis s }
+  modifyAttribute FillColour    f s =
+    s { fillColour = case fillColour s of
+                       SolidFill c   -> SolidFill (f c)
+                       TextureFill t -> TextureFill $ \p r -> f (t p r)
+      }
+  modifyAttribute Texture f s = s { fillColour = TextureFill $ f tex }
+    where tex = case fillColour s of
+                  SolidFill c   -> \_ _ -> c
+                  TextureFill t -> t
+
+  setAttribute FillColour c s = s { fillColour = SolidFill c }  -- allows turning a Texture into a Solid
+  setAttribute a x s = modifyAttribute a (const x) s
 
 instance HasAttribute a CurveStyle => HasAttribute a Curves where
   modifyAttribute attr f (Curves cs s) = Curves cs (modifyAttribute attr f s)
 
 defaultCurveStyle =
-  CurveStyle { lineWidth  = \_ _ -> 0.0
-             , lineBlur   = \_ _ -> 1.2
-             , lineColour = \_ _ -> black
-             , fillColour = transparent
-             , fillBlur   = sqrt 2 }
+  CurveStyle { lineWidth    = \_ _ -> 0.0
+             , lineBlur     = \_ _ -> 1.2
+             , lineColour   = \_ _ -> black
+             , fillColour   = SolidFill transparent
+             , fillBlur     = sqrt 2
+             , textureBasis = defaultBasis
+             }
 
 instance Transformable Curve where
   transform h (Curve f g n) = Curve (transform h f) g n
 
 instance Transformable Curves where
-  transform f (Curves cs s) = Curves (transform f cs) s
+  transform f (Curves cs s) = Curves (transform f cs) (transform f s)
+
+instance Transformable CurveStyle where
+  transform f s = s { textureBasis = transform f $ textureBasis s }
 
 reverseCurve :: Curve -> Curve
 reverseCurve (Curve f g n) = Curve f' g' n

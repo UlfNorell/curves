@@ -21,7 +21,7 @@ import Debug.Trace
 -- Rendering --------------------------------------------------------------
 
 sampleSegments :: FillStyle -> Segments -> Point -> Maybe Colour
-sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour lineWidth lineBlur)) s p@(Vec x y) =
+sampleSegments (FillStyle varFillColour fillBlur texBasis (LineStyle lineColour lineWidth lineBlur)) s p@(Vec x y) =
   case isLine of
     Nothing -> edge <|> fill
       where
@@ -34,6 +34,7 @@ sampleSegments (FillStyle fillColour fillBlur (LineStyle lineColour lineWidth li
           return $ opacity o fillColour
     Just (α, c) -> Just $ opacity (getAlpha c) $ addFill (getAlpha c) $ setAlpha α c
   where
+    fillColour = getFillColour varFillColour p (toBasis texBasis p)
     isZero x = round (255 * x) == 0
     isLine = do
       (d, seg) <- distanceAtMost' (lineWidth/2 + lineBlur) s p

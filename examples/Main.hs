@@ -33,15 +33,17 @@ save i = renderImage "test.png" 800 600 white i
 outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
             (i `with` [ LineWidth := 5, LineColour := Colour 0.8 0 0.6 1 ])
 
+modDouble a b = a - b * fromIntegral (floor (a / b))
+
 main = do
-  args <- getArgs
-  case args of
-    [a, b] -> setStdGen (read $ unwords args)
-    _      -> return ()
-  print =<< getStdGen
+  -- args <- getArgs
+  -- case args of
+  --   [a, b] -> setStdGen (read $ unwords args)
+  --   _      -> return ()
+  -- print =<< getStdGen
   -- font <- loadFont "fonts/FreeSerif.svg"
   -- let font = liberation Serif []
-  trees <- replicateM 1 $ randomTree defaultTree
+  -- trees <- replicateM 1 $ randomTree defaultTree
   save $ autoFit (Vec 20 20) (Vec 780 580) $
     let droot = (-unitY, 0.6)
         bs    = [(-0.3, 0.5, 0.2), (1.1, 0.4, 0.1)]
@@ -52,8 +54,20 @@ main = do
           where
             u = d/2 * norm (rot90 v)
     in
+    circle 0 1 `with`
+      [ LineColour    := transparent
+      -- , FillBlur      := 50
+      , Texture := \_ p ->
+          let k = 20
+              r = getX $ abs p
+              g = 0 -- getY p
+              b = 0
+              a = 1
+          in Colour r g b a
+      ]
+    -- <> line (-1) 1 `with` lineStyle 30 5 blue
       -- mconcat $ map draw (droot : ps)
-      foldr1 (<||>) trees -- `with` [LineColour :~ opacity 0.7, LineBlur := 0.8]
+      -- foldr1 (<||>) trees -- `with` [LineColour :~ opacity 0.7, LineBlur := 0.8]
       -- <> line (Vec (-3) 0) (Vec 3 0)
     -- circle (-10 * unitX) 1 <>
     -- freezeImageSize 0 (scale k $ translate (-p) i)
