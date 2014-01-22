@@ -1,0 +1,7 @@
+v1.1.0
+  * Textures
+  The fill colour can now depend on absolute and relative coordinates.
+  See the Texture and TextureBasis attributes.
+
+v1.0.0
+  * Initial release
