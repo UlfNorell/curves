@@ -1,6 +1,6 @@
 
 FLAGS   = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror
-VERSION = 1.0.0
+VERSION = 1.0.1
 LIB			= dist/build/libHScurves-$(VERSION).a
 hs_files = $(shell find Graphics -name '*.hs')
 
