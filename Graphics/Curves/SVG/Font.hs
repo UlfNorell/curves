@@ -141,9 +141,10 @@ charWidth font c = glyphHorizAdv $ charGlyph font c
 --   scaled to make upper case letters 1 unit high.
 drawString :: SVGFont -> String -> Image
 drawString font s =
-  scale (diag $ 1 / fontCapHeight font) $
-  mconcat [ translate (Vec 0 (-l * lineSep)) $ draw 0 Nothing s
-          | (l, s) <- zip [0..] $ lines s ]
+  scale (diag $ 1 / fontCapHeight font)
+        (mconcat [ translate (Vec 0 (-l * lineSep)) $ draw 0 Nothing s
+                 | (l, s) <- zip [0..] $ lines s ])
+    `with` [ TextureBasis := defaultBasis ]   -- reset the texture basis
   where
     lineSep = fontAscent font - fontDescent font
     draw p _ [] = mempty
