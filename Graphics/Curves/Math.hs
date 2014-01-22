@@ -294,13 +294,15 @@ instance Transformable Basis where
 toBasis :: Basis -> Point -> Point
 toBasis (Basis o x y) p = Vec s t
   where
+    u = x - o
+    v = y - o
     perp u v = dot u (rot90 v)
-    s = (perp p y - perp o y) / perp x y
-    t = (perp p x - perp o x) / perp y x
+    s = (perp p v - perp o v) / perp u v
+    t = (perp p u - perp o u) / perp v u
 
 -- | Translate a point in the given basis to the 'defaultBasis'.
 fromBasis :: Basis -> Point -> Point
-fromBasis (Basis o x y) (Vec s t) = o + diag s * x + diag t * y
+fromBasis (Basis o x y) (Vec s t) = o + diag s * (x - o) + diag t * (y - o)
 
 -- Searching --------------------------------------------------------------
 
