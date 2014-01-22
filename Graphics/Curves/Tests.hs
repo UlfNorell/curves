@@ -85,3 +85,12 @@ prop_intersectBBox v u (Positive k) (Positive t) =
       intersectBoundingBox l1 (bounds l2)
   )
 
+goodBasis x y =
+  not $ or [ eqV x 0
+           , eqV y 0
+           , dot x (rot90 y) ≈ 0 ]
+
+prop_toBasis o x y p =
+  goodBasis x y ==> eqV p (fromBasis b $ toBasis b p)
+  where
+    b = Basis o x y

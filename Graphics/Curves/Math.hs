@@ -16,7 +16,7 @@ module Graphics.Curves.Math
   , leftOf, intersectSegment, intersectLine
   , intersectLineSegment
     -- * Basis
-  , Basis(..), defaultBasis
+  , Basis(..), defaultBasis, toBasis, fromBasis
     -- * Distances
   , DistanceToPoint(..)
     -- * Transformations
@@ -289,6 +289,18 @@ defaultBasis = Basis 0 unitX unitY
 
 instance Transformable Basis where
   transform f (Basis o x y) = Basis (transform f o) (transform f x) (transform f y)
+
+-- | Translate a point from the 'defaultBasis' to the given basis.
+toBasis :: Basis -> Point -> Point
+toBasis (Basis o x y) p = Vec s t
+  where
+    perp u v = dot u (rot90 v)
+    s = (perp p y - perp o y) / perp x y
+    t = (perp p x - perp o x) / perp y x
+
+-- | Translate a point in the given basis to the 'defaultBasis'.
+fromBasis :: Basis -> Point -> Point
+fromBasis (Basis o x y) (Vec s t) = o + diag s * x + diag t * y
 
 -- Searching --------------------------------------------------------------
 
