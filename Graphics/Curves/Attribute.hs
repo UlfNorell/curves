@@ -14,9 +14,9 @@ data Assignment a
 --   attributes of @a@ of type @b@.
 class HasAttribute f a where
   modifyAttribute :: f b -> (b -> b) -> a -> a
+  setAttribute    :: f b -> b -> a -> a
 
-setAttribute :: HasAttribute f a => f b -> b -> a -> a
-setAttribute t x = modifyAttribute t (const x)
+  setAttribute t x = modifyAttribute t (const x)
 
 infixl 7 `with`
 -- | Apply a sequence of attribute assignments to an object (applied
