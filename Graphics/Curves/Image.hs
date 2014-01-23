@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, UndecidableInstances,
+             RankNTypes #-}
 module Graphics.Curves.Image
   ( module Graphics.Curves.Image
   , (<>) )
@@ -264,6 +265,13 @@ mapImage :: (Scalar -> Point -> Point) -> Image -> Image
 mapImage h = mapCurve pp
   where
     pp (Curve f g n) = Curve f (\t -> h t . g t) n
+
+-- | Apply a transformation to an image. Unlike 'mapImage' the transformation
+--   is applied immediately.
+transformImage :: (forall a. Transformable a => Scalar -> a -> a) -> Image -> Image
+transformImage h = mapCurve pp
+  where
+    pp (Curve f g n) = Curve (\t -> h t (f t)) g n
 
 -- | Zipping two images. Both images must have the same number of curves
 --   'combine'd in the same order. As with 'mapImage' the zipping takes place

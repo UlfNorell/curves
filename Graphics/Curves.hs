@@ -19,7 +19,7 @@ module Graphics.Curves
     -- ** Operating on curves
   , reverseImage
   , (+++), (+.+), (<++), (++>)
-  , differentiate, mapImage, zipImage
+  , differentiate, mapImage, zipImage, transformImage
   , curveLength
     -- ** Advanced image manipulation
   , freezeImageSize, freezeImageOrientation, freezeImage
