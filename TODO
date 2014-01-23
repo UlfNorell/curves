@@ -24,6 +24,10 @@ Libraries
   - make use of bindCurve (or similar) to make it easier to do things like
     fractals
 
+Textures
+  - actual textures (reading png files and use as texture)
+    - could go crazy with texture filtering and mipmapping
+
 Tidier examples
 
 Look at the diagrams package for inspiration
