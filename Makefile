@@ -1,5 +1,5 @@
 
-FLAGS   = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror
+FLAGS   = -O2 -rtsopts -funbox-strict-fields -fwarn-incomplete-patterns -Werror -hide-package monads-tf
 VERSION = 1.0.1
 LIB			= dist/build/libHScurves-$(VERSION).a
 hs_files = $(shell find Graphics -name '*.hs')
