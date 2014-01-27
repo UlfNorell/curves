@@ -77,9 +77,9 @@ instance HasAttribute CurveAttribute Curves where
       LineWidth     -> onLine_ $ \s -> s { lineWidth  = f (lineWidth s) }
       LineBlur      -> onLine_ $ \s -> s { lineBlur   = f (lineBlur s) }
       LineColour    -> onLine_ $ \s -> s { lineColour = f (lineColour s) }
-      VarLineWidth  -> onLine  $ \h p r -> h p r { lineWidth  = f (\p r -> lineWidth  (h p r)) p r }
-      VarLineBlur   -> onLine  $ \h p r -> h p r { lineBlur   = f (\p r -> lineBlur   (h p r)) p r }
-      VarLineColour -> onLine  $ \h p r -> h p r { lineColour = f (\p r -> lineColour (h p r)) p r }
+      VarLineWidth  -> onLine  $ \h p r -> (h p r) { lineWidth  = f (\p r -> lineWidth  (h p r)) p r }
+      VarLineBlur   -> onLine  $ \h p r -> (h p r) { lineBlur   = f (\p r -> lineBlur   (h p r)) p r }
+      VarLineColour -> onLine  $ \h p r -> (h p r) { lineColour = f (\p r -> lineColour (h p r)) p r }
       FillBlur      -> onFill  $ \s -> s { fillBlur     = f $ fillBlur s }
       TextureBasis  -> onFill  $ \s -> s { textureBasis = f $ textureBasis s }
       FillColour    -> onFill  $ \s ->
@@ -87,34 +87,30 @@ instance HasAttribute CurveAttribute Curves where
                            SolidFill c   -> SolidFill (f c)
                            TextureFill t -> TextureFill $ \p r -> f (t p r)
           }
-      Texture f s -> s { fillColour = TextureFill $ f tex }
-        where tex = case fillColour s of
-                      SolidFill c   -> \_ _ -> c
-                      TextureFill t -> t
+      Texture       -> onFill  $ \s -> s { fillColour = TextureFill $ f (tex s) }
+        where tex s = case fillColour s of
+                        SolidFill c   -> \_ _ -> c
+                        TextureFill t -> t
     where
       onFill :: (CurveFillStyle -> CurveFillStyle) -> Curves -> Curves
       onFill f (Curves cs fill) = Curves cs (f fill)
 
       onLine_ :: (CurveLineStyle -> CurveLineStyle) -> Curves -> Curves
-      onLine_ f = onLine (\_ _ -> f)
+      onLine_ f = onLine (\old d r -> f (old d r))
 
       onLine :: ((Scalar -> Scalar -> CurveLineStyle) -> (Scalar -> Scalar -> CurveLineStyle)) -> Curves -> Curves
-      onLine f (Curves cs fill) = Curves (map (onCurve f) cs) fill
+      onLine f (Curves cs fill) = Curves (map onCurve cs) fill
         where
-          onCurve c@(Curve g h n) = Curve g (\p r x -> second (const $ f old p r) $ h p r x) n
-            where old = styleFun c
+          onCurve c@(Curve g h old n) = Curve g h (\d r -> f old d r) n
 
-      styleFun :: Curve -> Scalar -> Scalar -> CurveLineStyle
-      styleFun (Curve g h _) t r = snd $ h t r (g t)
-
-  setAttribute FillColour c s = s { fillColour = SolidFill c }  -- allows turning a Texture into a Solid
+  setAttribute FillColour c (Curves cs fill) = Curves cs fill{ fillColour = SolidFill c }  -- allows turning a Texture into a Solid
   setAttribute a x s = modifyAttribute a (const x) s
 
 defaultCurveLineStyle =
   CurveLineStyle
-    { lineWidth    = \_ _ -> 0.0
-    , lineBlur     = \_ _ -> 1.2
-    , lineColour   = \_ _ -> black
+    { lineWidth    = 0.0
+    , lineBlur     = 1.2
+    , lineColour   = black
     }
 
 defaultCurveFillStyle =
@@ -125,7 +121,7 @@ defaultCurveFillStyle =
     }
 
 instance Transformable Curve where
-  transform h (Curve f g n) = Curve (transform h f) g n
+  transform h (Curve f g st n) = Curve (transform h f) g st n
 
 instance Transformable Curves where
   transform f (Curves cs s) = Curves (transform f cs) (transform f s)
@@ -134,7 +130,7 @@ instance Transformable CurveFillStyle where
   transform f s = s { textureBasis = transform f $ textureBasis s }
 
 reverseCurve :: Curve -> Curve
-reverseCurve (Curve f g n) = Curve f' g' n
+reverseCurve (Curve f g st n) = Curve f' g' st n  -- doesn't reverse style!
   where
     f' t = f (1 - t)
     g' t p = g (1 - t) p
@@ -143,7 +139,7 @@ data Freezing = Freeze { freezeSize, freezeOrientation :: Bool }
 
 -- | Freeze dimension to pixels.
 freezeCurve :: Freezing -> Point -> Curve -> Curve
-freezeCurve fr p0 (Curve f g n) = Curve (const basis) g' n
+freezeCurve fr p0 (Curve f g st n) = Curve (const basis) g' st n
   where
     fsize = freezeSize fr
     fdir  = freezeOrientation fr
@@ -159,17 +155,18 @@ freezeCurve fr p0 (Curve f g n) = Curve (const basis) g' n
           | fsize         = (norm (px - o), norm (py - o))
 
 bindCurve :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Curve) -> Curve
-bindCurve f g = Curve f g' 1  -- not quite the right density
+bindCurve f g = Curve f g' style 1  -- not quite the right density
   where
-    g' t x = case g t x of Curve i j _ -> j t (i t)
+    g' t x    = case g t x of Curve i j _ _ -> j t (i t)
+    style d r = case g r (f r) of Curve _ _ st _ -> st d r  -- is this right?
 
 joinCurve :: Curves -> Curves -> Curves
 joinCurve (Curves cs s) (Curves (c:cs2) _) =
   Curves (init cs ++ [joinCurve' (last cs) c] ++ cs2) s
 
 joinCurve' :: Curve -> Curve -> Curve
-joinCurve' (Curve f f' n) (Curve g g' m) =
-    Curve h h' (n + m)
+joinCurve' (Curve f f' st n) (Curve g g' _ m) =
+    Curve h h' st (n + m)
   where
     mid = fromIntegral n / fromIntegral (n + m)
     lo t = t / mid
@@ -185,7 +182,7 @@ appendPoint :: Curves -> Point -> Curves
 appendPoint (Curves cs s) p = Curves (init cs ++ [appendPoint' (last cs) p]) s
 
 appendPoint' :: Curve -> Point -> Curve
-appendPoint' (Curve f g n) p = Curve f' g' (n + 1)
+appendPoint' (Curve f g st n) p = Curve f' g' st (n + 1)
   where
     mid   = fromIntegral n / fromIntegral (n + 1)
     lo t  = t / mid
@@ -200,7 +197,7 @@ prependPoint :: Point -> Curves -> Curves
 prependPoint p (Curves (c:cs) s) = Curves (prependPoint' p c : cs) s
 
 prependPoint' :: Point -> Curve -> Curve
-prependPoint' p (Curve f g n) = Curve f' g' (n + 1)
+prependPoint' p (Curve f g st n) = Curve f' g' st (n + 1)
   where
     mid     = 1 / fromIntegral (n + 1)
     lo t    = t / mid
@@ -212,7 +209,7 @@ prependPoint' p (Curve f g n) = Curve f' g' (n + 1)
     g' t (Right p)     = g (hi t) p
 
 differentiateCurve :: Curve -> Curve
-differentiateCurve (Curve f g n) = Curve (const f) g' n
+differentiateCurve (Curve f g st n) = Curve (const f) g' st n
   where
     eps  = 0.01
     eps2 = eps ^ 2
@@ -230,7 +227,7 @@ zipCurves :: (Scalar -> Point -> Point -> Point) -> Curves -> Curves -> Curves
 zipCurves f (Curves cs1 s) (Curves cs2 _) = Curves (zipWith (zipCurve f) cs1 cs2) s
 
 zipCurve :: (Scalar -> Point -> Point -> Point) -> Curve -> Curve -> Curve
-zipCurve h (Curve f1 g1 n) (Curve f2 g2 m) = Curve (f1 &&& f2) g' (max n m)
+zipCurve h (Curve f1 g1 st1 n) (Curve f2 g2 _ m) = Curve (f1 &&& f2) g' st1 (max n m)
   where
     g' t (x, y) = h t (g1 t x) (g2 t y)
 
@@ -252,17 +249,17 @@ curveToSegments r (Curves cs _) = buildBBTree $ concatMap (toSegments r) cs
 
 curveLength' :: Scalar -> Curve -> Scalar
 curveLength' r c = d + segmentLength s
-  where AnnSeg (d, _) s = last $ toSegments r c
+  where AnnSeg (d, _, _) s = last $ toSegments r c
 
 toSegments :: Scalar -> Curve -> [AnnotatedSegment (Scalar, Scalar, CurveLineStyle)]
-toSegments r (Curve f g _) =
+toSegments r (Curve f g style _) =
     annotate $ map mkSeg $ concatMap (uncurry subdivide) ss
   where
     h t = g t (f t)
     res = r^2
     pairs xs = zip xs (tail xs)
 
-    mkSeg ((_, (p0, style0)), (_, (p1, style1))) = AnnSeg style0 (Seg p0 p1)
+    mkSeg ((_, p0), (_, p1)) = Seg p0 p1
 
     annotate ss = annotate' total 0 ss
       where
@@ -270,7 +267,7 @@ toSegments r (Curve f g _) =
 
     addDist d r style = (d, r, style)
 
-    annotate' tot !d (s:ss) = fmap (addDist d r) s : annotate' tot (d + segmentLength s) ss
+    annotate' tot !d (s:ss) = AnnSeg (d, d/tot, style d r) s : annotate' tot (d + segmentLength s) ss
     annotate' _ _ [] = []
 
     ss = pairs $ do
@@ -279,9 +276,9 @@ toSegments r (Curve f g _) =
       let t = fromIntegral i / fromIntegral n
       return (t, h t)
 
-    subdivide x@(t0, (p0, style0)) y@(t1, (p1, style1))
+    subdivide x@(t0, p0) y@(t1, p1)
       | stop      = [(x, y)]
-      | d > res   = subdivide (t0, (p0, style0)) (t, (p, style)) ++ subdivide (t, (p, style)) (t1, (p1, style1))
+      | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
       | otherwise = [(x, y)]
       where
         d = squareDistance p0 p1
@@ -290,5 +287,5 @@ toSegments r (Curve f g _) =
         stop = t === t0 || t === t1 -- we've run out of precision
         sh (t, p) = "  f " ++ show t ++ " = " ++ show p
         t = (t0 + t1) / 2
-        (p, style) = h t
+        p = h t
 

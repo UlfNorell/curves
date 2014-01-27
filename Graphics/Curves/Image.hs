@@ -103,7 +103,7 @@ curve f = curve' f (const id)
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) 1] defaultCurveStyle
+curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) (\_ _ -> defaultCurveLineStyle) 1] defaultCurveFillStyle
   where
     tr t = t0 + t * (t1 - t0)
 
@@ -164,7 +164,7 @@ freezeImage p = mapCurve (freezeCurve fr p)
 unfreezeImage :: Image -> Image
 unfreezeImage = mapCurve unfreeze
   where
-    unfreeze (Curve f g n) = Curve (\t -> g t (f t)) (const id) n
+    unfreeze (Curve f g st n) = Curve (\t -> g t (f t)) (const id) st n
 
 instance HasAttribute CurveAttribute Image where
   modifyAttribute attr f = mapCurves (modifyAttribute attr f)
@@ -264,14 +264,14 @@ differentiate = mapCurve differentiateCurve
 mapImage :: (Scalar -> Point -> Point) -> Image -> Image
 mapImage h = mapCurve pp
   where
-    pp (Curve f g n) = Curve f (\t -> h t . g t) n
+    pp (Curve f g st n) = Curve f (\t -> h t . g t) st n
 
 -- | Apply a transformation to an image. Unlike 'mapImage' the transformation
 --   is applied immediately.
 transformImage :: (forall a. Transformable a => Scalar -> a -> a) -> Image -> Image
 transformImage h = mapCurve pp
   where
-    pp (Curve f g n) = Curve (\t -> h t (f t)) g n
+    pp (Curve f g st n) = Curve (\t -> h t (f t)) g st n
 
 -- | Zipping two images. Both images must have the same number of curves
 --   'combine'd in the same order. As with 'mapImage' the zipping takes place

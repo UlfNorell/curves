@@ -46,17 +46,13 @@ instance HasBoundingBox CompiledImage where
 compileImage :: Image -> CompiledImage
 compileImage = compileImage' 1
 
-setLineStyle :: CurveStyle -> AnnotatedSegment (Scalar, Scalar) -> AnnotatedSegment LineStyle
-setLineStyle s seg = fmap mkLineStyle seg
-  where
-    mkLineStyle (d, r) = LineStyle (lineColour s d r) (lineWidth s d r) (lineBlur s d r)
-
 compileImage' :: Scalar -> Image -> CompiledImage
 compileImage' res (ICurve c) = Segments fs ss
   where
-    s  = curveStyle c
+    s  = curveFillStyle c
     fs = FillStyle (fillColour s) (fillBlur s) (textureBasis s) (foldMap annotation ss)
-    ss = setLineStyle (curveStyle c) <$> curveToSegments res c
+    ss = fmap (\(_, _, s) -> toLineStyle s) <$> curveToSegments res c
+    toLineStyle s = LineStyle (lineColour s) (lineWidth s) (lineBlur s)
 compileImage' res IEmpty = CIEmpty
 compileImage' res (Combine blend a b) =
   CIUnion blend (bounds (ca, cb)) ca cb
