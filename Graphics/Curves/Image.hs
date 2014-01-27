@@ -103,7 +103,7 @@ curve f = curve' f (const id)
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
 curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) (\_ _ -> defaultCurveLineStyle) 1] defaultCurveFillStyle
+curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) (\_ _ _ -> defaultCurveLineStyle) 1] defaultCurveFillStyle
   where
     tr t = t0 + t * (t1 - t0)
 

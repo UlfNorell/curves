@@ -40,7 +40,7 @@ speedy i = i `with` [ VarLineWidth := \_ t -> undefined ]
     d = differentiate i
 
 ex1 = mconcat
-    [ c2 `with` [ LineWidth  := 2 ]
+    [ c2 `with` [ LineWidth  := 2, VarLineColour := \_ _ p -> Colour 1 0 0 (0.6 + 0.4 * sin (getX p / 50)) ]
     , c1 `with` [ LineColour := opacity 0.4 red ]
     , c0 `with` [ LineColour := opacity 0.2 blue ]
     ]
@@ -178,7 +178,7 @@ main = do
     sampleText = [' '..'~'] ++ delete '\x3a2' ['Α'..'Ω'] ++ delete 'ς' ['α'..'ω']
     combineTest p f =
       translate p $
-      {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour := opacity 0.5 red, VarLineWidth := \_ d -> (1.5 + sin (d * 4 * pi))])
+      {-combine f-} (circle (Vec (-1) 0) 1.75 `with` [FillColour := opacity 0.5 red, VarLineWidth := \_ d _ -> (1.5 + sin (d * 4 * pi))])
                 -- (circle (Vec 1 0) 1.75    `with` [FillColour := opacity 0.9 blue, FillBlur := 0])
     angled xs = zip xs (iterate (\a -> a + 2 * pi / n) 0)
       where n = fromIntegral (length xs)

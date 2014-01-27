@@ -18,7 +18,7 @@ data Curves = Curves { curvePaths     :: [Curve]
 data Curve = forall a. Transformable a =>
              Curve { curveFunction  :: Scalar -> a
                    , curveRender    :: Scalar -> a -> Point
-                   , curveLineStyle :: Scalar -> Scalar -> CurveLineStyle
+                   , curveLineStyle :: Scalar -> Scalar -> Point -> CurveLineStyle
                    , curveDensity   :: Int   -- ^ Number of subcurves that have been joined into this one
                    }
 
@@ -63,9 +63,9 @@ data CurveAttribute :: * -> * where
   LineWidth     :: CurveAttribute Scalar
   LineBlur      :: CurveAttribute Scalar
   LineColour    :: CurveAttribute Colour
-  VarLineWidth  :: CurveAttribute (Scalar -> Scalar -> Scalar)
-  VarLineBlur   :: CurveAttribute (Scalar -> Scalar -> Scalar)
-  VarLineColour :: CurveAttribute (Scalar -> Scalar -> Colour)
+  VarLineWidth  :: CurveAttribute (Scalar -> Scalar -> Point -> Scalar)
+  VarLineBlur   :: CurveAttribute (Scalar -> Scalar -> Point -> Scalar)
+  VarLineColour :: CurveAttribute (Scalar -> Scalar -> Point -> Colour)
   FillBlur      :: CurveAttribute Scalar
   FillColour    :: CurveAttribute Colour
   Texture       :: CurveAttribute (Point -> Point -> Colour)
@@ -77,9 +77,9 @@ instance HasAttribute CurveAttribute Curves where
       LineWidth     -> onLine_ $ \s -> s { lineWidth  = f (lineWidth s) }
       LineBlur      -> onLine_ $ \s -> s { lineBlur   = f (lineBlur s) }
       LineColour    -> onLine_ $ \s -> s { lineColour = f (lineColour s) }
-      VarLineWidth  -> onLine  $ \h p r -> (h p r) { lineWidth  = f (\p r -> lineWidth  (h p r)) p r }
-      VarLineBlur   -> onLine  $ \h p r -> (h p r) { lineBlur   = f (\p r -> lineBlur   (h p r)) p r }
-      VarLineColour -> onLine  $ \h p r -> (h p r) { lineColour = f (\p r -> lineColour (h p r)) p r }
+      VarLineWidth  -> onLine  $ \h d r p -> (h d r p) { lineWidth  = f (\d r p -> lineWidth  (h d r p)) d r p }
+      VarLineBlur   -> onLine  $ \h d r p -> (h d r p) { lineBlur   = f (\d r p -> lineBlur   (h d r p)) d r p }
+      VarLineColour -> onLine  $ \h d r p -> (h d r p) { lineColour = f (\d r p -> lineColour (h d r p)) d r p }
       FillBlur      -> onFill  $ \s -> s { fillBlur     = f $ fillBlur s }
       TextureBasis  -> onFill  $ \s -> s { textureBasis = f $ textureBasis s }
       FillColour    -> onFill  $ \s ->
@@ -96,12 +96,12 @@ instance HasAttribute CurveAttribute Curves where
       onFill f (Curves cs fill) = Curves cs (f fill)
 
       onLine_ :: (CurveLineStyle -> CurveLineStyle) -> Curves -> Curves
-      onLine_ f = onLine (\old d r -> f (old d r))
+      onLine_ f = onLine (\old d r p -> f (old d r p))
 
-      onLine :: ((Scalar -> Scalar -> CurveLineStyle) -> (Scalar -> Scalar -> CurveLineStyle)) -> Curves -> Curves
+      onLine :: ((Scalar -> Scalar -> Point -> CurveLineStyle) -> (Scalar -> Scalar -> Point -> CurveLineStyle)) -> Curves -> Curves
       onLine f (Curves cs fill) = Curves (map onCurve cs) fill
         where
-          onCurve c@(Curve g h old n) = Curve g h (\d r -> f old d r) n
+          onCurve c@(Curve g h old n) = Curve g h (\d r p -> f old d r p) n
 
   setAttribute FillColour c (Curves cs fill) = Curves cs fill{ fillColour = SolidFill c }  -- allows turning a Texture into a Solid
   setAttribute a x s = modifyAttribute a (const x) s
@@ -267,7 +267,9 @@ toSegments r (Curve f g style _) =
 
     addDist d r style = (d, r, style)
 
-    annotate' tot !d (s:ss) = AnnSeg (d, d/tot, style d r) s : annotate' tot (d + segmentLength s) ss
+    annotate' tot !d (s@(Seg p0 p1):ss) = AnnSeg (d, d/tot, style d r p) s : annotate' tot (d + segmentLength s) ss
+      where p = (p0 + p1) / 2
+
     annotate' _ _ [] = []
 
     ss = pairs $ do

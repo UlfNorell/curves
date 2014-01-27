@@ -29,7 +29,7 @@ fillStyle b c = [FillColour := c, FillBlur := b]
 --   is maximum width and the second the length of the tapering off part.
 brushStyle :: Scalar -> Scalar -> Style
 brushStyle w d =
-  [VarLineWidth := \x r ->
+  [VarLineWidth := \x r _ ->
     let total = x/r in
     if | r == 0        -> 0
        | x < d         -> w * f (2 * x / d - 1)
@@ -45,7 +45,7 @@ modDouble a b = a - b * fromIntegral (floor (a / b))
 -- in the distance in pixels it takes to reach the second colour.
 gradient :: Colour -> Colour -> Scalar -> Style
 gradient c1 c2 a =
-  [VarLineColour := \d _ ->
+  [VarLineColour := \d _ _ ->
     case modDouble d (2 * a) of
       x | x <= a    -> blend (setAlpha (x / a) c2) c1
         | otherwise -> blend (setAlpha ((2 * a - x) / a) c2) c1
@@ -57,13 +57,13 @@ gradient c1 c2 a =
 dashedOpen :: Scalar -> Scalar -> Style
 dashedOpen a b =
   dashed a b ++
-  [VarLineColour :~ \old d r ->
-    if | r == 0    -> old d r
+  [VarLineColour :~ \old d r p ->
+    if | r == 0    -> old d r p
        | otherwise ->
         let total = d/r
             n     = round (total / (a + b))
             k     = total / (fromIntegral n * (a + b) + a)
-        in old (d / k) r
+        in old (d / k) r p
   ]
 
 -- | A dashed line style. The first argument is the approximate length (in
@@ -73,22 +73,22 @@ dashedOpen a b =
 dashedClosed :: Scalar -> Scalar -> Style
 dashedClosed a b =
   dashed a b ++
-  [VarLineColour :~ \old d r ->
-    if | r == 0    -> old d r
+  [VarLineColour :~ \old d r p ->
+    if | r == 0    -> old d r p
        | otherwise ->
         let total = d/r
             n     = round (total / (a + b))
             k     = total / (fromIntegral n * (a + b))
-        in old (d / k) r
+        in old (d / k) r p
   ]
 
 -- | A dashed line style. The first argument is the lengths (in pixels) of the
 --   dashes and the second argument of the gaps.
 dashed :: Scalar -> Scalar -> Style
 dashed a b =
-  [VarLineColour :~ \old d r ->
+  [VarLineColour :~ \old d r p ->
     case modDouble d (a + b) of
-      x | x <= a    -> old d r
+      x | x <= a    -> old d r p
         | otherwise -> transparent
   ]
 
