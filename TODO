@@ -24,6 +24,13 @@ Libraries
   - make use of bindCurve (or similar) to make it easier to do things like
     fractals
 
+Change style parameterization
+  - Right now the style just depends on the relative and pixel distances. It
+    would be nice if you could parameterize on more stuff easier. Example use
+    case: use the derivative of the curve to determine the style.
+  - Could I make curves (or images) into a functor of some kind. Question: what
+    would be the parameter type? How does it play with pixel-based features.
+
 Textures
   - actual textures (reading png files and use as texture)
     - could go crazy with texture filtering and mipmapping
