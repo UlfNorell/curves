@@ -35,6 +35,23 @@ outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
 
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
+speedy i = i `with` [ VarLineWidth := \_ t -> undefined ]
+  where
+    d = differentiate i
+
+ex1 = mconcat
+    [ c2 `with` [ LineWidth  := 2 ]
+    , c1 `with` [ LineColour := opacity 0.4 red ]
+    , c0 `with` [ LineColour := opacity 0.2 blue ]
+    ]
+  where
+    c0 = circle 0 1
+    c1 = transformImage (addSpin 0.4 5.6 0.2) c0
+    c2 = transformImage (addSpin 0.2 17.4 1)  c1
+
+    addSpin :: Transformable a => Vec -> Scalar -> Scalar -> Scalar -> a -> a
+    addSpin r v o t = translate (r * rotate (2 * pi * t * v + o) unitX)
+
 main = do
   -- args <- getArgs
   -- case args of
@@ -54,17 +71,22 @@ main = do
           where
             u = d/2 * norm (rot90 v)
     in
-    circle 0 1 `with`
-      [ LineColour    := transparent
-      -- , FillBlur      := 50
-      , Texture := \_ p ->
-          let k = 20
-              r = getX $ abs p
-              g = 0 -- getY p
-              b = 0
-              a = 1
-          in Colour r g b a
-      ]
+    ex1
+    -- translate (-0.5) (scale 20 $
+    -- drawString (liberation Serif []) "LINNEA" `with`
+    --   [ Texture := \_ p -> let x = 0.5 + sin (getX (abs p) * 10) / 2 in Colour 0 0 1 x
+    --   ])
+    -- scale 20 (circle 0 1) `with`
+    --   [ LineColour    := transparent
+    --   -- , FillBlur      := 50
+    --   , Texture := \_ p ->
+    --       let k = 20
+    --           r = 1
+    --           g = 0 -- getY p
+    --           b = 0
+    --           a = 0.5 + sin (getX (abs p) * 10) / 2
+    --       in Colour r g b a
+    --   ]
     -- <> line (-1) 1 `with` lineStyle 30 5 blue
       -- mconcat $ map draw (droot : ps)
       -- foldr1 (<||>) trees -- `with` [LineColour :~ opacity 0.7, LineBlur := 0.8]
