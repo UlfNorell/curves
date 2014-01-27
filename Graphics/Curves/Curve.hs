@@ -3,7 +3,7 @@
              UndecidableInstances #-}
 module Graphics.Curves.Curve where
 
-import Control.Arrow ((***), (&&&))
+import Control.Arrow ((***), (&&&), first, second)
 
 import Graphics.Curves.Math
 import Graphics.Curves.Colour
@@ -12,23 +12,27 @@ import Graphics.Curves.Attribute
 
 import Debug.Trace
 
-data Curves = Curves { curvePaths :: [Curve]
-                     , curveStyle :: CurveStyle }
+data Curves = Curves { curvePaths     :: [Curve]
+                     , curveFillStyle :: CurveFillStyle }
 
 data Curve = forall a. Transformable a =>
-             Curve { curveFunction :: Scalar -> a
-                   , curveRender   :: Scalar -> a -> Point
-                   , curveDensity  :: Int   -- ^ Number of subcurves that have been joined into this one
+             Curve { curveFunction  :: Scalar -> a
+                   , curveRender    :: Scalar -> a -> Point
+                   , curveLineStyle :: Scalar -> Scalar -> CurveLineStyle
+                   , curveDensity   :: Int   -- ^ Number of subcurves that have been joined into this one
                    }
 
-data CurveStyle = CurveStyle
-      { lineWidth    :: Scalar -> Scalar -> Scalar
-      , lineBlur     :: Scalar -> Scalar -> Scalar
-      , lineColour   :: Scalar -> Scalar -> Colour
-      , fillColour   :: FillColour
-      , textureBasis :: Basis
-      , fillBlur     :: Scalar
-      }
+data CurveLineStyle = CurveLineStyle
+  { lineWidth    :: Scalar
+  , lineBlur     :: Scalar
+  , lineColour   :: Colour
+  }
+
+data CurveFillStyle = CurveFillStyle
+  { fillColour   :: FillColour
+  , textureBasis :: Basis
+  , fillBlur     :: Scalar
+  }
 
 data FillColour = SolidFill Colour | TextureFill (Point -> Point -> Colour)
 
@@ -67,39 +71,58 @@ data CurveAttribute :: * -> * where
   Texture       :: CurveAttribute (Point -> Point -> Colour)
   TextureBasis  :: CurveAttribute Basis
 
-instance HasAttribute CurveAttribute CurveStyle where
-  modifyAttribute LineWidth     f s = s { lineWidth    = \d r -> f (lineWidth s d r) }
-  modifyAttribute LineBlur      f s = s { lineBlur     = \d r -> f (lineBlur s d r) }
-  modifyAttribute LineColour    f s = s { lineColour   = \d r -> f (lineColour s d r) }
-  modifyAttribute VarLineWidth  f s = s { lineWidth    = f $ lineWidth s }
-  modifyAttribute VarLineBlur   f s = s { lineBlur     = f $ lineBlur s }
-  modifyAttribute VarLineColour f s = s { lineColour   = f $ lineColour s }
-  modifyAttribute FillBlur      f s = s { fillBlur     = f $ fillBlur s }
-  modifyAttribute TextureBasis  f s = s { textureBasis = f $ textureBasis s }
-  modifyAttribute FillColour    f s =
-    s { fillColour = case fillColour s of
-                       SolidFill c   -> SolidFill (f c)
-                       TextureFill t -> TextureFill $ \p r -> f (t p r)
-      }
-  modifyAttribute Texture f s = s { fillColour = TextureFill $ f tex }
-    where tex = case fillColour s of
-                  SolidFill c   -> \_ _ -> c
-                  TextureFill t -> t
+instance HasAttribute CurveAttribute Curves where
+  modifyAttribute a f =
+    case a of
+      LineWidth     -> onLine_ $ \s -> s { lineWidth  = f (lineWidth s) }
+      LineBlur      -> onLine_ $ \s -> s { lineBlur   = f (lineBlur s) }
+      LineColour    -> onLine_ $ \s -> s { lineColour = f (lineColour s) }
+      VarLineWidth  -> onLine  $ \h p r -> h p r { lineWidth  = f (\p r -> lineWidth  (h p r)) p r }
+      VarLineBlur   -> onLine  $ \h p r -> h p r { lineBlur   = f (\p r -> lineBlur   (h p r)) p r }
+      VarLineColour -> onLine  $ \h p r -> h p r { lineColour = f (\p r -> lineColour (h p r)) p r }
+      FillBlur      -> onFill  $ \s -> s { fillBlur     = f $ fillBlur s }
+      TextureBasis  -> onFill  $ \s -> s { textureBasis = f $ textureBasis s }
+      FillColour    -> onFill  $ \s ->
+        s { fillColour = case fillColour s of
+                           SolidFill c   -> SolidFill (f c)
+                           TextureFill t -> TextureFill $ \p r -> f (t p r)
+          }
+      Texture f s -> s { fillColour = TextureFill $ f tex }
+        where tex = case fillColour s of
+                      SolidFill c   -> \_ _ -> c
+                      TextureFill t -> t
+    where
+      onFill :: (CurveFillStyle -> CurveFillStyle) -> Curves -> Curves
+      onFill f (Curves cs fill) = Curves cs (f fill)
+
+      onLine_ :: (CurveLineStyle -> CurveLineStyle) -> Curves -> Curves
+      onLine_ f = onLine (\_ _ -> f)
+
+      onLine :: ((Scalar -> Scalar -> CurveLineStyle) -> (Scalar -> Scalar -> CurveLineStyle)) -> Curves -> Curves
+      onLine f (Curves cs fill) = Curves (map (onCurve f) cs) fill
+        where
+          onCurve c@(Curve g h n) = Curve g (\p r x -> second (const $ f old p r) $ h p r x) n
+            where old = styleFun c
+
+      styleFun :: Curve -> Scalar -> Scalar -> CurveLineStyle
+      styleFun (Curve g h _) t r = snd $ h t r (g t)
 
   setAttribute FillColour c s = s { fillColour = SolidFill c }  -- allows turning a Texture into a Solid
   setAttribute a x s = modifyAttribute a (const x) s
 
-instance HasAttribute a CurveStyle => HasAttribute a Curves where
-  modifyAttribute attr f (Curves cs s) = Curves cs (modifyAttribute attr f s)
+defaultCurveLineStyle =
+  CurveLineStyle
+    { lineWidth    = \_ _ -> 0.0
+    , lineBlur     = \_ _ -> 1.2
+    , lineColour   = \_ _ -> black
+    }
 
-defaultCurveStyle =
-  CurveStyle { lineWidth    = \_ _ -> 0.0
-             , lineBlur     = \_ _ -> 1.2
-             , lineColour   = \_ _ -> black
-             , fillColour   = SolidFill transparent
-             , fillBlur     = sqrt 2
-             , textureBasis = defaultBasis
-             }
+defaultCurveFillStyle =
+  CurveFillStyle
+    { fillColour   = SolidFill transparent
+    , fillBlur     = sqrt 2
+    , textureBasis = defaultBasis
+    }
 
 instance Transformable Curve where
   transform h (Curve f g n) = Curve (transform h f) g n
@@ -107,7 +130,7 @@ instance Transformable Curve where
 instance Transformable Curves where
   transform f (Curves cs s) = Curves (transform f cs) (transform f s)
 
-instance Transformable CurveStyle where
+instance Transformable CurveFillStyle where
   transform f s = s { textureBasis = transform f $ textureBasis s }
 
 reverseCurve :: Curve -> Curve
@@ -223,27 +246,31 @@ instance DistanceToPoint (AnnotatedSegment a) where
   distance         = distance . theSegment
   squareDistance   = squareDistance . theSegment
 
--- Each segment is annotated with the distance from the start of the curve.
-curveToSegments :: Scalar -> Curves -> BBTree (AnnotatedSegment (Scalar, Scalar))
+-- Each segment is annotated with the distance from the start of the curve and the line style
+curveToSegments :: Scalar -> Curves -> BBTree (AnnotatedSegment (Scalar, Scalar, CurveLineStyle))
 curveToSegments r (Curves cs _) = buildBBTree $ concatMap (toSegments r) cs
 
 curveLength' :: Scalar -> Curve -> Scalar
 curveLength' r c = d + segmentLength s
   where AnnSeg (d, _) s = last $ toSegments r c
 
-toSegments :: Scalar -> Curve -> [AnnotatedSegment (Scalar, Scalar)]
+toSegments :: Scalar -> Curve -> [AnnotatedSegment (Scalar, Scalar, CurveLineStyle)]
 toSegments r (Curve f g _) =
-    annotate $ map (uncurry Seg . (snd *** snd)) $ concatMap (uncurry subdivide) ss
+    annotate $ map mkSeg $ concatMap (uncurry subdivide) ss
   where
     h t = g t (f t)
     res = r^2
     pairs xs = zip xs (tail xs)
 
+    mkSeg ((_, (p0, style0)), (_, (p1, style1))) = AnnSeg style0 (Seg p0 p1)
+
     annotate ss = annotate' total 0 ss
       where
         total = sum $ map segmentLength ss
 
-    annotate' tot !d (s:ss) = AnnSeg (d, d/tot) s : annotate' tot (d + segmentLength s) ss
+    addDist d r style = (d, r, style)
+
+    annotate' tot !d (s:ss) = fmap (addDist d r) s : annotate' tot (d + segmentLength s) ss
     annotate' _ _ [] = []
 
     ss = pairs $ do
@@ -252,9 +279,9 @@ toSegments r (Curve f g _) =
       let t = fromIntegral i / fromIntegral n
       return (t, h t)
 
-    subdivide x@(t0, p0) y@(t1, p1)
+    subdivide x@(t0, (p0, style0)) y@(t1, (p1, style1))
       | stop      = [(x, y)]
-      | d > res   = subdivide (t0, p0) (t, p) ++ subdivide (t, p) (t1, p1)
+      | d > res   = subdivide (t0, (p0, style0)) (t, (p, style)) ++ subdivide (t, (p, style)) (t1, (p1, style1))
       | otherwise = [(x, y)]
       where
         d = squareDistance p0 p1
@@ -263,5 +290,5 @@ toSegments r (Curve f g _) =
         stop = t === t0 || t === t1 -- we've run out of precision
         sh (t, p) = "  f " ++ show t ++ " = " ++ show p
         t = (t0 + t1) / 2
-        p = h t
+        (p, style) = h t
 

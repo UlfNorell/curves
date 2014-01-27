@@ -30,6 +30,10 @@ Change style parameterization
     case: use the derivative of the curve to determine the style.
   - Could I make curves (or images) into a functor of some kind. Question: what
     would be the parameter type? How does it play with pixel-based features.
+  - A first step might be to move the line style into the curve. That should be
+    possible. Turns out to be a little bit tricky. I should probably write down
+    some examples of what I want to be able to do and make sure this change
+    will make that possible...
 
 Textures
   - actual textures (reading png files and use as texture)
