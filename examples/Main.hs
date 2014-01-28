@@ -35,13 +35,21 @@ outline i = (i `with` [ LineWidth := 3, LineColour := white ]) <>
 
 modDouble a b = a - b * fromIntegral (floor (a / b))
 
-speedy i = i `with` [ VarLineWidth := \_ t -> undefined ]
+speedy i = zipImage (\_ _ p -> p) d i
   where
-    d = differentiate i
+    d = freezeImageStyle $ differentiate i `with` [ VarLineWidth := \_ _ p -> 8 - getX (abs p) / 5 ]
+
+diffTest i t = (d t, d' t)
+  where
+    δ = 1.0e-5
+    i ! t = head $ concat $ sampleImage i t
+    d  t = differentiate i ! t
+    d' t = (i ! (t + δ) - i ! (t - δ)) / diag (2 * δ)
 
 ex1 = mconcat
-    [ c2 `with` [ LineWidth  := 2, VarLineColour := \_ _ p -> Colour 1 0 0 (0.6 + 0.4 * sin (getX p / 50)) ]
-    , c1 `with` [ LineColour := opacity 0.4 red ]
+    [ speedy c2
+    -- , differentiate c2
+    -- , c1 `with` [ LineColour := opacity 0.4 red ]
     , c0 `with` [ LineColour := opacity 0.2 blue ]
     ]
   where
