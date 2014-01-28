@@ -231,6 +231,11 @@ zipCurve h (Curve f1 g1 st1 n) (Curve f2 g2 _ m) = Curve (f1 &&& f2) g' st1 (max
   where
     g' t (x, y) = h t (g1 t x) (g2 t y)
 
+freezeLineStyle :: Scalar -> Curve -> Curve
+freezeLineStyle res c@(Curve f g s n) = Curve f g s' n
+  where
+    s' _ t _ = s (curveLengthUpTo res c t) t (g t (f t))
+
 data AnnotatedSegment a = AnnSeg { annotation :: a
                                  , theSegment :: Segment }
   deriving (Functor)
@@ -246,6 +251,15 @@ instance DistanceToPoint (AnnotatedSegment a) where
 -- Each segment is annotated with the distance from the start of the curve and the line style
 curveToSegments :: Scalar -> Curves -> BBTree (AnnotatedSegment (Scalar, Scalar, CurveLineStyle))
 curveToSegments r (Curves cs _) = buildBBTree $ concatMap (toSegments r) cs
+
+-- | The length of the curve up to the given parameter value (between 0 and 1)
+curveLengthUpTo :: Scalar -> Curve -> Scalar -> Scalar
+curveLengthUpTo res _ t | t < 0 || t > 1 = error $ "curveLengthUpTo: " ++ show t ++ " not between 0 and 1"
+curveLengthUpTo res _ 0 = 0
+curveLengthUpTo res (Curve f g st n) t = curveLength' res (Curve f' g' st n)
+  where
+    f' = f . (/ t)
+    g' = g . (/ t)
 
 curveLength' :: Scalar -> Curve -> Scalar
 curveLength' r c = d + segmentLength s

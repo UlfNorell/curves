@@ -22,7 +22,7 @@ module Graphics.Curves
   , differentiate, mapImage, zipImage, transformImage
   , curveLength
     -- ** Advanced image manipulation
-  , freezeImageSize, freezeImageOrientation, freezeImage
+  , freezeImageSize, freezeImageOrientation, freezeImage, freezeImageStyle
   , unfreezeImage
     -- ** Combining images
   , BlendFunc
@@ -118,6 +118,14 @@ imageBounds i0
     d = vuncurry max (q - p)
     getBounds k' i = scale (1/k) $ bboxToSegment $ bounds $ compileImage $ scale k i
       where k = diag k'
+
+-- | Freeze the line style of an image. This means that the pixel parameters
+--   (distance along the curve and pixel position) are given as they are at
+--   this moment, and won't be affected by later transformations.
+freezeImageStyle :: Image -> Image
+freezeImageStyle i = mapCurve (freezeLineStyle res) i
+  where res = vuncurry min (p1 - p0) / 100
+        Seg p0 p1 = imageBounds i
 
 -- ImageElement -----------------------------------------------------------
 
