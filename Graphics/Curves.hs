@@ -31,7 +31,7 @@ module Graphics.Curves
   , (<>)
   , (><), (<->)
     -- ** Query functions
-  , imageBounds
+  , imageBounds, sampleImage
     -- * Image attributes
     -- | Image attributes control things like the colour and width of curves.
   , module Graphics.Curves.Attribute
@@ -47,7 +47,7 @@ import Graphics.Curves.BoundingBox
 import Graphics.Curves.Curve
 import Graphics.Curves.Image
 import Graphics.Curves.Colour
-import Graphics.Curves.Render
+import Graphics.Curves.Render hiding (sampleImage)
 import Graphics.Curves.Compile
 import Graphics.Curves.Attribute
 import Graphics.Curves.Style
@@ -118,6 +118,13 @@ imageBounds i0
     d = vuncurry max (q - p)
     getBounds k' i = scale (1/k) $ bboxToSegment $ bounds $ compileImage $ scale k i
       where k = diag k'
+
+sampleImage :: Image -> Scalar -> [[Point]]
+sampleImage IEmpty t                 = []
+sampleImage (Combine _ i j) t        = sampleImage i t ++ sampleImage j t
+sampleImage (ICurve (Curves cs _)) t = [map (sampleCurve t) cs]
+  where
+    sampleCurve t (Curve f g _ _) = g t (f t)
 
 -- | Freeze the line style of an image. This means that the pixel parameters
 --   (distance along the curve and pixel position) are given as they are at
