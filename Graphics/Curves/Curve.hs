@@ -209,19 +209,16 @@ prependPoint' p (Curve f g st n) = Curve f' g' st (n + 1)
     g' t (Right p)     = g (hi t) p
 
 differentiateCurve :: Curve -> Curve
-differentiateCurve (Curve f g st n) = Curve (const f) g' st n
+differentiateCurve (Curve f g st n) = Curve f' g' st n
   where
-    eps  = 0.01
-    eps2 = eps ^ 2
-    minus a b = max (a - b) 0
-    plus  a b = min (a + b) 1
-    g' t f = norm (p1 - p0)
+    δ = 1.0e-5
+    f' t = Seg (h t) (h t + v)
       where
         h t = g t (f t)
-        p   = h t
-        farEnough q = squareDistance p q > eps2
-        (t0, p0) = maybe (0, h 0) id $ findThreshold (\e -> h (t - e)) farEnough 1.0e-6 0 t
-        (t1, p1) = maybe (1, h 1) id $ findThreshold (\e -> h (t + e)) farEnough 1.0e-6 0 (1 - t)
+        v = (h t1 - h t0) / diag (t1 - t0)
+        t1 = min (t + δ) 1
+        t0 = max (t - δ) 0
+    g' _ (Seg p0 p1) = p1 - p0
 
 zipCurves :: (Scalar -> Point -> Point -> Point) -> Curves -> Curves -> Curves
 zipCurves f (Curves cs1 s) (Curves cs2 _) = Curves (zipWith (zipCurve f) cs1 cs2) s
