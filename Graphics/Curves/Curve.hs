@@ -281,8 +281,9 @@ toSegments r (Curve f g style _) =
 
     addDist d r style = (d, r, style)
 
-    annotate' tot !d (s@(Seg p0 p1):ss) = AnnSeg (d, d/tot, style d r p) s : annotate' tot (d + segmentLength s) ss
+    annotate' tot !d (s@(Seg p0 p1):ss) = AnnSeg (d, t, style d t p) s : annotate' tot (d + segmentLength s) ss
       where p = (p0 + p1) / 2
+            t = d / tot
 
     annotate' _ _ [] = []
 
