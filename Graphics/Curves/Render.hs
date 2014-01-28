@@ -4,7 +4,9 @@ module Graphics.Curves.Render where
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
+import Data.List
 import qualified Data.ByteString.Lazy as B
+import Data.Function
 
 import qualified Codec.Picture as Codec
 import qualified Codec.Picture.Png as Codec
@@ -37,7 +39,7 @@ sampleSegments (FillStyle varFillColour fillBlur texBasis (LineStyle lineColour 
     fillColour = getFillColour varFillColour p (toBasis texBasis p)
     isZero x = round (255 * x) == 0
     isLine = do
-      (d, seg) <- distanceAtMost' (lineWidth/2 + lineBlur) s p
+      (d, seg) <- closestSeg (lineWidth/2 + lineBlur) s p
       let LineStyle c w b = annotation seg
           inner = w/2
           outer = inner + b
@@ -47,6 +49,13 @@ sampleSegments (FillStyle varFillColour fillBlur texBasis (LineStyle lineColour 
       guard $ α > 0
       guard $ not $ isZero (getAlpha c)
       return (α, c)
+
+    closestSeg d s p =
+      case distanceAtMost' (lineWidth/2 + lineBlur) s p of
+        []    -> Nothing
+        cands -> Just $ minimumBy (compare `on` dist) cands
+      where
+        dist (d, AnnSeg (LineStyle _ w b) _) = (d - w/2) / b
 
     hasFill = not $ isZero $ getAlpha fillColour
     addFill α' c = maybe c (blend c . opacity (1/α')) fill

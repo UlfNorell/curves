@@ -7,6 +7,7 @@ import Data.Monoid
 import Data.Function
 -- import Data.List
 import Data.Foldable hiding (concatMap)
+import Data.Maybe
 import Test.QuickCheck
 
 import Graphics.Curves.Math
@@ -104,18 +105,16 @@ instance DistanceToPoint a => DistanceToPoint (BBTree a) where
     -- could be optimized (looking at bounding boxes of l and r),
     -- but not a bottle-neck
 
-  distanceAtMost d t p = fst <$> distanceAtMost' d t p
+  distanceAtMost d t p =
+    case distanceAtMost' d t p of
+      [] -> Nothing
+      xs -> Just $ minimum $ map fst xs
 
-distanceAtMost' :: DistanceToPoint a => Scalar -> BBTree a -> Point -> Maybe (Scalar, a)
-distanceAtMost' d (Leaf x)     p = (,) <$> distanceAtMost d x p <*> pure x
-distanceAtMost' d (Node b l r) p =
-  distanceAtMost d b p *>
-  case (distanceAtMost' d l p, distanceAtMost' d r p) of
-    (Nothing, d) -> d
-    (d, Nothing) -> d
-    (l@(Just (dl, x)), r@(Just (dr, y)))
-      | dl < dr   -> l
-      | otherwise -> r
+distanceAtMost' :: DistanceToPoint a => Scalar -> BBTree a -> Point -> [(Scalar, a)]
+distanceAtMost' d (Leaf x)     p = [ (d, x) | Just d <- [distanceAtMost d x p] ]
+distanceAtMost' d (Node b l r) p
+  | isNothing $ distanceAtMost d b p = []
+  | otherwise = distanceAtMost' d l p ++ distanceAtMost' d r p
 
 buildBBTree :: HasBoundingBox a => [a] -> BBTree a
 buildBBTree []  = error "buildBBTree []"
