@@ -46,28 +46,48 @@ matchBrace n (c:s)   = first (c:) $ matchBrace (count c + n) s
 
 data Token = Eval String
            | Exec String
+           | Print String
            | Chunk String
 
 lexString :: String -> [Token]
 lexString "" = []
 lexString s@(c:s')
-  | Just s' <- dropPrefix "%{" s =
-      let (code, rest) = matchBrace 0 s' in
-      Eval code : lexString rest
-  | Just s' <- dropPrefix "%!{" s =
-      let (code, rest) = matchBrace 0 s' in
-      Exec code : lexString rest
+  | Just s' <- dropPrefix "%{"  s = go Eval s'
+  | Just s' <- dropPrefix "%#{" s = go Print s'
+  | Just s' <- dropPrefix "%!{" s = go Exec s'
   | otherwise = char c $ lexString s'
   where
+    go mkTok s = mkTok code : lexString rest
+      where (code, rest) = matchBrace 0 s
+
     char c (Chunk s : ts) = Chunk (c : s) : ts
     char c ts             = Chunk [c] : ts
 
 runTokens :: FilePath -> [Token] -> IO String
-runTokens file ts = concat <$> mapM runToken ts
+runTokens file ts = spliceResults ts . splitResults
+                <$> runCode file codeToRun
   where
-    runToken (Chunk s)   = return s
-    runToken (Eval code) = runCode file code
-    runToken (Exec code) = "" <$ runCode file code
+    magicNumber = "zgiyttxhvcoshdcwkwpf"
+    sep         = "; putStr " ++ show magicNumber ++ "; "
+    codeToRun = "do {" ++ intercalate sep (concatMap action ts) ++ "}"
+
+    action Chunk{}      = []
+    action (Print code) = ["print (" ++ code ++ ")"]
+    action (Eval code)  = ["(" ++ code ++ ")"]
+    action (Exec code)  = ["(" ++ code ++ ")"]
+
+    splitResults :: String -> [String]
+    splitResults [] = []
+    splitResults s@(c:s')
+      | Just s' <- dropPrefix magicNumber s = [] : splitResults s'
+      | otherwise = char c $ splitResults s'
+      where
+        char c (s:ss) = (c:s):ss
+        char c []     = [[c]]
+
+    spliceResults (Chunk s : ts) rs = s ++ spliceResults ts rs
+    spliceResults (_ : ts) (r : rs) = r ++ spliceResults ts rs
+    spliceResults [] []             = ""
 
 ppFile :: FilePath -> IO String
 ppFile file = runTokens file . lexString =<< readFile file

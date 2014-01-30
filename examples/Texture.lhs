@@ -100,7 +100,7 @@ Well I guess we could, since there are a finite%{ footnote "lots" } number of
 texture function inputs. It would just take a while.
 
 %{ footnoteDef "lots" }
-%{ (2^64)^4 } to be precise.
+%#{ (2^64)^4 } to be precise.
 </div>
 
 %{ done }
