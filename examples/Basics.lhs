@@ -30,7 +30,7 @@
 
 %{ makeImage' "basics5" 100 100 ex5 }
 
-> ex6 = curve (\t -> Vec t (sin t)) 0 (2 * pi)
+> ex6 = curve 0 (2 * pi) $ \t -> Vec t (sin t)
 
 %{ makeImage "basics6" 314 100 ex6 }
 

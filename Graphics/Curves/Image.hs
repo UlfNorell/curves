@@ -80,15 +80,19 @@ a >< b = combine intersectBlend a b
 (<->) :: Image -> Image -> Image
 a <-> b = combine diffBlend a b
 
--- | A simple curve whose points are given by the function argument. The second
---   and third arguments specify the range of the function. The function must
---   be continuous on this interval.
+-- | A simple curve whose points are given by the function argument. The first
+--   two arguments specify the range of the function. The function must be
+--   continuous on this interval.
 --
 --   For example, a straight line between points @p@ and @q@ can be implemented as
 --
---   @curve ('interpolate' p q) 0 1@
-curve :: (Scalar -> Point) -> Scalar -> Scalar -> Image
-curve f = curve' f (const id)
+--   @curve 0 1 ('interpolate' p q)@
+curve :: Scalar -> Scalar -> (Scalar -> Point) -> Image
+curve t0 t1 f = curve' t0 t1 f (const id)
+
+-- | @curve_ = 'curve' 0 1@
+curve_ :: (Scalar -> Point) -> Image
+curve_ = curve 0 1
 
 -- | The most general form of curve. The curve function is split in two, one
 --   function from the parameter to an arbitrary 'Transformable' object, and a
@@ -102,8 +106,8 @@ curve f = curve' f (const id)
 --   which uses a line 'Segment' as the intermediate type and computes the
 --   arrow head in the second function, to ensure that the arrow head has the
 --   same dimensions regardless of how the arrow is scaled.
-curve' :: Transformable a => (Scalar -> a) -> (Scalar -> a -> Point) -> Scalar -> Scalar -> Image
-curve' f g t0 t1 = ICurve $ Curves [Curve (f . tr) (g . tr) (\_ _ _ -> defaultCurveLineStyle) 1] defaultCurveFillStyle
+curve' :: Transformable a => Scalar -> Scalar -> (Scalar -> a) -> (Scalar -> a -> Point) -> Image
+curve' t0 t1 f g = ICurve $ Curves [Curve (f . tr) (g . tr) (\_ _ _ -> defaultCurveLineStyle) 1] defaultCurveFillStyle
   where
     tr t = t0 + t * (t1 - t0)
 
@@ -214,11 +218,11 @@ c                     +.+ Combine f i j         = Combine f (c +.+ i) j
 
 -- | A straight line between two points.
 line :: Point -> Point -> Image
-line p q = curve (interpolate p q) 0 1
+line p q = curve_ (interpolate p q)
 
 -- | A single point.
 point :: Point -> Image
-point p = curve (const p) 0 1
+point p = curve_ (const p)
 
 -- | A circle given by its center and radius.
 circle :: Point -> Scalar -> Image
@@ -233,7 +237,7 @@ circle p r = circleSegment p r 0 (2 * pi)
 circleSegment :: Point -> Scalar -> Scalar -> Scalar -> Image
 circleSegment c r a b | b < a = reverseImage $ circleSegment c r b a
 circleSegment (Vec x y) r a b =
-  curve (\α -> Vec (x + r * cos α) (y + r * sin α)) a b
+  curve a b (\α -> Vec (x + r * cos α) (y + r * sin α))
 
 -- | A connected sequence of straight lines. The list must have at least two
 --   elements.
@@ -294,7 +298,7 @@ bSpline ps = foldl1 (+++) $ map seg (takeWhile ((>=4).length) $ map (take 4) (ta
     mmul v m = map (vmul v) m
     vmul u v = sum $ zipWith (*) u v
 
-    seg ps = curve f 0 1
+    seg ps = curve_ f
       where
         f t = vmul (coefs t) ps
 

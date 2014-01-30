@@ -19,11 +19,14 @@ and a texture coordinate. The texture coordinate is given relative to a
 customizable texture basis.
 
 <h2>Using the texture coordinate</h2>
-Here's a simple example:
+First, let's have ourselves an egg
 
-> egg = curve (\t -> Vec (0.8 * cos t - 0.05 * signum (cos t) * sin t)
->                        (0.95 * sin t)) 0 (2 * pi)
->         `with` [ LineColour := transparent ]
+> egg = curve 0 (2 * pi) $ \t ->
+>         Vec (0.8 * cos t - 0.05 * signum (cos t) * sin t)
+>             (0.95 * sin t)
+
+%{ makeImage "texture-egg" 100 100 egg }
+
 >
 > rTex p = Colour (getX $ abs p) 0 0 1
 > gTex p = Colour 0 (0.5 + 0.5 * getY p) 0 1

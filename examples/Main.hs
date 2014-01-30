@@ -19,10 +19,10 @@ import Fractals
 
 circle' :: Point -> Scalar -> Image
 circle' (Vec x y) r =
-  curve (\α -> Vec (x + r * cos α) (y + r * sin α)) 0 (2 * pi) `with` lineStyle 1 1.2 red
+  curve 0 (2 * pi) (\α -> Vec (x + r * cos α) (y + r * sin α)) `with` lineStyle 1 1.2 red
 
 ellipse :: Point -> Scalar -> Scalar -> Image
-ellipse (Vec x y) r d = curve f 0 (2 * pi) `with` lineStyle 3 5 (opacity 0.7 blue)
+ellipse (Vec x y) r d = curve 0 (2 * pi) f `with` lineStyle 3 5 (opacity 0.7 blue)
   where
     f α = Vec (x + (r - s) * cos α) (y + (r - s) * sin α)
       where

@@ -49,7 +49,7 @@ angleArc :: Scalar -- ^ Radius of the arc in pixels
          -> Point  -- ^ B
          -> Point  -- ^ C
          -> Image
-angleArc w p0 p1 p2 = curve' f g 0 1
+angleArc w p0 p1 p2 = curve' 0 1 f g
   where
     f _ = (p0, p1, p2)
     g t (p0, p1, p2) = p0 + diag w * rotate (t * α) (norm (p1 - p0))
@@ -68,7 +68,7 @@ labelledAngle s d p0 p1 p2 =
 
 -- | Draw a line segment with an arrow head.
 arrow :: Point -> Point -> Image
-arrow from to = curve' f g 0 2 <> line from to
+arrow from to = curve' 0 2 f g <> line from to
   where
     f = const $ Seg from to
     g t (Seg from to) =

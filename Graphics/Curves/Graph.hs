@@ -61,7 +61,7 @@ graph x0 x1 f = g <> axis Below (getX p) (getX q) (getY p) (getY q)
   where
     fx0 = Vec x0 0
     fx1 = Vec x1 0
-    g = curve (\x -> Vec x (f x)) x0 x1
+    g = curve x0 x1 $ \x -> Vec x (f x)
     Seg p q = imageBounds g
     w = getX (q - p)
     h = getY (q - p)

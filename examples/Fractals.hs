@@ -341,7 +341,7 @@ splitAnimation n f =
   where
     n' = fromIntegral n
 
-fractal' res f = curve' (const f) (flip frac) 0 1
+fractal' res f = curve' 0 1 (const f) (flip frac)
   where
     r = res^2
     frac f t
