@@ -3,6 +3,9 @@ dist
 .swo
 tags
 examples/main
+examples/ExamplePP
+examples/images
+examples/html
 *.o
 *.hi
 test.png
