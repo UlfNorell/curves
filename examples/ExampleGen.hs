@@ -15,8 +15,14 @@ makeImage' name w h i = do
   hPutStrLn stderr "done"
   putStr $ "<img src=\"../images/" ++ name ++ ".png\"/>"
 
-exampleHeader =
-  putStr "<head><link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'></head>"
+header title =
+  putStr $ unlines
+    [ "<head>"
+    , "  <title>" ++ title ++ "</title>"
+    , "  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>"
+    , "  <link href='examples.css' rel='stylesheet' type='text/css'>"
+    , "</head>"
+    , "<body>" ]
 
 getFootnotes :: IO [(String, Int)]
 getFootnotes = do
@@ -46,6 +52,7 @@ catchIO :: IO a -> (IOException -> IO a) -> IO a
 catchIO = catch
 
 done = do
+  putStrLn "</body></html>"
   removeFile ".footnotes" `catchIO` \_ -> return ()
   hPutStrLn stderr "Done"
 

@@ -1,5 +1,5 @@
 
-%{ exampleHeader }
+%{ header "Texture" }
 
 <!--
 
@@ -88,4 +88,4 @@ blur is not taken into account when computing the bounds of an image.
 <p>
 </div>
 
-%!{ done }
+%{ done }

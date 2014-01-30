@@ -1,5 +1,5 @@
 
-%{ exampleHeader }
+%{ header "Basics" }
 
 <!--
 
@@ -42,3 +42,5 @@
 > ex7 = ex6 <> dropShadow 3 0.3 ex6
 
 %{ makeImage "basics7" 314 100 ex7 }
+
+%{ done }
