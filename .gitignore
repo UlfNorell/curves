@@ -5,7 +5,7 @@ tags
 examples/main
 examples/ExamplePP
 examples/images
-examples/html
+examples/html/*.html
 *.o
 *.hi
 test.png

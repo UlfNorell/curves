@@ -1,0 +1,42 @@
+.hs-keyword {color: #840; font-weight: bold;}
+.hs-comment, .hs-comment a {color: blue;}
+.hs-str, .hs-chr, .hs-num {color: magenta;}
+.hs-conid, .hs-conop {color: green;}
+.hs-varop, .hs-keyglyph, .hs-layout {color: #64C;}
+.hs-keyword, .hs-conid, .hs-varid, .hs-conop, .hs-varop, .hs-num, .hs-cpp, .hs-sel, .hs-definition {}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 40px 15%;
+}
+
+pre, code {
+  font-family: 'Droid Sans Mono', sans-serif;
+}
+
+pre {
+  background: #F0F0FF;
+  padding: 3px 10px 3px 10px;
+  margin: 15px 10px;
+  overflow: auto;
+}
+
+img {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.footnote {
+  vertical-align: super;
+  font-size: 80%;
+  margin-left: 1px;
+  text-decoration: none;
+}
+
+a:visited.footnote, a:link.footnote {
+  color: #00f;
+}
+
+.footnotes {
+  font-size: 90%;
+}
