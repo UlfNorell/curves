@@ -10,6 +10,8 @@ data Assignment a
     -- | Modify an attribute
   | forall f b. HasAttribute f a => f b :~ (b -> b)
 
+infix 0 :=, :~
+
 -- | The type constructor @f@ is such that @f b@ is the type of names of
 --   attributes of @a@ of type @b@.
 class HasAttribute f a where
