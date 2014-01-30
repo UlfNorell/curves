@@ -44,19 +44,33 @@ matchBrace n (c:s)   = first (c:) $ matchBrace (count c + n) s
     count '}' = -1
     count _   = 0
 
-pp :: FilePath -> String -> IO String
-pp file "" = return ""
-pp file s@(c:s')
+data Token = Eval String
+           | Exec String
+           | Chunk String
+
+lexString :: String -> [Token]
+lexString "" = []
+lexString s@(c:s')
   | Just s' <- dropPrefix "%{" s =
       let (code, rest) = matchBrace 0 s' in
-      (++) <$> runCode file code <*> pp file rest
+      Eval code : lexString rest
   | Just s' <- dropPrefix "%!{" s =
       let (code, rest) = matchBrace 0 s' in
-      runCode file code *> pp file rest
-  | otherwise = (c :) <$> pp file s'
+      Exec code : lexString rest
+  | otherwise = char c $ lexString s'
+  where
+    char c (Chunk s : ts) = Chunk (c : s) : ts
+    char c ts             = Chunk [c] : ts
+
+runTokens :: FilePath -> [Token] -> IO String
+runTokens file ts = concat <$> mapM runToken ts
+  where
+    runToken (Chunk s)   = return s
+    runToken (Eval code) = runCode file code
+    runToken (Exec code) = "" <$ runCode file code
 
 ppFile :: FilePath -> IO String
-ppFile file = pp file =<< readFile file
+ppFile file = runTokens file . lexString =<< readFile file
 
 main = do
   args <- getArgs
