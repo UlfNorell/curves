@@ -4,7 +4,12 @@ VERSION = 1.0.1
 LIB			= dist/build/libHScurves-$(VERSION).a
 hs_files = $(shell find Graphics -name '*.hs')
 
-default : examples/main tags
+.PHONY: examples
+
+default : examples tags
+
+examples :
+	make -C examples
 
 examples/main : $(LIB) $(wildcard examples/*.hs)
 	(cd examples; ghc --make Main.hs -o main $(FLAGS) -odir=../lib -hidir=../lib)
