@@ -21,6 +21,8 @@ if [ "`git status --porcelain`" != "" ]; then
   git push
 else
   echo "No changes!"
+  # Still push the merge (if there was one)
+  git push
 fi
 
 cd ..
