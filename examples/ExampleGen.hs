@@ -7,13 +7,16 @@ import System.IO
 import System.Directory
 import Graphics.Curves
 
-makeImage name w h i = makeImage' name w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+makeImage name w h i = makeImageT "" name w h i
 
-makeImage' name w h i = do
+makeImageT tag name w h i =
+  makeImage' tag name w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+
+makeImage' tag name w h i = do
   hPutStr stderr $ "Rendering " ++ name ++ "... "
   renderImage ("images/" ++ name ++ ".png") w h white i
   hPutStrLn stderr "done"
-  putStr $ "<img src=\"../images/" ++ name ++ ".png\"/>"
+  putStr $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
 
 header title =
   putStr $ unlines
