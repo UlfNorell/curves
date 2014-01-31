@@ -6,7 +6,7 @@ hs_files = $(shell find Graphics -name '*.hs')
 
 .PHONY: examples
 
-default : $(LIB) examples tags
+default : library examples tags
 
 examples :
 	make -C examples
@@ -19,11 +19,14 @@ prof : examples/main_p
 examples/main_p : library examples/Main.hs
 	(cd examples; ghc --make Main.hs -prof -auto-all -o main_p $(FLAGS) -odir=../lib_p -hidir=../lib_p)
 
-library : $(LIB)
+library : $(LIB) haddock
 
-dist/build/libHScurves-$(VERSION).a : dist/setup-config $(hs_files)
+$(LIB) : dist/setup-config $(hs_files)
 	cabal build
-	cabal install --reinstall
+	cabal install --reinstall --disable-documentation
+
+haddock :
+	cabal haddock --html-location='http://hackage.haskell.org/package/$$pkgid/docs'
 
 dist/setup-config : curves.cabal
 	cabal configure
