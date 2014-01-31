@@ -1,0 +1,27 @@
+#!/bin/bash
+
+reponame=curves
+user=UlfNorell
+repo=git@github.com:${user}/${reponame}.git
+build=make
+
+cd /tmp
+git clone $repo
+cd $reponame
+git checkout gh-pages
+git merge master -m "[auto] merge master into gh-pages"
+$build
+
+if [ "`git status --porcelain`" != "" ]; then
+  echo "Updates:"
+  git status --porcelain
+  changed=`git status --porcelain | cut -c4-`
+  git add --all -- $changed
+  git commit -m "[auto] updated html listings"
+  git push
+else
+  echo "No changes!"
+fi
+
+cd ..
+rm -rf $reponame
