@@ -7,7 +7,15 @@
 
 body {
   font-family: 'Open Sans', sans-serif;
-  margin: 40px 15%;
+  margin-top: 60px;
+  margin-left: 15%;
+  margin-right: 15%;
+  margin-bottom: 38px;
+}
+
+.vertical-space {
+  margin-bottom: 8cm;
+  display: block;
 }
 
 pre, code {
@@ -21,10 +29,48 @@ pre {
   overflow: auto;
 }
 
+table.examples td {
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+}
+
+table.examples img {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.header {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  background: #E0E0FF;
+}
+
+.footer {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  background: #E0E0FF;
+  font-size: 80%;
+}
+
+.right {
+  position: absolute;
+  right: 3px;
+}
+
 img {
   display: block;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .footnote {

@@ -3,12 +3,20 @@
 
 <!--
 
+> module Basics where
+
 > import ExampleGen
 
 -->
 
 > import Graphics.Curves
 > import Graphics.Curves.Geometry
+
+<!--
+
+> thumbnail = ex6
+
+-->
 
 > ex1 = circle (Vec 50 50) 40
 

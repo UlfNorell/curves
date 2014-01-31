@@ -39,7 +39,8 @@ Textures
   - actual textures (reading png files and use as texture)
     - could go crazy with texture filtering and mipmapping
 
-Tidier examples
+Examples
+  - Front page
 
 Look at the diagrams package for inspiration
   - backend for the diagrams package?
@@ -53,4 +54,7 @@ Advanced font rendering techniques
 BUGS
 
 autoFit behaves strangely if entire image is frozen
+
+autoFit doesn't work well when there are big frozen features
+  - example: frozen text 10 units high and unit circle
 

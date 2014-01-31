@@ -9,6 +9,7 @@ import Data.Char
 import System.IO
 import System.IO.Unsafe
 import System.Directory
+import System.Time
 import Graphics.Curves
 
 -- Images -----------------------------------------------------------------
@@ -44,15 +45,28 @@ makeImage' tag w h i = do
 header pagename title = do
   writeIORef pageNameRef pagename
   putStr $ unlines
-    [ "<head>"
-    , "  <title>" ++ title ++ "</title>"
-    , "  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>"
-    , "  <link href='../css/examples.css' rel='stylesheet' type='text/css'>"
-    , "</head>"
-    , "<body>" ]
+    [ tag "head"
+      [ tag "title" title
+      , stylesheet "http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext"
+      , stylesheet "../css/examples.css"
+      ]
+    , "<body>"
+    , tag "span class=header" $
+      [ "curves-", version, ": "
+      , tag "a href=Examples.html" "Examples", " - "
+      , tag "a href=../../dist/doc/html/curves/index.html" "API" ] ++
+      [ tag "span class=right"
+        [ tag "a href=http://github.com/UlfNorell/curves" "GitHub", " - "
+        , tag "a href=http://hackage.haskell.org/package/curves" "Hackage" ] ]
+    ]
 
 done = do
-  putStrLn "</body></html>"
+  now <- getClockTime
+  putStrLn $ unlines
+    [ tag "span class=footer"
+        [ "curves-", version, ": Ulf Norell &lt;ulf.norell@gmail.com&gt;"
+        , tag "span class=right" (show now) ]
+    , "</body></html>" ]
   hPutStrLn stderr "Done"
 
 -- Haddock links ----------------------------------------------------------
@@ -114,5 +128,19 @@ footnoteDef s = do
 catchIO :: IO a -> (IOException -> IO a) -> IO a
 catchIO = catch
 
-tag t s = concat ["<", t, ">", s, "</", head (words t), ">"]
+tag :: Stringy a => String -> a -> String
+tag t x | null s    = "<" ++ t ++ "/>"
+        | otherwise = concat ["<", t, ">", toString s, "</", head (words t), ">"]
+  where s = toString x
+
+stylesheet url = tag ("link href='" ++ url ++ "' rel='stylesheet' type='text/css'") ""
+
+class Stringy a where
+  toString :: a -> String
+
+instance Stringy Char where
+  toString c = [c]
+
+instance Stringy a => Stringy [a] where
+  toString = concatMap toString
 
