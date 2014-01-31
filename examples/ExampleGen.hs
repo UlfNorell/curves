@@ -4,7 +4,9 @@ module ExampleGen where
 import Control.Applicative
 import Control.Exception
 import System.IO
+import System.IO.Unsafe
 import System.Directory
+import Data.IORef
 import Graphics.Curves
 
 makeImage name w h i = makeImageT "" name w h i
@@ -27,16 +29,17 @@ header title =
     , "</head>"
     , "<body>" ]
 
-getFootnotes :: IO [(String, Int)]
-getFootnotes = do
-  exist <- doesFileExist ".footnotes"
-  if not exist then return []
-               else do
-      x <- read <$> readFile ".footnotes"
-      x `seq` return x
+type Footnotes = [(String, Int)]
 
-setFootnotes :: [(String, Int)] -> IO ()
-setFootnotes notes = writeFile ".footnotes" (show notes)
+{-# NOINLINE footnoteRef #-}
+footnoteRef :: IORef Footnotes
+footnoteRef = unsafePerformIO $ newIORef []
+
+getFootnotes :: IO Footnotes
+getFootnotes = readIORef footnoteRef
+
+setFootnotes :: Footnotes -> IO ()
+setFootnotes = writeIORef footnoteRef
 
 footnote s = do
   notes <- getFootnotes
@@ -56,6 +59,5 @@ catchIO = catch
 
 done = do
   putStrLn "</body></html>"
-  removeFile ".footnotes" `catchIO` \_ -> return ()
   hPutStrLn stderr "Done"
 
