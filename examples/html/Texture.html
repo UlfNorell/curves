@@ -35,7 +35,7 @@ colour using the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Style
 pixel coordinate and a texture coordinate. The texture coordinate is given
 relative to a customizable texture basis.
 
-<h2>Using the texture coordinate</h2>
+<h2>Using texture coordinates</h2>
 First, let's have ourselves an invisible egg
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>egg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -46,7 +46,7 @@ First, let's have ourselves an invisible egg
 The rest of this page is dedicated to giving the egg pretty colours, but for
 reference, this is what it looks like with the <code>LineColour</code> turned
 back on.
-<img title='' src="../images/texture-egg.png"/>
+<img title='' src="../images/texture-0.png"/>
 
 Let's have a red texture which is darker closer to the center of the egg and a
 green texture that grows darker towards the bottom. Adding<a name="NumInstances-back"/><a class=footnote href="#NumInstances">1</a> them together produces a pretty yellow egg.
@@ -61,7 +61,7 @@ green texture that grows darker towards the bottom. Adding<a name="NumInstances-
 <a name="line-8"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>eggs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>redEgg</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>2</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-varid'>greenEgg</span>
 <a name="line-9"></a><span class='hs-varop'>&gt;</span>               <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>4</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-varid'>yellowEgg</span>
 </pre>
-<img title='' src="../images/texture-eggs.png"/>
+<img title='' src="../images/texture-1.png"/>
 
 <p>
 Texture coordinates are transformed together with the image, so the texture
@@ -69,9 +69,9 @@ sticks with an object when it's transformed as you would expect.
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>tilt</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>yellowEgg</span>
 </pre>
-<img title='Humpty, no!' src="../images/texture2.png"/>
+<img title='Humpty, no!' src="../images/texture-2.png"/>
 
-<h3>The TextureBasis</h3>
+<h3>The texture basis</h3>
 
 Texture coordinates are given in a customizable coordinate system defined by
 the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Style.html#v:TextureBasis'>TextureBasis</a></code> attribute of the image. A <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#t:Basis'>Basis</a></code>
@@ -121,7 +121,7 @@ texture coordinate of a point <code>p</code> is <code>Vec</code> <code>s</code> 
 </pre>
 -->
 In picture form:
-<img title='' src="../images/texture-basis.png"/>
+<img title='' src="../images/texture-3.png"/>
 
 The <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:toBasis'>toBasis</a></code> and <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:fromBasis'>fromBasis</a></code> functions lets you
 convert between points in the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:defaultBasis'>defaultBasis</a></code> and an arbitrary
@@ -136,7 +136,7 @@ off-center as follows:
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>upsideDown</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>yellowEgg</span> <span class='hs-varop'>`with`</span>
 <a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyglyph'>[</span> <span class='hs-conid'>TextureBasis</span> <span class='hs-conop'>:~</span> <span class='hs-varid'>translate</span> <span class='hs-num'>0.2</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rotate</span> <span class='hs-varid'>pi</span> <span class='hs-keyglyph'>]</span>
 </pre>
-<img title='' src="../images/texture3.png"/>
+<img title='' src="../images/texture-4.png"/>
 
 When an image is transformed, the texture basis is also transformed<a name="basis-transform-back"/><a class=footnote href="#basis-transform">2</a>. This is true even if we haven't set a texture for the
 object, which can lead to slightly surprising behaviour in cases. Compare the
@@ -149,7 +149,7 @@ two balls below
 <a name="line-5"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>ball1</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varop'>*</span> <span class='hs-varid'>cos</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varop'>*</span> <span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-6"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>ball2</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>scale</span> <span class='hs-varid'>r</span> <span class='hs-layout'>(</span><span class='hs-varid'>ball1</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span>
 </pre>
-<img title='' src="../images/texture-scaled.png"/>
+<img title='' src="../images/texture-5.png"/>
 
 The left ball is drawn as a circle with radius two using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:curve'>curve</a></code>,
 and the the right ball is circle with radius one scaled by a factor of two. The
@@ -161,9 +161,9 @@ texture basis of an object if it isn't what you want.
 <a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span>
 <a name="line-3"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>newBasis</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>2.15</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>scale</span> <span class='hs-num'>3</span> <span class='hs-varid'>defaultBasis</span>
 </pre>
-<img title='' src="../images/texture-scaled2.png"/>
+<img title='' src="../images/texture-6.png"/>
 
-<h2>Using the pixel coordinate</h2>
+<h2>Using pixel coordinates</h2>
 The pixel coordinate can be used to create raster effects:
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex4</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>egg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Texture</span> <span class='hs-conop'>:=</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span>
@@ -171,13 +171,13 @@ The pixel coordinate can be used to create raster effects:
 <a name="line-3"></a><span class='hs-varop'>&gt;</span>                     <span class='hs-keyword'>then</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>1</span>   <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
 <a name="line-4"></a><span class='hs-varop'>&gt;</span>                     <span class='hs-keyword'>else</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>0.5</span> <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span> <span class='hs-keyglyph'>]</span>
 </pre>
-<img title='' src="../images/texture4.png"/>
+<img title='' src="../images/texture-7.png"/>
 
 Transforming the image has no effect on the pixel coordinates:
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex5</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex4</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>1</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>ex4</span><span class='hs-layout'>)</span>
 </pre>
-<img title='' src="../images/texture5.png"/>
+<img title='' src="../images/texture-8.png"/>
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
@@ -187,7 +187,7 @@ that you can change the texture of an image by modifying the fill colour.
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>purpleEgg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>yellowEgg</span> <span class='hs-varop'>`with`</span>
 <a name="line-2"></a><span class='hs-varop'>&gt;</span>         <span class='hs-keyglyph'>[</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:~</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-conid'>Colour</span> <span class='hs-varid'>r</span> <span class='hs-varid'>g</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Colour</span> <span class='hs-varid'>g</span> <span class='hs-varid'>b</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>]</span>
 </pre>
-<img title='' src="../images/texture6.png"/>
+<img title='' src="../images/texture-9.png"/>
 
 <hr>
 
