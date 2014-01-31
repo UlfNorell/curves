@@ -15,7 +15,7 @@ html :
 images :
 	mkdir images
 
-html/%.html : html images %.lhs $(PP) ExampleGen.hs
+html/%.html : %.lhs images html $(PP) ExampleGen.hs
 	$(PP) $< | $(HSCOLOUR) -css > $@
 
 clean :
