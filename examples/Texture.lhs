@@ -30,7 +30,7 @@ colour using the %{vdoc "Style.FillColour"} attribute. The %{vdoc
 pixel coordinate and a texture coordinate. The texture coordinate is given
 relative to a customizable texture basis.
 
-<h2>Using the texture coordinate</h2>
+<h2>Using texture coordinates</h2>
 First, let's have ourselves an invisible egg
 
 > egg = curve 0 (2 * pi) (\t ->
@@ -67,7 +67,7 @@ sticks with an object when it's transformed as you would expect.
 
 %{ makeImageT "Humpty, no!" "texture2" w h tilt }
 
-<h3>The TextureBasis</h3>
+<h3>The texture basis</h3>
 
 Texture coordinates are given in a customizable coordinate system defined by
 the %{vdoc "Style.TextureBasis"} attribute of the image. A %{tdoc "Math.Basis"}
@@ -160,7 +160,7 @@ texture basis of an object if it isn't what you want.
 
 %{ makeImage "texture-scaled2" (2 * w) h scaled' }
 
-<h2>Using the pixel coordinate</h2>
+<h2>Using pixel coordinates</h2>
 The pixel coordinate can be used to create raster effects:
 
 > ex4 = egg `with` [ Texture := \(Vec x y) _ ->
