@@ -12,6 +12,14 @@
 
 -->
 
+<h1>Textures</h1>
+
+We have <a href=Basics.html>seen</a> how to fill a closed curve with a solid
+colour using the %{vdoc "Style.FillColour"} attribute. The %{vdoc
+"Style.Texture"} attribute lets you specify a fill colour parameterised by a
+pixel coordinate and a texture coordinate. The texture coordinate is given
+relative to a customizable texture basis.
+
 > import Graphics.Curves
 > import Data.NumInstances
 
@@ -21,14 +29,6 @@
 > h = 120 :: Int
 
 -->
-
-<h1>Textures</h1>
-
-We have <a href=Basics.html>seen</a> how to fill a closed curve with a solid
-colour using the %{vdoc "Style.FillColour"} attribute. The %{vdoc
-"Style.Texture"} attribute lets you specify a fill colour parameterised by a
-pixel coordinate and a texture coordinate. The texture coordinate is given
-relative to a customizable texture basis.
 
 <h2>Using texture coordinates</h2>
 First, let's have ourselves an invisible egg
