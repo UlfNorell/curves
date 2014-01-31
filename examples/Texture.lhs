@@ -149,10 +149,10 @@ two balls below
 %{ makeImage (2 * w) h scaled }
 
 The left ball is drawn as a circle with radius two using %{vdoc "curve"},
-and the the right ball is circle with radius one scaled by a factor of two. The
-difference between the two is that the the left ball has the default texture
-basis and the right one a scaled-up basis. Of course, you can always reset the
-texture basis of an object if it isn't what you want.
+and the the right ball is a circle with radius one scaled by a factor of two.
+The difference between the two is that the the left ball has the default
+texture basis and the right one a scaled-up basis. Of course, you can always
+reset the texture basis of an object if it isn't what you want.
 
 > scaled' = scaled `with` [ TextureBasis := newBasis ]
 >   where
@@ -174,7 +174,7 @@ coordinates is to create raster effects like these:
 
 %{ makeImage w h chessEgg }
 
-Transforming the chess egg does nothing to the texture as advertised.
+As advertised, transforming the chess egg does nothing to the texture.
 
 > chessEggs = chessEgg <> translate (Vec 1 0) (rotate (-pi/4) chessEgg)
 
@@ -189,7 +189,7 @@ doesn't mean that we can't play around with the texture function itself.
 %{ makeImage w h swirlyEgg }
 
 Here we used the texture coordinate to change which pixel we sample from the
-old texture.
+old, pixel-based, texture.
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
