@@ -3,20 +3,19 @@
 reponame=curves
 user=UlfNorell
 repo=git@github.com:${user}/${reponame}.git
-build=make
 
 cd /tmp
 git clone $repo
 cd $reponame
 git checkout gh-pages
 git merge master -m "[auto] merged master into gh-pages"
-$build
+make clean
+make
 
 if [ "`git status --porcelain`" != "" ]; then
   echo "Updates:"
   git status --porcelain
-  changed=`git status --porcelain | cut -c4-`
-  git add --all -- $changed
+  git add --all
   git commit -m "[auto] updated gh-pages"
   git push
 else
