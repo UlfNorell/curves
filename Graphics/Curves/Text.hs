@@ -305,5 +305,5 @@ stringImage = stringImage' LeftAlign 0.2
 -- | Draw a string centered at a given point. The second argument specifies the
 --   font height in pixels, invariant under scaling.
 label :: Point -> Scalar -> String -> Image
-label p h s = translate p $ freezeImage 0 $ scale (diag $ h/2) $ translate (Vec 0 (-1)) $ stringImage' CenterAlign 0.1 s
+label p h s = translate p $ freezeImageSize 0 $ scale (diag $ h/2) $ translate (Vec 0 (-1)) $ stringImage' CenterAlign 0.5 s
 

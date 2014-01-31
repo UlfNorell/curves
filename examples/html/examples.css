@@ -34,8 +34,20 @@ img {
   text-decoration: none;
 }
 
+a:visited {
+  color: #40f;
+}
+
 a:visited.footnote, a:link.footnote {
   color: #00f;
+}
+
+a:link, a:visited {
+  text-decoration: none;
+}
+
+a:hover, a:active {
+  text-decoration: underline;
 }
 
 .footnotes {

@@ -4,6 +4,11 @@
 <!--
 
 > import ExampleGen
+> import Graphics.Curves.Geometry
+> import Graphics.Curves.Text.Fonts.Liberation
+> import Graphics.Curves.SVG.Font
+> import Graphics.Curves.Text
+> import Data.Monoid
 
 -->
 
@@ -20,10 +25,10 @@
 <h1>Textures</h1>
 
 We have <a href=Basics.html>seen</a> how to fill a closed curve with a solid
-colour using the <code>FillColour</code> attribute. The <code>Texture</code>
-attribute lets you specify a fill colour parameterised by a pixel coordinate
-and a texture coordinate. The texture coordinate is given relative to a
-customizable texture basis.
+colour using the %{vdoc "Style.FillColour"} attribute. The %{vdoc
+"Style.Texture"} attribute lets you specify a fill colour parameterised by a
+pixel coordinate and a texture coordinate. The texture coordinate is given
+relative to a customizable texture basis.
 
 <h2>Using the texture coordinate</h2>
 First, let's have ourselves an invisible egg
@@ -55,24 +60,110 @@ green texture that grows darker towards the bottom. Adding%{footnote
 %{ makeImage "texture-eggs" (3 * w) h eggs }
 
 <p>
-Texture coordinates are transformed together with the image.
+Texture coordinates are transformed together with the image, so the texture
+sticks with an object when it's transformed as you would expect.
 
-> ex2 = rotate (pi/4) yellowEgg
+> tilt = rotate (pi/4) yellowEgg
 
-%{ makeImageT "Humpty, no!" "texture2" w h ex2 }
+%{ makeImageT "Humpty, no!" "texture2" w h tilt }
 
 <h3>The TextureBasis</h3>
-Texture coordinates can be manipulated directly by changing the
-<code>TextureBasis</code> attribute.
 
-> ex3 = yellowEgg `with` [ TextureBasis :~ rotate (pi/4) ]
+Texture coordinates are given in a customizable coordinate system defined by
+the %{vdoc "Style.TextureBasis"} attribute of the image. A %{tdoc "Math.Basis"}
+consists of three points, (%{vdoc "Math.origin"}, %{vdoc "Math.xUnit"}, and
+%{vdoc "yUnit"}) and describes a coordinate system with origin %{code "origin"}
+and basis vectors %{code "xUnit - origin"} and %{code "yUnit - origin"} The
+texture coordinate of a point %{code "p"} is %{code "Vec s t"}, where
+<!--
 
-%{ makeImage "texture3" w h ex3 }
+> prop_texcoord (Basis origin xUnit yUnit) p (Vec s t) =
+
+-->
+
+>   p == diag s * (xUnit - origin) + diag t * (yUnit - origin)
+
+<!--
+
+> pt p = point p `with` [ LineWidth := 4 ]
+> font = liberation Serif []
+> str p s = label p 14 s
+>   -- translate p $ freezeImage 0 $ scale (diag h) $
+>   -- drawString font s `with` [ LineColour := transparent, FillColour := black ]
+
+> basisExample = mconcat
+>   [ str (xunit + Vec 15 (-12)) "xUnit"
+>   , str (yunit + Vec (-27) 7) "yUnit"
+>   , str (-Vec 8 6) "origin"
+>   , rotateAround tlabel (angle unitX xunit) $ str tlabel "s(xUnit - origin)"
+>   , str rlabel "t(yUnit - origin)"
+>   , str (p + Vec 12 6) "p"
+>   , arrow 0 xunit
+>   , arrow 0 yunit
+>   , mconcat
+>     [ line xunit (xunit * diag s) ++> p
+>     , line yunit (yunit * diag t) ++> p
+>     ] `with` ([LineColour := Colour 1 0.2 0.2 1] ++ dashedClosed 5 5)
+>   , pt p ]
+>   where
+>     rlabel = ((p + xunit * diag s)/2 + Vec 65 (-5))
+>     tlabel = ((p + yunit * diag t)/2 + Vec 0 14)
+>     xunit = Vec 100 20
+>     yunit = Vec 30 90
+>     b = Basis 0 xunit yunit
+>     s = 1.4
+>     t = 1.2
+>     p = fromBasis b (Vec s t)
+
+-->
+In picture form:
+%{ makeImage "texture-basis" 400 220 basisExample }
+
+The %{vdoc "Math.toBasis"} and %{vdoc "Math.fromBasis"} functions lets you
+convert between points in the %{vdoc "Math.defaultBasis"} and an arbitrary
+basis.
+
+<p>
+With the theory out of the way, let's mess with the egg. Modifying the texture
+basis in effect applies the corresponding transformation to the texture. For
+instance, we can turn the egg texture upside down and move it slightly
+off-center as follows:
+
+> upsideDown = yellowEgg `with`
+>   [ TextureBasis :~ translate 0.2 . rotate pi ]
+
+%{ makeImage "texture3" w h upsideDown }
+
+When an image is transformed, the texture basis is also transformed%{footnote
+"basis-transform"}. This is true even if we haven't set a texture for the
+object, which can lead to slightly surprising behaviour in cases. Compare the
+two balls below
+
+> scaled = (ball1 2 <> translate (Vec 4.3 0) ball2 2)
+>           `with` [ Texture    := redTex + greenTex
+>                  , LineColour := transparent ]
+>   where
+>     ball1 r = curve 0 (2 * pi) $ \t -> Vec (r * cos t) (r * sin t)
+>     ball2 r = scale r (ball1 1)
+
+%{ makeImage "texture-scaled" (2 * w) h scaled }
+
+The left ball is drawn as a circle with radius two using %{vdoc "curve"},
+and the the right ball is circle with radius one scaled by a factor of two. The
+difference between the two is that the the left ball has the default texture
+basis and the right one a scaled-up basis. Of course, you can always reset the
+texture basis of an object if it isn't what you want.
+
+> scaled' = scaled `with` [ TextureBasis := newBasis ]
+>   where
+>     newBasis = translate (Vec 2.15 0) $ scale 3 defaultBasis
+
+%{ makeImage "texture-scaled2" (2 * w) h scaled' }
 
 <h2>Using the pixel coordinate</h2>
 The pixel coordinate can be used to create raster effects:
 
-> ex4 = egg `with` [ Texture  := \(Vec x y) _ ->
+> ex4 = egg `with` [ Texture := \(Vec x y) _ ->
 >                     if even (floor (x / 10) + floor (y / 10))
 >                     then Colour 1   0 0 1
 >                     else Colour 0.5 0 0 1 ]
@@ -87,14 +178,14 @@ Transforming the image has no effect on the pixel coordinates:
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
-underlying property. In fact setting the fill colour is (almost)</i>%{ footnote
-"almost" } equivalent to setting the texture to a constant function.  This means
+underlying property. In fact setting the fill colour is (almost%{ footnote
+"almost" }) equivalent to setting the texture to a constant function.  This means
 that you can change the texture of an image by modifying the fill colour.
 
-> ex6 = yellowEgg `with`
+> purpleEgg = yellowEgg `with`
 >         [ FillColour :~ \(Colour r g b a) -> Colour g b r a ]
 
-%{ makeImage "texture6" w h ex6 }
+%{ makeImage "texture6" w h purpleEgg }
 
 <hr>
 
@@ -104,6 +195,9 @@ that you can change the texture of an image by modifying the fill colour.
 Thanks to Conal Elliott's nifty <a
 href="http://hackage.haskell.org/package/NumInstances">NumInstances</a>
 package.
+
+%{ footnoteDef "basis-transform" }
+This is what lets the texture stay with an object when it is transformed.
 
 %{ footnoteDef "almost" }
 The only difference is that if the fill colour is set to transparent, the fill
