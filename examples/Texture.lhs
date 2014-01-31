@@ -1,5 +1,5 @@
 
-%{ header "Texture" }
+%{ header "texture" "Texture" }
 
 <!--
 
@@ -30,7 +30,7 @@ colour using the %{vdoc "Style.FillColour"} attribute. The %{vdoc
 pixel coordinate and a texture coordinate. The texture coordinate is given
 relative to a customizable texture basis.
 
-<h2>Using the texture coordinate</h2>
+<h2>Using texture coordinates</h2>
 First, let's have ourselves an invisible egg
 
 > egg = curve 0 (2 * pi) (\t ->
@@ -41,7 +41,7 @@ First, let's have ourselves an invisible egg
 The rest of this page is dedicated to giving the egg pretty colours, but for
 reference, this is what it looks like with the <code>LineColour</code> turned
 back on.
-%{ makeImage "texture-egg" w h (egg `with` [LineColour := black]) }
+%{ makeImage w h (egg `with` [LineColour := black]) }
 
 Let's have a red texture which is darker closer to the center of the egg and a
 green texture that grows darker towards the bottom. Adding%{footnote
@@ -57,7 +57,7 @@ green texture that grows darker towards the bottom. Adding%{footnote
 > eggs = redEgg <> translate (Vec 2 0) greenEgg
 >               <> translate (Vec 4 0) yellowEgg
 
-%{ makeImage "texture-eggs" (3 * w) h eggs }
+%{ makeImage (3 * w) h eggs }
 
 <p>
 Texture coordinates are transformed together with the image, so the texture
@@ -65,9 +65,9 @@ sticks with an object when it's transformed as you would expect.
 
 > tilt = rotate (pi/4) yellowEgg
 
-%{ makeImageT "Humpty, no!" "texture2" w h tilt }
+%{ makeImageT "Humpty, no!" w h tilt }
 
-<h3>The TextureBasis</h3>
+<h3>The texture basis</h3>
 
 Texture coordinates are given in a customizable coordinate system defined by
 the %{vdoc "Style.TextureBasis"} attribute of the image. A %{tdoc "Math.Basis"}
@@ -117,7 +117,7 @@ texture coordinate of a point %{code "p"} is %{code "Vec s t"}, where
 
 -->
 In picture form:
-%{ makeImage "texture-basis" 400 220 basisExample }
+%{ makeImage 400 220 basisExample }
 
 The %{vdoc "Math.toBasis"} and %{vdoc "Math.fromBasis"} functions lets you
 convert between points in the %{vdoc "Math.defaultBasis"} and an arbitrary
@@ -132,7 +132,7 @@ off-center as follows:
 > upsideDown = yellowEgg `with`
 >   [ TextureBasis :~ translate 0.2 . rotate pi ]
 
-%{ makeImage "texture3" w h upsideDown }
+%{ makeImage w h upsideDown }
 
 When an image is transformed, the texture basis is also transformed%{footnote
 "basis-transform"}. This is true even if we haven't set a texture for the
@@ -146,7 +146,7 @@ two balls below
 >     ball1 r = curve 0 (2 * pi) $ \t -> Vec (r * cos t) (r * sin t)
 >     ball2 r = scale r (ball1 1)
 
-%{ makeImage "texture-scaled" (2 * w) h scaled }
+%{ makeImage (2 * w) h scaled }
 
 The left ball is drawn as a circle with radius two using %{vdoc "curve"},
 and the the right ball is circle with radius one scaled by a factor of two. The
@@ -158,9 +158,9 @@ texture basis of an object if it isn't what you want.
 >   where
 >     newBasis = translate (Vec 2.15 0) $ scale 3 defaultBasis
 
-%{ makeImage "texture-scaled2" (2 * w) h scaled' }
+%{ makeImage (2 * w) h scaled' }
 
-<h2>Using the pixel coordinate</h2>
+<h2>Using pixel coordinates</h2>
 The pixel coordinate can be used to create raster effects:
 
 > ex4 = egg `with` [ Texture := \(Vec x y) _ ->
@@ -168,13 +168,13 @@ The pixel coordinate can be used to create raster effects:
 >                     then Colour 1   0 0 1
 >                     else Colour 0.5 0 0 1 ]
 
-%{ makeImage "texture4" w h ex4 }
+%{ makeImage w h ex4 }
 
 Transforming the image has no effect on the pixel coordinates:
 
 > ex5 = ex4 <> translate (Vec 1 0) (rotate (-pi/4) ex4)
 
-%{ makeImage "texture5" (3 * w `div` 2) h ex5 }
+%{ makeImage (3 * w `div` 2) h ex5 }
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
@@ -185,7 +185,7 @@ that you can change the texture of an image by modifying the fill colour.
 > purpleEgg = yellowEgg `with`
 >         [ FillColour :~ \(Colour r g b a) -> Colour g b r a ]
 
-%{ makeImage "texture6" w h purpleEgg }
+%{ makeImage w h purpleEgg }
 
 <hr>
 
