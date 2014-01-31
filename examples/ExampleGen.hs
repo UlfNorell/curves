@@ -3,11 +3,15 @@ module ExampleGen where
 
 import Control.Applicative
 import Control.Exception
+import Data.IORef
+import Data.List
+import Data.Char
 import System.IO
 import System.IO.Unsafe
 import System.Directory
-import Data.IORef
 import Graphics.Curves
+
+-- Images -----------------------------------------------------------------
 
 makeImage name w h i = makeImageT "" name w h i
 
@@ -20,6 +24,8 @@ makeImage' tag name w h i = do
   hPutStrLn stderr "done"
   putStr $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
 
+-- Headers and footers ----------------------------------------------------
+
 header title =
   putStr $ unlines
     [ "<head>"
@@ -28,6 +34,39 @@ header title =
     , "  <link href='examples.css' rel='stylesheet' type='text/css'>"
     , "</head>"
     , "<body>" ]
+
+done = do
+  putStrLn "</body></html>"
+  hPutStrLn stderr "Done"
+
+-- Haddock links ----------------------------------------------------------
+
+splitName "" = []
+splitName s = case break (=='.') s of
+  (w, '.' : s) -> w : splitName s
+  (w, "")      -> [w]
+
+vdoc name = haddock "v" ("Graphics.Curves." ++ name)
+tdoc name = haddock "t" ("Graphics.Curves." ++ name)
+
+haddock k qname = putStr $
+  tag "code" $
+  tag ("a href='../../dist/doc/html/curves/" ++ link ++ "'") name
+  where
+    ws   = splitName qname
+    name = last ws
+    modu = init ws
+    link = intercalate "-" modu ++ ".html#" ++ k ++ ":" ++ escape name
+
+    escape = concatMap esc
+    esc c | isAlphaNum c = [c]
+          | otherwise    = "-" ++ show (fromEnum c) ++ "-"
+
+-- Formatting -------------------------------------------------------------
+
+code = putStr . unwords . map (tag "code") . words
+
+-- Footnotes --------------------------------------------------------------
 
 type Footnotes = [(String, Int)]
 
@@ -45,7 +84,7 @@ footnote s = do
   notes <- getFootnotes
   let i = 1 + maximum (0 : map snd notes)
   setFootnotes $ (s, i) : notes
-  putStrLn $ "<a name=\"" ++ s ++ "-back\"/><a class=footnote href=\"#" ++ s ++ "\">" ++ show i ++ "</a>"
+  putStr $ "<a name=\"" ++ s ++ "-back\"/><a class=footnote href=\"#" ++ s ++ "\">" ++ show i ++ "</a>"
 
 footnoteDef s = do
   notes <- getFootnotes
@@ -54,10 +93,10 @@ footnoteDef s = do
     [ "<p><a name=" ++ show s ++ "/>"
     , "<a class=footnote href=\"#" ++ s ++"-back\">▲ " ++ i ++ "</a>" ]
 
+-- Utils ------------------------------------------------------------------
+
 catchIO :: IO a -> (IOException -> IO a) -> IO a
 catchIO = catch
 
-done = do
-  putStrLn "</body></html>"
-  hPutStrLn stderr "Done"
+tag t s = concat ["<", t, ">", s, "</", head (words t), ">"]
 
