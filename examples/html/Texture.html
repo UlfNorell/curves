@@ -1,0 +1,139 @@
+
+<head>
+  <title>Texture</title>
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>
+  <link href='examples.css' rel='stylesheet' type='text/css'>
+</head>
+<body>
+
+
+<!--
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>ExampleGen</span>
+</pre>
+-->
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>NumInstances</span>
+</pre>
+<!--
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>w</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>h</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
+</pre>
+-->
+
+<h1>Textures</h1>
+
+We have <a href=Basics.html>seen</a> how to fill a closed curve with a solid
+colour using the <code>FillColour</code> attribute. The <code>Texture</code>
+attribute lets you specify a fill colour parameterised by a pixel coordinate
+and a texture coordinate. The texture coordinate is given relative to a
+customizable texture basis.
+
+<h2>Using the texture coordinate</h2>
+First, let's have ourselves an invisible egg
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>egg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>           <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-num'>0.8</span> <span class='hs-varop'>*</span> <span class='hs-varid'>cos</span> <span class='hs-varid'>t</span> <span class='hs-varop'>*</span> <span class='hs-layout'>(</span><span class='hs-num'>1</span> <span class='hs-comment'>-</span> <span class='hs-num'>0.12</span> <span class='hs-varop'>*</span> <span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>               <span class='hs-layout'>(</span><span class='hs-num'>0.95</span> <span class='hs-varop'>*</span> <span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>         <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>transparent</span> <span class='hs-keyglyph'>]</span>
+</pre>
+The rest of this page is dedicated to giving the egg pretty colours, but for
+reference, this is what it looks like with the <code>LineColour</code> turned
+back on.
+<img title='' src="../images/texture-egg.png"/>
+
+We'll have a red texture which is darker closer to the center of the egg and a
+green texture that grows darker towards the bottom. Adding<a name="NumInstances-back"/><a class=footnote href="#NumInstances">1</a>
+ them together produces a pretty yellow egg.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>redTex</span>   <span class='hs-keyword'>_</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Colour</span> <span class='hs-layout'>(</span><span class='hs-varid'>distance</span> <span class='hs-varid'>p</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>greenTex</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>0.5</span> <span class='hs-varop'>+</span> <span class='hs-num'>0.5</span> <span class='hs-varop'>*</span> <span class='hs-varid'>getY</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>redEgg</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>egg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Texture</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>redTex</span>   <span class='hs-keyglyph'>]</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>greenEgg</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>egg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Texture</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>greenTex</span> <span class='hs-keyglyph'>]</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>yellowEgg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>egg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Texture</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>redTex</span> <span class='hs-varop'>+</span> <span class='hs-varid'>greenTex</span> <span class='hs-keyglyph'>]</span>
+<a name="line-7"></a><span class='hs-varop'>&gt;</span>
+<a name="line-8"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>eggs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>redEgg</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>2</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-varid'>greenEgg</span>
+<a name="line-9"></a><span class='hs-varop'>&gt;</span>               <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>4</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-varid'>yellowEgg</span>
+</pre>
+<img title='' src="../images/texture-eggs.png"/>
+
+<p>
+Texture coordinates are transformed together with the image.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex2</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>yellowEgg</span>
+</pre>
+<img title='Humpty, no!' src="../images/texture2.png"/>
+
+<h3>The TextureBasis</h3>
+Texture coordinates can be manipulated directly by changing the
+<code>TextureBasis</code> attribute.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex3</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>yellowEgg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>TextureBasis</span> <span class='hs-conop'>:~</span> <span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/texture3.png"/>
+
+<h2>Using the pixel coordinate</h2>
+The pixel coordinate can be used to create raster effects:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex4</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>egg</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Texture</span>  <span class='hs-conop'>:=</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>                     <span class='hs-keyword'>if</span> <span class='hs-varid'>even</span> <span class='hs-layout'>(</span><span class='hs-varid'>floor</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span> <span class='hs-varop'>/</span> <span class='hs-num'>10</span><span class='hs-layout'>)</span> <span class='hs-varop'>+</span> <span class='hs-varid'>floor</span> <span class='hs-layout'>(</span><span class='hs-varid'>y</span> <span class='hs-varop'>/</span> <span class='hs-num'>10</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>                     <span class='hs-keyword'>then</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>1</span>   <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>                     <span class='hs-keyword'>else</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>0.5</span> <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/texture4.png"/>
+
+Transforming the image has no effect on the pixel coordinates:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex5</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex4</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>1</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>ex4</span><span class='hs-layout'>)</span>
+</pre>
+<img title='' src="../images/texture5.png"/>
+
+<h2>FillColour and Texture interaction</h2>
+The <code>FillColour</code> and <code>Texture</code> attributes map to the same
+underlying property. In fact setting the fill colour is (almost)</i><a name="almost-back"/><a class=footnote href="#almost">2</a>
+ equivalent to setting the texture to a constant function.  This means
+that you can change the texture of an image by modifying the fill colour.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex6</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>yellowEgg</span> <span class='hs-varop'>`with`</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>         <span class='hs-keyglyph'>[</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:~</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-conid'>Colour</span> <span class='hs-varid'>r</span> <span class='hs-varid'>g</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Colour</span> <span class='hs-varid'>g</span> <span class='hs-varid'>b</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/texture6.png"/>
+
+<hr>
+
+<div class=footnotes>
+
+<p><a name="NumInstances"/>
+<a class=footnote href="#NumInstances-back">▲ 1</a>
+
+Thanks to Conal Elliott's nifty <a
+href="http://hackage.haskell.org/package/NumInstances">NumInstances</a>
+package.
+
+<p><a name="almost"/>
+<a class=footnote href="#almost-back">▲ 2</a>
+
+The only difference is that if the fill colour is set to transparent, the fill
+blur is not taken into account when computing the bounds of an image. Of
+course, if the texture attribute is set we can't decide<a name="well-back"/><a class=footnote href="#well">3</a>
+ if
+it's the constant transparent function.
+
+<p><a name="well"/>
+<a class=footnote href="#well-back">▲ 3</a>
+
+Well I guess we could, since there are a finite<a name="lots-back"/><a class=footnote href="#lots">4</a>
+ number of
+texture function inputs. It would just take a while.
+
+<p><a name="lots"/>
+<a class=footnote href="#lots-back">▲ 4</a>
+
+115792089237316195423570985008687907853269984665640564039457584007913129639936
+ to be precise.
+</div>
+
+</body></html>

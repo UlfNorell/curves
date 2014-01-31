@@ -1,11 +1,11 @@
-dist
+dist/build
+dist/package.conf.inplace
+dist/setup-config
 .*.swp
 .swo
 tags
 examples/main
 examples/ExamplePP
-examples/images
-examples/html/*.html
 *.o
 *.hi
 test.png

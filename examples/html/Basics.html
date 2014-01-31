@@ -1,0 +1,52 @@
+
+<head>
+  <title>Basics</title>
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>
+  <link href='examples.css' rel='stylesheet' type='text/css'>
+</head>
+<body>
+
+
+<!--
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>ExampleGen</span>
+</pre>
+-->
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span><span class='hs-varop'>.</span><span class='hs-conid'>Geometry</span>
+</pre>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex1</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>circle</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>50</span> <span class='hs-num'>50</span><span class='hs-layout'>)</span> <span class='hs-num'>40</span>
+</pre>
+<img title='' src="../images/basics1.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex2</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex1</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>opacity</span> <span class='hs-num'>0.6</span> <span class='hs-varid'>red</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/basics2.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex3</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex2</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>rectangle</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>70</span> <span class='hs-num'>40</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>115</span> <span class='hs-num'>85</span><span class='hs-layout'>)</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>transparent</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>blue</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/basics3.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex4</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex3</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>10</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>15</span> <span class='hs-keyglyph'>]</span>
+</pre>
+<img title='' src="../images/basics4.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex5</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>autoFit</span> <span class='hs-num'>0</span> <span class='hs-num'>100</span> <span class='hs-varop'>$</span> <span class='hs-varid'>circle</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
+</pre>
+<img title='' src="../images/basics5.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex6</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+</pre>
+<img title='' src="../images/basics6.png"/>
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>dropShadow</span> <span class='hs-varid'>v</span> <span class='hs-varid'>o</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>=</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-varid'>i</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>mapColour</span> <span class='hs-layout'>(</span><span class='hs-varid'>opacity</span> <span class='hs-varid'>o</span><span class='hs-layout'>)</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>         <span class='hs-layout'>(</span><span class='hs-varid'>mapImage</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyword'>_</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varop'>+</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varop'>`with`</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>           <span class='hs-keyglyph'>[</span><span class='hs-conid'>LineBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>8</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>8</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex7</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex6</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>dropShadow</span> <span class='hs-num'>3</span> <span class='hs-num'>0.3</span> <span class='hs-varid'>ex6</span>
+</pre>
+<img title='' src="../images/basics7.png"/>
+
+</body></html>
