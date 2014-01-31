@@ -6,7 +6,7 @@ hs_files = $(shell find Graphics -name '*.hs')
 
 .PHONY: examples
 
-default : examples tags
+default : $(LIB) examples tags
 
 examples :
 	make -C examples
