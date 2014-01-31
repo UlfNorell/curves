@@ -38,7 +38,7 @@ reference, this is what it looks like with the <code>LineColour</code> turned
 back on.
 %{ makeImage "texture-egg" w h (egg `with` [LineColour := black]) }
 
-We'll have a red texture which is darker closer to the center of the egg and a
+Let's have a red texture which is darker closer to the center of the egg and a
 green texture that grows darker towards the bottom. Adding%{footnote
 "NumInstances"} them together produces a pretty yellow egg.
 
