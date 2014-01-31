@@ -47,7 +47,7 @@ header pagename title = do
     [ "<head>"
     , "  <title>" ++ title ++ "</title>"
     , "  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>"
-    , "  <link href='examples.css' rel='stylesheet' type='text/css'>"
+    , "  <link href='../css/examples.css' rel='stylesheet' type='text/css'>"
     , "</head>"
     , "<body>" ]
 

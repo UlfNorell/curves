@@ -33,3 +33,7 @@ dist/setup-config : curves.cabal
 
 tags : $(hs_files)
 	hTags -c $(hs_files)
+
+clean :
+	-rm -rf dist
+	make -C examples clean

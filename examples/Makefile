@@ -12,3 +12,7 @@ PP       := ./ExamplePP
 html/%.html : %.lhs $(PP) ExampleGen.hs
 	$(PP) $< | $(HSCOLOUR) -css > $@
 
+clean :
+	-rm images/*
+	-rm html/*.html
+
