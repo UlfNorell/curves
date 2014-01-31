@@ -94,7 +94,7 @@ renderCompiledImage w h bg0 i =
     bg = opaque bg0
     sample p = toRGBA $ case sampleImage i p of
       Nothing -> bg0
-      Just c  -> blend c bg
+      Just c  -> blend (truncColour c) bg
 
 saveImage :: FilePath -> Codec.Image Codec.PixelRGBA8 -> IO ()
 saveImage file img = B.writeFile file (Codec.encodePng img)

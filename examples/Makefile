@@ -9,7 +9,13 @@ ExamplePP : ExamplePP.hs
 HSCOLOUR := HsColour -lit -anchor -partial
 PP       := ./ExamplePP
 
-html/%.html : %.lhs $(PP) ExampleGen.hs
+html :
+	mkdir html
+
+images :
+	mkdir images
+
+html/%.html : %.lhs images html $(PP) ExampleGen.hs
 	$(PP) $< | $(HSCOLOUR) -css > $@
 
 clean :

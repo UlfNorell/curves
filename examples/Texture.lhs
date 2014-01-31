@@ -161,20 +161,35 @@ texture basis of an object if it isn't what you want.
 %{ makeImage (2 * w) h scaled' }
 
 <h2>Using pixel coordinates</h2>
-The pixel coordinate can be used to create raster effects:
 
-> ex4 = egg `with` [ Texture := \(Vec x y) _ ->
->                     if even (floor (x / 10) + floor (y / 10))
->                     then Colour 1   0 0 1
->                     else Colour 0.5 0 0 1 ]
+Unlike the texture coordinates, pixel coordinates are completely unaffected by
+image transformations. The value of the pixel coordinate is always the position
+of the pixel being coloured in the final PNG image. One use case for pixel
+coordinates is to create raster effects like these:
 
-%{ makeImage w h ex4 }
+> chessEgg = egg `with` [ Texture := \(Vec x y) _ ->
+>                           if even (floor (x / 10) + floor (y / 10))
+>                           then Colour 1   0 0 1
+>                           else Colour 0.5 0 0 1 ]
 
-Transforming the image has no effect on the pixel coordinates:
+%{ makeImage w h chessEgg }
 
-> ex5 = ex4 <> translate (Vec 1 0) (rotate (-pi/4) ex4)
+Transforming the chess egg does nothing to the texture as advertised.
 
-%{ makeImage (3 * w `div` 2) h ex5 }
+> chessEggs = chessEgg <> translate (Vec 1 0) (rotate (-pi/4) chessEgg)
+
+%{ makeImage (3 * w `div` 2) h chessEggs }
+
+Of course, that we cannot affect the pixel coordinates with transformations
+doesn't mean that we can't play around with the texture function itself.
+
+> swirlyEgg = chessEgg `with`
+>   [ Texture :~ \tex p q -> tex (rotateAround 60 (2 * distance q 0) p) q ]
+
+%{ makeImage w h swirlyEgg }
+
+Here we used the texture coordinate to change which pixel we sample from the
+old texture.
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
