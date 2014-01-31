@@ -1,5 +1,5 @@
 
-example_files = Basics Texture
+example_files = Examples Basics Texture
 
 all : $(patsubst %,html/%.html,$(example_files))
 

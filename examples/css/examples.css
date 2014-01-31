@@ -13,6 +13,11 @@ body {
   margin-bottom: 38px;
 }
 
+.vertical-space {
+  margin-bottom: 8cm;
+  display: block;
+}
+
 pre, code {
   font-family: 'Droid Sans Mono', sans-serif;
 }
@@ -22,6 +27,19 @@ pre {
   padding: 3px 10px 3px 10px;
   margin: 15px 10px;
   overflow: auto;
+}
+
+table.examples td {
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+}
+
+table.examples img {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0px;
+  margin-top: 0px;
 }
 
 .header {

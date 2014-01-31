@@ -1,7 +1,9 @@
 
-%{ header "texture" "Texture" }
+%{ header "texture" "Textures" }
 
 <!--
+
+> module Texture where
 
 > import ExampleGen
 > import Graphics.Curves.Geometry
@@ -24,6 +26,8 @@ relative to a customizable texture basis.
 > import Data.NumInstances
 
 <!--
+
+> thumbnail = yellowEgg
 
 > w = 120 :: Int
 > h = 120 :: Int
