@@ -13,12 +13,27 @@ import Graphics.Curves
 
 -- Images -----------------------------------------------------------------
 
-makeImage name w h i = makeImageT "" name w h i
+{-# NOINLINE pageNameRef #-}
+pageNameRef :: IORef String
+pageNameRef = unsafePerformIO $ newIORef (error "Don't forget to set the page name!")
 
-makeImageT tag name w h i =
-  makeImage' tag name w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+{-# NOINLINE imageCountRef #-}
+imageCountRef :: IORef Int
+imageCountRef = unsafePerformIO $ newIORef 0
 
-makeImage' tag name w h i = do
+freshImageName = do
+  page <- readIORef pageNameRef
+  i    <- readIORef imageCountRef
+  writeIORef imageCountRef (i + 1)
+  return $ page ++ "-" ++ show i
+
+makeImage w h i = makeImageT "" w h i
+
+makeImageT tag w h i =
+  makeImage' tag w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+
+makeImage' tag w h i = do
+  name <- freshImageName
   hPutStr stderr $ "Rendering " ++ name ++ "... "
   renderImage ("images/" ++ name ++ ".png") w h white i
   hPutStrLn stderr "done"
@@ -26,7 +41,8 @@ makeImage' tag name w h i = do
 
 -- Headers and footers ----------------------------------------------------
 
-header title =
+header pagename title = do
+  writeIORef pageNameRef pagename
   putStr $ unlines
     [ "<head>"
     , "  <title>" ++ title ++ "</title>"
