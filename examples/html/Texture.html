@@ -1,14 +1,13 @@
 
-<head>
-  <title>Texture</title>
-  <link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'>
-  <link href='../css/examples.css' rel='stylesheet' type='text/css'>
-</head>
+<head><title>Textures</title><link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'/><link href='../css/examples.css' rel='stylesheet' type='text/css'/></head>
 <body>
+<span class=header>curves-1.0.1: <a href=Examples.html>Examples</a> - <a href=../../dist/doc/html/curves/index.html>API</a><span class=right><a href=http://github.com/UlfNorell/curves>GitHub</a> - <a href=http://hackage.haskell.org/package/curves>Hackage</a></span></span>
 
 
 <!--
 
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Texture</span> <span class='hs-keyword'>where</span>
+</pre>
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>ExampleGen</span>
 <a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span><span class='hs-varop'>.</span><span class='hs-conid'>Geometry</span>
 <a name="line-3"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Fonts</span><span class='hs-varop'>.</span><span class='hs-conid'>Liberation</span>
@@ -18,22 +17,24 @@
 </pre>
 -->
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
-<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>NumInstances</span>
-</pre>
-<!--
-
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>w</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
-<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>h</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
-</pre>
--->
-
 <h1>Textures</h1>
 
 We have <a href=Basics.html>seen</a> how to fill a closed curve with a solid
 colour using the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Style.html#v:FillColour'>FillColour</a></code> attribute. The <code><a href='../../dist/doc/html/curves/Graphics-Curves-Style.html#v:Texture'>Texture</a></code> attribute lets you specify a fill colour parameterised by a
 pixel coordinate and a texture coordinate. The texture coordinate is given
 relative to a customizable texture basis.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>NumInstances</span>
+</pre>
+<!--
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>thumbnail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>yellowEgg</span>
+</pre>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>w</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>h</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>120</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
+</pre>
+-->
 
 <h2>Using texture coordinates</h2>
 First, let's have ourselves an invisible egg
@@ -152,10 +153,10 @@ two balls below
 <img title='' src="../images/texture-5.png"/>
 
 The left ball is drawn as a circle with radius two using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:curve'>curve</a></code>,
-and the the right ball is circle with radius one scaled by a factor of two. The
-difference between the two is that the the left ball has the default texture
-basis and the right one a scaled-up basis. Of course, you can always reset the
-texture basis of an object if it isn't what you want.
+and the the right ball is a circle with radius one scaled by a factor of two.
+The difference between the two is that the the left ball has the default
+texture basis and the right one a scaled-up basis. Of course, you can always
+reset the texture basis of an object if it isn't what you want.
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>scaled'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>scaled</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>TextureBasis</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>newBasis</span> <span class='hs-keyglyph'>]</span>
 <a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span>
@@ -177,7 +178,7 @@ coordinates is to create raster effects like these:
 </pre>
 <img title='' src="../images/texture-7.png"/>
 
-Transforming the chess egg does nothing to the texture as advertised.
+As advertised, transforming the chess egg does nothing to the texture.
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>chessEggs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>chessEgg</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>1</span> <span class='hs-num'>0</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>chessEgg</span><span class='hs-layout'>)</span>
 </pre>
@@ -192,7 +193,7 @@ doesn't mean that we can't play around with the texture function itself.
 <img title='' src="../images/texture-9.png"/>
 
 Here we used the texture coordinate to change which pixel we sample from the
-old texture.
+old, pixel-based, texture.
 
 <h2>FillColour and Texture interaction</h2>
 The <code>FillColour</code> and <code>Texture</code> attributes map to the same
@@ -241,4 +242,6 @@ texture function inputs. It would just take a while.
  to be precise.
 </div>
 
+<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Fri Jan 31 22:50:39 CET 2014</span></span>
 </body></html>
+
