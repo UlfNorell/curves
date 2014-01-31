@@ -39,6 +39,8 @@ module Graphics.Curves
     -- * Rendering
   , autoFit, autoStretch
   , renderImage
+    -- * Other
+  , version
   )
   where
 
@@ -51,6 +53,9 @@ import Graphics.Curves.Render hiding (sampleImage)
 import Graphics.Curves.Compile
 import Graphics.Curves.Attribute
 import Graphics.Curves.Style
+
+import Data.Version (showVersion)
+import qualified Paths_curves as Paths
 
 -- | Scale the an image to fit inside the the box given by the two points
 --   (bottom-left and top-right corners).
@@ -147,4 +152,7 @@ instance ImageElement Segment where
 
 instance ImageElement Vec where
   toImage = point
+
+version :: String
+version = showVersion Paths.version
 

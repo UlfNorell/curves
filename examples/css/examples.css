@@ -7,7 +7,10 @@
 
 body {
   font-family: 'Open Sans', sans-serif;
-  margin: 40px 15%;
+  margin-top: 60px;
+  margin-left: 15%;
+  margin-right: 15%;
+  margin-bottom: 38px;
 }
 
 pre, code {
@@ -19,6 +22,31 @@ pre {
   padding: 3px 10px 3px 10px;
   margin: 15px 10px;
   overflow: auto;
+}
+
+.header {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  background: #E0E0FF;
+}
+
+.footer {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  background: #E0E0FF;
+  font-size: 80%;
+}
+
+.right {
+  position: absolute;
+  right: 3px;
 }
 
 img {
