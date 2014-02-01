@@ -12,6 +12,7 @@
 > import qualified Advanced
 > import qualified Blending
 > import qualified Fractals
+> import qualified Text
 
 > makeGrid :: Int -> Int -> [[(String, String, Image)]] -> IO ()
 > makeGrid w h xs = do
@@ -32,7 +33,8 @@
                     , ("Styles",   "Styles",          Styles.thumbnail)
                     , ("Blending", "Blending",        Blending.thumbnail)
                     , ("Advanced", "Advanced Curves", Advanced.thumbnail) ],
-                    [ ("Textures", "Textures",        Textures.thumbnail)
+                    [ ("Text",     "Drawing Text",    Text.thumbnail)
+                    , ("Textures", "Textures",        Textures.thumbnail)
                     , ("Fractals", "Fractals",        Fractals.thumbnail) ] ] }
 
 <span class="vertical-space"></span>
