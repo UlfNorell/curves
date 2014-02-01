@@ -1,15 +1,15 @@
 
-%{ header "styles" "Styles" }
+%{ header "fractals" "Fractals" }
 
 <!--
 
-> module Styles where
+> module Fractals where
 
 > import ExampleGen
 
 -->
 
-<h1>Styles</h1>
+<h1>Fractals</h1>
 
 > import Graphics.Curves
 

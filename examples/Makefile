@@ -1,5 +1,5 @@
 
-example_files = Examples Basics Textures Styles
+example_files = Examples Basics Textures Styles Advanced Blending Fractals
 
 all : $(patsubst %,html/%.html,$(example_files))
 

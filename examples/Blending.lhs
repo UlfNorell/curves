@@ -1,15 +1,15 @@
 
-%{ header "styles" "Styles" }
+%{ header "blending" "Blending" }
 
 <!--
 
-> module Styles where
+> module Blending where
 
 > import ExampleGen
 
 -->
 
-<h1>Styles</h1>
+<h1>Blending</h1>
 
 > import Graphics.Curves
 
