@@ -11,6 +11,7 @@ import System.IO.Unsafe
 import System.Directory
 import System.Time
 import Graphics.Curves
+import Graphics.Curves.Text
 
 -- Images -----------------------------------------------------------------
 
@@ -31,14 +32,19 @@ freshImageName = do
 makeImage w h i = makeImageT "" w h i
 
 makeImageT tag w h i =
-  makeImage' tag w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+  putStr =<< makeImageT' tag w h i
 
-makeImage' tag w h i = do
+makeImageT' tag w h i =
+  makeImage'' tag w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+
+makeImage' tag w h i = putStr =<< makeImage'' tag w h i
+
+makeImage'' tag w h i = do
   name <- freshImageName
   hPutStr stderr $ "Rendering " ++ name ++ "... "
   renderImage ("images/" ++ name ++ ".png") w h white i
   hPutStrLn stderr "done"
-  putStr $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
+  return $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
 
 -- Headers and footers ----------------------------------------------------
 
@@ -68,6 +74,9 @@ done = do
         , tag "span class=right" (show now) ]
     , "</body></html>" ]
   hPutStrLn stderr "Done"
+
+todo = rotate (pi/4) $ translate ( Vec 0 1) (stringImage' CenterAlign 0.4 "Coming") <>
+                       translate (-Vec 0 1) (stringImage' CenterAlign 0.4 "soon")
 
 -- Haddock links ----------------------------------------------------------
 
