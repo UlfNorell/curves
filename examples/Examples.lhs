@@ -6,7 +6,7 @@
 > import Control.Applicative
 > import ExampleGen
 > import Graphics.Curves
-> import qualified Texture
+> import qualified Textures
 > import qualified Basics
 > import qualified Styles
 
@@ -27,7 +27,7 @@
 
 %{ makeGrid 50 50 [ [ ("Basics",  Basics.thumbnail)
                     , ("Styles",  Styles.thumbnail)
-                    , ("Texture", Texture.thumbnail) ] ] }
+                    , ("Textures", Textures.thumbnail) ] ] }
 
 <span class="vertical-space"></span>
 %{ done }

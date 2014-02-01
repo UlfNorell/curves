@@ -1,9 +1,9 @@
 
-%{ header "texture" "Textures" }
+%{ header "textures" "Textures" }
 
 <!--
 
-> module Texture where
+> module Textures where
 
 > import ExampleGen
 > import Graphics.Curves.Geometry
