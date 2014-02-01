@@ -18,18 +18,22 @@
 > makeGrid w h xs = do
 >   ts <- mapM sequence [ [ (,,) file name <$> makeImageT' name w h i | (file, name, i) <- row ] | row <- xs ]
 >   putStr $
->     tag "table class=examples" $ map (tag "tr" . map (tag "td")) (concatMap mkRow ts)
+>     tag "table class=examples" $ map (tag "tr") (concatMap mkRow ts)
 >   where
 >     mkRow row = [is, ts]
 >       where (is, ts) = unzip $ map mkCell row
->     mkCell (file, name, img) = (link img, link name)
->       where link = tag ("a href=" ++ file ++ ".html")
+>     mkCell (file, name, img) = (imgtag $ link img, tag "td" $ link name)
+>       where link   = tag ("a href=" ++ file ++ ".html")
+>             imgtag = tag "td class=example-img"
 
 -->
 
 <h1>Examples</h1>
 
-%{ makeGrid 50 50 [ [ ("Basics",   "Basic Curves",    Basics.thumbnail)
+Here you can find a series of examples on how to use the curves library. Take your
+pick from the topics below.
+
+%{ makeGrid 75 75 [ [ ("Basics",   "Basic Curves",    Basics.thumbnail)
                     , ("Styles",   "Styles",          Styles.thumbnail)
                     , ("Blending", "Blending",        Blending.thumbnail)
                     , ("Advanced", "Advanced Curves", Advanced.thumbnail) ],
