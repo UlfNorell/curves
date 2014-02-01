@@ -32,7 +32,9 @@ pre {
 table.examples td {
   padding-left: 10px;
   padding-right: 10px;
+  width: 70px;
   text-align: center;
+  vertical-align: top;
 }
 
 table.examples img {
