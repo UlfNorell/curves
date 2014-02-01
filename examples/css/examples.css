@@ -14,7 +14,7 @@ body {
 }
 
 .vertical-space {
-  margin-bottom: 8cm;
+  margin-bottom: 2cm;
   display: block;
 }
 
@@ -32,9 +32,13 @@ pre {
 table.examples td {
   padding-left: 10px;
   padding-right: 10px;
-  width: 70px;
+  width: 95px;
   text-align: center;
   vertical-align: top;
+}
+
+td.example-img {
+  padding-top: 20px;
 }
 
 table.examples img {
@@ -58,6 +62,7 @@ table.examples img {
   position: absolute;
   left: 5px;
   right: 5px;
+  margin-top: 1cm;
   padding-left: 3px;
   padding-right: 3px;
   background: #E0E0FF;

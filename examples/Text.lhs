@@ -1,15 +1,15 @@
 
-%{ header "blending" "Blending" }
+%{ header "text" "Text" }
 
 <!--
 
-> module Blending where
+> module Text where
 
 > import ExampleGen
 
 -->
 
-<h1>Blending</h1>
+<h1>Text</h1>
 
 > import Graphics.Curves
 
