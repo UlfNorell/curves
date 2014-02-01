@@ -32,14 +32,19 @@ freshImageName = do
 makeImage w h i = makeImageT "" w h i
 
 makeImageT tag w h i =
-  makeImage' tag w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+  putStr =<< makeImageT' tag w h i
 
-makeImage' tag w h i = do
+makeImageT' tag w h i =
+  makeImage'' tag w h (autoFit 0 (Vec (fromIntegral w) (fromIntegral h)) i)
+
+makeImage' tag w h i = putStr =<< makeImage'' tag w h i
+
+makeImage'' tag w h i = do
   name <- freshImageName
   hPutStr stderr $ "Rendering " ++ name ++ "... "
   renderImage ("images/" ++ name ++ ".png") w h white i
   hPutStrLn stderr "done"
-  putStr $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
+  return $ "<img title='" ++ tag ++ "' src=\"../images/" ++ name ++ ".png\"/>"
 
 -- Headers and footers ----------------------------------------------------
 
