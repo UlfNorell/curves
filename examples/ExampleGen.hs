@@ -11,6 +11,7 @@ import System.IO.Unsafe
 import System.Directory
 import System.Time
 import Graphics.Curves
+import Graphics.Curves.Text
 
 -- Images -----------------------------------------------------------------
 
@@ -68,6 +69,8 @@ done = do
         , tag "span class=right" (show now) ]
     , "</body></html>" ]
   hPutStrLn stderr "Done"
+
+todo = stringImage "TODO"
 
 -- Haddock links ----------------------------------------------------------
 
