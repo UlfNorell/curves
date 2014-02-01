@@ -75,7 +75,8 @@ done = do
     , "</body></html>" ]
   hPutStrLn stderr "Done"
 
-todo = stringImage "TODO"
+todo = rotate (pi/4) $ translate ( Vec 0 1) (stringImage' CenterAlign 0.4 "Coming") <>
+                       translate (-Vec 0 1) (stringImage' CenterAlign 0.4 "soon")
 
 -- Haddock links ----------------------------------------------------------
 
