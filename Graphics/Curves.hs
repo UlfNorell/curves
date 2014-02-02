@@ -13,7 +13,7 @@ module Graphics.Curves
     -- ** Curves
   , point, line, lineStrip, poly, circle, circleSegment
     -- ** Advanced curves
-  , curve, curve'
+  , curve, curve_, curve'
   , bSpline, bSpline', closedBSpline
   , bezier, bezierSegment
     -- ** Operating on curves
