@@ -33,7 +33,7 @@
 Here you can find a series of examples on how to use the curves library. Take your
 pick from the topics below.
 
-%{ makeGrid 75 75 [ [ ("Basics",   "Basic Curves",    Basics.thumbnail)
+%{ makeGrid 75 75 [ [ ("Basics",   "Basics",          Basics.thumbnail)
                     , ("Styles",   "Styles",          Styles.thumbnail)
                     , ("Blending", "Blending",        Blending.thumbnail)
                     , ("Advanced", "Advanced Curves", Advanced.thumbnail) ],
