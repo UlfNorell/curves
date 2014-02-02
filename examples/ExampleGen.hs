@@ -106,6 +106,8 @@ haddock k qname = putStr $
 
 code = putStr . unwords . map (tag "code") . words
 
+fakeCode code = putStr $ unlines $ map ("> " ++) $ lines code
+
 -- Footnotes --------------------------------------------------------------
 
 type Footnotes = [(String, Int)]
