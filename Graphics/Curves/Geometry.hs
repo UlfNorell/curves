@@ -38,10 +38,10 @@ triangleAA :: Length -> Angle -> Angle -> Image
 triangleAA a α β = triangleA a (a * sin β / sin (α + β)) α
 
 -- | Draw an n-sided regular polygon centered at the origin and one corner at
---   (1, 0).
+--   'unitY'.
 regularPoly :: Int -> Image
 regularPoly n | n < 3 = error "regularPoly: n < 3"
-regularPoly n = poly [ rotate (2 * pi * fromIntegral i / fromIntegral n) unitX | i <- [0..n - 1] ]
+regularPoly n = poly [ rotate (2 * pi * fromIntegral i / fromIntegral n) unitY | i <- [0..n - 1] ]
 
 -- | Draw an angle arc for the counter clockwise angle BAC.
 angleArc :: Scalar -- ^ Radius of the arc in pixels

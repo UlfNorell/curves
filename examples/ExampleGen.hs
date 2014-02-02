@@ -81,6 +81,7 @@ todo = rotate (pi/4) $ translate ( Vec 0 1) (stringImage' CenterAlign 0.4 "Comin
 -- Haddock links ----------------------------------------------------------
 
 splitName "" = []
+splitName s@(c:_) | not (isUpper c) = [s]
 splitName s = case break (=='.') s of
   (w, '.' : s) -> w : splitName s
   (w, "")      -> [w]
@@ -98,12 +99,14 @@ haddock k qname = putStr $
     link = intercalate "-" modu ++ ".html#" ++ k ++ ":" ++ escape name
 
     escape = concatMap esc
-    esc c | isAlphaNum c = [c]
-          | otherwise    = "-" ++ show (fromEnum c) ++ "-"
+    esc c | isAlphaNum c || elem c "._" = [c]
+          | otherwise                   = "-" ++ show (fromEnum c) ++ "-"
 
 -- Formatting -------------------------------------------------------------
 
 code = putStr . unwords . map (tag "code") . words
+
+fakeCode code = putStr $ unlines $ map ("> " ++) $ lines code
 
 -- Footnotes --------------------------------------------------------------
 

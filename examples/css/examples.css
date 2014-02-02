@@ -37,6 +37,11 @@ table.examples td {
   vertical-align: top;
 }
 
+table.imgtable td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 td.example-img {
   padding-top: 20px;
 }
