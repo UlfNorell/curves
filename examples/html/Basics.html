@@ -12,48 +12,211 @@
 </pre>
 -->
 
+<h1>Basics</h1>
+
+The basic entity that makes up all images in the curves library is a curve. A
+curve is essentially a (continuous) function from the unit interval to a point
+in 2D space, and an image is a collection of curves.
+
+<p>
+In this chapter we'll see how to <a href="#simple">create simple images</a>,
+how to <a href="#transform">apply transformations</a> to an image, and finally
+how to <a href="#render">save an image</a> to disk as a PNG file.
+
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
-<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span><span class='hs-varop'>.</span><span class='hs-conid'>Geometry</span>
 </pre>
 <!--
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>thumbnail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex6</span>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>thumbnail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>w</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>100</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>h</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>100</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span>
 </pre>
 -->
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex1</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>circle</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>50</span> <span class='hs-num'>50</span><span class='hs-layout'>)</span> <span class='hs-num'>40</span>
+<a name="simple"></a>
+<h2>Creating simple images</h2>
+
+The simplest way to create a curve is using the <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:curve'>curve</a></code> function
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>curve</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Scalar</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Scalar</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Scalar</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Point</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Image</span>
+</pre>
+
+which takes two scalars <code>a</code> and <code>b</code> and a function <code>f</code>
+from scalars to points<a name="points-back"/><a class=footnote href="#points">1</a> and creates an <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#t:Image'>Image</a></code> with
+a single curve consisting of the points { f t | a ≤ t ≤ b }. For instance,
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>sineWave</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 </pre>
 <img title='' src="../images/basics-0.png"/>
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex2</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex1</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>opacity</span> <span class='hs-num'>0.6</span> <span class='hs-varid'>red</span> <span class='hs-keyglyph'>]</span>
+The section on <a href="#render">rendering</a> below explains how the points of
+the curve gets translated to pixels in the final image.
+
+<h3>Combining images</h3>
+
+Images form a monoid, so you can combine them using <code>mappend</code> (or the
+friendlier <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--62-'><></a></code>):
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>cosineWave</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>cos</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>waves</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>cosineWave</span>
 </pre>
 <img title='' src="../images/basics-1.png"/>
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex3</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex2</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>rectangle</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>70</span> <span class='hs-num'>40</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>115</span> <span class='hs-num'>85</span><span class='hs-layout'>)</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>transparent</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>blue</span> <span class='hs-keyglyph'>]</span>
+It makes no difference for this example, but later it will be important to
+keep in mind that the left argument goes on top of the right argument. The
+chapter on <a href="Blending.html">blending</a> looks at the various ways to
+combine images in more detail.
+
+<h3>Extending curves</h3>
+
+Two curves can be concatenated into a single curve using the <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43--43--43-'>+++</a></code>
+combinator.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>waves1</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>+++</span> <span class='hs-varid'>curve</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-num'>3</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>cos</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 </pre>
 <img title='' src="../images/basics-2.png"/>
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex4</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex3</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>10</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>15</span> <span class='hs-keyglyph'>]</span>
+If the end-points don't coincide, a straight line segment is added to
+connect the two<a name="disconnected-back"/><a class=footnote href="#disconnected">2</a>.
+
+The combinators <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--43--43-'><++</a></code> and <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43--43--62-'>++></a></code> adds a straight line segment
+to either end of a curve.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>waveBlock</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>botL</span> <span class='hs-varop'>&lt;++</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>++&gt;</span> <span class='hs-varid'>botR</span> <span class='hs-varop'>++&gt;</span> <span class='hs-varid'>botL</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span> <span class='hs-varid'>botL</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>         <span class='hs-varid'>botR</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
 </pre>
 <img title='' src="../images/basics-3.png"/>
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex5</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>autoFit</span> <span class='hs-num'>0</span> <span class='hs-num'>100</span> <span class='hs-varop'>$</span> <span class='hs-varid'>circle</span> <span class='hs-num'>0</span> <span class='hs-num'>1</span>
+<h3>Shape examples</h3>
+
+With the tools introduced so far we can build some simple geometric figures.
+First, a circle<a name="circle-back"/><a class=footnote href="#circle">3</a>:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>unitCircle</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>cos</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 </pre>
 <img title='' src="../images/basics-4.png"/>
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex6</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-</pre>
-<img title='' src="../images/basics-5.png"/>
+Next, we'll reimplement the <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:line'>line</a></code> and <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:poly'>poly</a></code> functions from
+the library:
 
-<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>dropShadow</span> <span class='hs-varid'>v</span> <span class='hs-varid'>o</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>=</span>
-<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-varid'>i</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>mapColour</span> <span class='hs-layout'>(</span><span class='hs-varid'>opacity</span> <span class='hs-varid'>o</span><span class='hs-layout'>)</span>
-<a name="line-3"></a><span class='hs-varop'>&gt;</span>         <span class='hs-layout'>(</span><span class='hs-varid'>mapImage</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyword'>_</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varop'>+</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varop'>`with`</span>
-<a name="line-4"></a><span class='hs-varop'>&gt;</span>           <span class='hs-keyglyph'>[</span><span class='hs-conid'>LineBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>8</span><span class='hs-layout'>,</span> <span class='hs-conid'>FillBlur</span> <span class='hs-conop'>:=</span> <span class='hs-num'>8</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>line'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>q</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve_</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>diag</span> <span class='hs-layout'>(</span><span class='hs-num'>1</span> <span class='hs-comment'>-</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-varop'>*</span> <span class='hs-varid'>p</span> <span class='hs-varop'>+</span> <span class='hs-varid'>diag</span> <span class='hs-varid'>t</span> <span class='hs-varop'>*</span> <span class='hs-varid'>q</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>poly'</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span><span class='hs-conop'>:</span><span class='hs-varid'>q</span><span class='hs-conop'>:</span><span class='hs-varid'>ps</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-layout'>(</span><span class='hs-varop'>++&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>line'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>q</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>p</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
+</pre>
+The <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:curve_'>curve_</a></code> lets you omit the start and end values for the parameter
+when they are 0 and 1. Interpolating between two points is sufficiently useful
+to warrant its own library function <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:interpolate'>interpolate</a></code>, so we can
+define <code>line'</code> more elegantly as
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>line'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>q</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve_</span> <span class='hs-varop'>$</span> <span class='hs-varid'>interpolate</span> <span class='hs-varid'>p</span> <span class='hs-varid'>q</span>
+</pre>
+
+The <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:poly'>poly</a></code> function creates a closed<a name="lineStrip-back"/><a class=footnote href="#lineStrip">4</a> polygon
+from the given points so to create a box we just give the four corners.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>box</span> <span class='hs-varid'>w</span> <span class='hs-varid'>h</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>poly</span> <span class='hs-keyglyph'>[</span><span class='hs-num'>0</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>w</span> <span class='hs-num'>0</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>w</span> <span class='hs-varid'>h</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0</span> <span class='hs-varid'>h</span><span class='hs-keyglyph'>]</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>goldenBox</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>box</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-num'>1</span> <span class='hs-varop'>+</span> <span class='hs-varid'>sqrt</span> <span class='hs-num'>5</span><span class='hs-layout'>)</span> <span class='hs-varop'>/</span> <span class='hs-num'>2</span><span class='hs-layout'>)</span> <span class='hs-num'>1</span>
+</pre>
+<img title='Wow. Such ratio.' src="../images/basics-5.png"/>
+
+Regular n-sided polygons are also easy to define<a name="regularPoly-back"/><a class=footnote href="#regularPoly">5</a> using
+<code>poly</code>.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>regularCorners</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyglyph'>[</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>cos</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyglyph'>|</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-keyglyph'>[</span><span class='hs-num'>0</span><span class='hs-keyglyph'>..</span><span class='hs-varid'>n</span> <span class='hs-comment'>-</span> <span class='hs-num'>1</span><span class='hs-keyglyph'>]</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>   <span class='hs-layout'>,</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>2</span> <span class='hs-varop'>+</span> <span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span> <span class='hs-varop'>*</span> <span class='hs-varid'>fromIntegral</span> <span class='hs-varid'>i</span> <span class='hs-varop'>/</span> <span class='hs-varid'>fromIntegral</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>]</span>
 <a name="line-5"></a><span class='hs-varop'>&gt;</span>
-<a name="line-6"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>ex7</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ex6</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>dropShadow</span> <span class='hs-num'>3</span> <span class='hs-num'>0.3</span> <span class='hs-varid'>ex6</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>regularPoly</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>poly</span> <span class='hs-varop'>.</span> <span class='hs-varid'>regularCorners</span>
 </pre>
 <img title='' src="../images/basics-6.png"/>
 
-<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sat Feb  1 22:40:28 CET 2014</span></span>
+Reordering the vertexes of an odd-sided regular polygon we can make a star:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>interleave</span> <span class='hs-conid'>[]</span>     <span class='hs-varid'>ys</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ys</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>interleave</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-varid'>ys</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span> <span class='hs-conop'>:</span> <span class='hs-varid'>interleave</span> <span class='hs-varid'>ys</span> <span class='hs-varid'>xs</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>regularStar</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>poly</span> <span class='hs-varop'>$</span> <span class='hs-varid'>uncurry</span> <span class='hs-varid'>interleave</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span>                      <span class='hs-varop'>$</span> <span class='hs-varid'>splitAt</span> <span class='hs-layout'>(</span><span class='hs-varid'>div</span> <span class='hs-varid'>n</span> <span class='hs-num'>2</span> <span class='hs-varop'>+</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>regularCorners</span> <span class='hs-varid'>n</span>
+</pre>
+<img title='' src="../images/basics-7.png"/>
+
+<h3>Concatenating vs. combining</h3>
+A natural question to ask is: what's the difference between using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43--43--43-'>+++</a></code>
+and using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--62-'><></a></code> on two curves with coinciding concatenation points? The
+non-answer is that in the first case you get an image with a single curve and
+the second case you get an image with two curves. This difference becomes most
+obvious once you start filling curves (see the <a href=Styles.html>chapter on
+curve styles</a>) but we can observe it already with the tools we have.
+
+<p>
+Let's define a reversed version of the sine wave, which starts at 2π and ends
+at 0, but consists of exactly the same points as the previous sine wave.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>sineWaveR</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curve</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>sin</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span> <span class='hs-varid'>r</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span> <span class='hs-comment'>-</span> <span class='hs-varid'>t</span>
+</pre>
+This is in fact a useful operation to have when concatenating curves, so it's
+defined in the library as <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:reverseImage'>reverseImage</a></code>. Using this we can define
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>sineWaveR</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reverseImage</span> <span class='hs-varid'>sineWave</span>
+</pre>
+
+Now, let's look at the difference between combining and concatenating <code>sineWave</code> and <code>sineWaveR</code>.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>combined</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>&lt;&gt;</span>  <span class='hs-varid'>sineWaveR</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>concatenated</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>+++</span> <span class='hs-varid'>sineWaveR</span>
+</pre>
+<table class=imgtable><tr>
+<td><img title='' src="../images/basics-8.png"/></td>
+<td><img title='' src="../images/basics-9.png"/></td>
+</tr></table>
+
+If you look closely, you can see that the first image, which used <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--62-'><></a></code>,
+is darker and less smooth than the one using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43--43--43-'>+++</a></code>.  Basically what
+happens is that in the combined case the sine wave is drawn twice, once for
+each curve, whereas each point on the concatenated curve is only drawn once,
+even though the curve passes through it twice. The section on rendering <a
+href="#render">below</a> explains the rendering process in more detail.
+
+<a name="transform"></a>
+<h2>Transformations</h2>
+
+<a name="render"></a>
+<h2>Rendering images</h2>
+
+<div class=footnotes>
+
+<p><a name="points"/>
+<a class=footnote href="#points-back">▲ 1</a>
+
+Note that <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#t:Point'>Point</a></code> is just a synonym for <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#t:Vec'>Vec</a></code>, the
+type of 2-dimensional vectors.
+
+<p><a name="disconnected"/>
+<a class=footnote href="#disconnected-back">▲ 2</a>
+
+To skip connecting the end-points, use <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43-.-43-'>+.+</a></code> instead.
+
+<p><a name="circle"/>
+<a class=footnote href="#circle-back">▲ 3</a>
+
+There is a <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:circle'>circle</a></code> combinator in the library which takes the center
+and radius of the circle as parameters.
+
+<p><a name="lineStrip"/>
+<a class=footnote href="#lineStrip-back">▲ 4</a>
+
+The <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:lineStrip'>lineStrip</a></code> combinator is your friend if you don't want to close
+the polygon.
+
+<p><a name="regularPoly"/>
+<a class=footnote href="#regularPoly-back">▲ 5</a>
+
+In fact, <code><a href='../../dist/doc/html/curves/Graphics-Curves-Geometry.html#v:regularPoly'>regularPoly</a></code> is already defined in the Geometry module.
+
+</div>
+
+<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sun Feb  2 21:37:56 CET 2014</span></span>
 </body></html>
 
