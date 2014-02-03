@@ -79,8 +79,9 @@ The combinators %{vdoc "<++"} and %{vdoc "++>"} adds a straight line segment
 to either end of a curve.
 
 > waveBlock = botL <++ sineWave ++> botR ++> botL
->   where botL = Vec 0 (-1.2)
->         botR = Vec (2 * pi) (-1.2)
+>   where
+>     botL = Vec 0 (-1.2)
+>     botR = Vec (2 * pi) (-1.2)
 
 %{ makeImage (2 * w) h waveBlock }
 
@@ -177,9 +178,18 @@ href="#render">below</a> explains the rendering process in more detail.
 <a name="transform"></a>
 <h2>Transformations</h2>
 
+%{vdoc "Math.translate"}
+%{vdoc "Math.scale"}
+%{vdoc "Math.rotate"}
+%{tdoc "Math.Transformable"}
+%{vdoc "Math.transform"}
+%{vdoc "Math.scaleFrom"}
+%{vdoc "Math.rotateAround"}
+
 <a name="render"></a>
 <h2>Rendering images</h2>
 
+<hr>
 <div class=footnotes>
 
 %{footnoteDef "points"}
