@@ -83,8 +83,9 @@ The combinators <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v
 to either end of a curve.
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>waveBlock</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>botL</span> <span class='hs-varop'>&lt;++</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>++&gt;</span> <span class='hs-varid'>botR</span> <span class='hs-varop'>++&gt;</span> <span class='hs-varid'>botL</span>
-<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span> <span class='hs-varid'>botL</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
-<a name="line-3"></a><span class='hs-varop'>&gt;</span>         <span class='hs-varid'>botR</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>botL</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>botR</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-num'>2</span> <span class='hs-varop'>*</span> <span class='hs-varid'>pi</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1.2</span><span class='hs-layout'>)</span>
 </pre>
 <img title='' src="../images/basics-3.png"/>
 
@@ -131,7 +132,7 @@ Regular n-sided polygons are also easy to define<a name="regularPoly-back"/><a c
 </pre>
 <img title='' src="../images/basics-6.png"/>
 
-Reordering the vertexes of an odd-sided regular polygon we can make a star:
+Reordering the vertices of an odd-sided regular polygon we can make a star:
 
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>interleave</span> <span class='hs-conid'>[]</span>     <span class='hs-varid'>ys</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ys</span>
 <a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>interleave</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-varid'>ys</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span> <span class='hs-conop'>:</span> <span class='hs-varid'>interleave</span> <span class='hs-varid'>ys</span> <span class='hs-varid'>xs</span>
@@ -168,10 +169,11 @@ Now, let's look at the difference between combining and concatenating <code>sine
 <a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>concatenated</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>+++</span> <span class='hs-varid'>sineWaveR</span>
 </pre>
 <table class=imgtable><tr>
-<td><img title='' src="../images/basics-8.png"/></td>
-<td><img title='' src="../images/basics-9.png"/></td>
+<td><img title='' src="../images/basics-8.png"/><i>combined</i></td>
+<td><img title='' src="../images/basics-9.png"/><i>concatenated</i></td>
 </tr></table>
 
+<p>
 If you look closely, you can see that the first image, which used <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--62-'><></a></code>,
 is darker and less smooth than the one using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-43--43--43-'>+++</a></code>.  Basically what
 happens is that in the combined case the sine wave is drawn twice, once for
@@ -182,9 +184,107 @@ href="#render">below</a> explains the rendering process in more detail.
 <a name="transform"></a>
 <h2>Transformations</h2>
 
+It would be quite awkward to construct images just using <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:curve'>curve</a></code> and
+<code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:-60--62-'><></a></code>, so it make things easier there is a set of transformation
+combinators to transform images.  The basic function is the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:transform'>transform</a></code> function of the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#t:Transformable'>Transformable</a></code> class:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>transform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Transformable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Point</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Point</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+</pre>
+
+Transforming an image applies the transformation function to all points of the
+curves of the image<a name="transform-back"/><a class=footnote href="#transform">6</a>. For instance,
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>twoWaves</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>transform</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0.3</span> <span class='hs-num'>0.7</span><span class='hs-layout'>)</span> <span class='hs-varid'>sineWave</span>
+</pre>
+<img title='' src="../images/basics-10.png"/>
+
+For convenience a number of common transformations are defined in the library.
+Moving an image by a given vector, as above, can be done with the <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:translate'>translate</a></code> function, so <code>twoWaves</code> can be defined equivalently as
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>twoWaves</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span> <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>translate</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>0.3</span> <span class='hs-num'>0.7</span><span class='hs-layout'>)</span> <span class='hs-varid'>sineWave</span>
+</pre>
+
+The <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:scale'>scale</a></code> and <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:rotate'>rotate</a></code> functions do what their names suggest:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>threeWaves</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>           <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>scale</span> <span class='hs-num'>1.5</span> <span class='hs-varid'>sineWave</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>           <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>rotate</span> <span class='hs-layout'>(</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>sineWave</span>
+</pre>
+<img title='' src="../images/basics-11.png"/>
+
+Notice how both rotation and scaling are centered at the origin. The functions <code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:scaleFrom'>scaleFrom</a></code> and
+<code><a href='../../dist/doc/html/curves/Graphics-Curves-Math.html#v:rotateAround'>rotateAround</a></code> can be used to specify a different center.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>threeWaves'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sineWave</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>            <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>scaleFrom</span> <span class='hs-varid'>c</span> <span class='hs-num'>1.5</span> <span class='hs-varid'>sineWave</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>            <span class='hs-varop'>&lt;&gt;</span> <span class='hs-varid'>rotateAround</span> <span class='hs-varid'>c</span> <span class='hs-layout'>(</span><span class='hs-varid'>pi</span><span class='hs-varop'>/</span><span class='hs-num'>4</span><span class='hs-layout'>)</span> <span class='hs-varid'>sineWave</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Vec</span> <span class='hs-varid'>pi</span> <span class='hs-num'>0</span>
+</pre>
+<img title='' src="../images/basics-12.png"/>
+
+The transformations above are all linear transformations, but any
+(continuous<a name="continuous-back"/><a class=footnote href="#continuous">7</a>) function can be used to transform an image.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>wavyWave</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transform</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varop'>+</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-varid'>cos</span> <span class='hs-layout'>(</span><span class='hs-num'>4</span> <span class='hs-varop'>*</span> <span class='hs-varid'>getX</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>/</span> <span class='hs-num'>2</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>                      <span class='hs-varid'>sineWave</span>
+</pre>
+<img title='' src="../images/basics-13.png"/>
+
 <a name="render"></a>
 <h2>Rendering images</h2>
 
+Although we've seen lots of example images, we haven't talked about how to get
+an actual picture from an <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#t:Image'>Image</a></code>. The function that does this is
+<code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:renderImage'>renderImage</a></code>, which takes an image and writes it to a PNG file with
+the specified name. For instance
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>saveBox</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>saveBox</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>renderImage</span> <span class='hs-str'>"box.png"</span> <span class='hs-num'>100</span> <span class='hs-num'>100</span> <span class='hs-varid'>white</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>         <span class='hs-varop'>$</span> <span class='hs-varid'>translate</span> <span class='hs-num'>10</span> <span class='hs-layout'>(</span><span class='hs-varid'>box</span> <span class='hs-num'>80</span> <span class='hs-num'>80</span><span class='hs-layout'>)</span>
+</pre>
+creates the following 100x100 PNG file <code>box.png</code>:
+
+<img title='box.png' src="../images/basics-14.png"/>
+
+Note how the points in the image correspond directly to pixels in the final
+picture. If we make the box wider it doesn't fit in the picture:
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>saveBox'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>saveBox'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>renderImage</span> <span class='hs-str'>"box.png"</span> <span class='hs-num'>100</span> <span class='hs-num'>100</span> <span class='hs-varid'>white</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>          <span class='hs-varop'>$</span> <span class='hs-varid'>translate</span> <span class='hs-num'>10</span> <span class='hs-layout'>(</span><span class='hs-varid'>box</span> <span class='hs-num'>100</span> <span class='hs-num'>80</span><span class='hs-layout'>)</span>
+</pre>
+<img title='box.png' src="../images/basics-15.png"/>
+
+In all the examples above we never cared about making sure that everything fit
+nicely in the final picture. In fact, if there had been a direct correspondence
+between points and pixels most examples above would only have been a few pixels
+wide. Indeed, having to worry about final pixel coordinates would be very
+tedious if all you want to do is create some nice figures. To deal with this
+there are two functions for automatically fitting an image inside some given
+bounds: <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:autoFit'>autoFit</a></code> and <code><a href='../../dist/doc/html/curves/Graphics-Curves.html#v:autoStretch'>autoStretch</a></code>.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>autoFit</span>     <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Point</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Point</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Image</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Image</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>autoStretch</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Point</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Point</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Image</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Image</span>
+</pre>
+
+Both functions take two points describing the bottom-left and top-right corners
+of a rectangle, and an image which is resized and moved to fit inside that
+rectangle. The difference between them is that <code>autoFit</code> preserves the
+aspect ratio of the image, whereas <code>autoStretch</code> scales the X and Y
+dimensions independently.
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>fit</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>autoFit</span>     <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>200</span> <span class='hs-num'>100</span><span class='hs-layout'>)</span> <span class='hs-varid'>unitCircle</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>stretch</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>autoStretch</span> <span class='hs-num'>0</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-num'>200</span> <span class='hs-num'>100</span><span class='hs-layout'>)</span> <span class='hs-varid'>unitCircle</span>
+</pre>
+<table class=imgtable><tr>
+<td><img title='autoFit' src="../images/basics-16.png"/> <i>autoFit</i></td>
+<td><img title='autoStretch' src="../images/basics-17.png"/> <i>autoStretch</i></td>
+</tr></table>
+
+<a name=rendering-algorithm></a>
+<h3>The rendering algorithm</h3>
+
+<hr>
 <div class=footnotes>
 
 <p><a name="points"/>
@@ -215,8 +315,20 @@ the polygon.
 
 In fact, <code><a href='../../dist/doc/html/curves/Graphics-Curves-Geometry.html#v:regularPoly'>regularPoly</a></code> is already defined in the Geometry module.
 
+<p><a name="transform"/>
+<a class=footnote href="#transform-back">▲ 6</a>
+
+This isn't quite true, but true enough for our current purposes. See the
+<a href="Advanced.html">chapter on advanced curves</a> for more details.
+
+<p><a name="continuous"/>
+<a class=footnote href="#continuous-back">▲ 7</a>
+
+Curve functions need to be continuous for the <a
+href="#rendering-algorithm">rendering algorithm</a> to not get confused.
+
 </div>
 
-<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sun Feb  2 21:37:56 CET 2014</span></span>
+<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sat Feb  8 13:02:25 CET 2014</span></span>
 </body></html>
 
