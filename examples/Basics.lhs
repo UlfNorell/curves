@@ -127,7 +127,7 @@ Regular n-sided polygons are also easy to define%{footnote "regularPoly"} using
 
 %{ makeImage w h (regularPoly 5) }
 
-Reordering the vertexes of an odd-sided regular polygon we can make a star:
+Reordering the vertices of an odd-sided regular polygon we can make a star:
 
 > interleave []     ys = ys
 > interleave (x:xs) ys = x : interleave ys xs
@@ -164,10 +164,11 @@ Now, let's look at the difference between combining and concatenating %{code
 > concatenated = sineWave +++ sineWaveR
 
 <table class=imgtable><tr>
-<td>%{ makeImage (2 * w) h combined }</td>
-<td>%{ makeImage (2 * w) h concatenated }</td>
+<td>%{ makeImage (2 * w) h combined }<i>combined</i></td>
+<td>%{ makeImage (2 * w) h concatenated }<i>concatenated</i></td>
 </tr></table>
 
+<p>
 If you look closely, you can see that the first image, which used %{vdoc "<>"},
 is darker and less smooth than the one using %{vdoc "+++"}.  Basically what
 happens is that in the combined case the sine wave is drawn twice, once for
@@ -178,16 +179,104 @@ href="#render">below</a> explains the rendering process in more detail.
 <a name="transform"></a>
 <h2>Transformations</h2>
 
-%{vdoc "Math.translate"}
-%{vdoc "Math.scale"}
-%{vdoc "Math.rotate"}
-%{tdoc "Math.Transformable"}
-%{vdoc "Math.transform"}
-%{vdoc "Math.scaleFrom"}
-%{vdoc "Math.rotateAround"}
+It would be quite awkward to construct images just using %{vdoc "curve"} and
+%{vdoc "<>"}, so it make things easier there is a set of transformation
+combinators to transform images.  The basic function is the %{vdoc
+"Math.transform"} function of the %{tdoc "Math.Transformable"} class:
+
+%{fakeCode "transform :: Transformable a => (Point -> Point) -> a -> a"}
+
+Transforming an image applies the transformation function to all points of the
+curves of the image%{footnote "transform"}. For instance,
+
+> twoWaves = sineWave <> transform (+ Vec 0.3 0.7) sineWave
+
+%{ makeImage w h twoWaves }
+
+For convenience a number of common transformations are defined in the library.
+Moving an image by a given vector, as above, can be done with the %{vdoc
+"Math.translate"} function, so %{code "twoWaves"} can be defined equivalently as
+
+%{ fakeCode "twoWaves = sineWave <> translate (Vec 0.3 0.7) sineWave" }
+
+The %{vdoc "Math.scale"} and %{vdoc "Math.rotate"} functions do what their names suggest:
+
+> threeWaves = sineWave
+>           <> scale 1.5 sineWave
+>           <> rotate (pi/4) sineWave
+
+%{ makeImage (3 * w `div` 2) h threeWaves }
+
+Notice how both rotation and scaling are centered at the origin. The functions %{vdoc "Math.scaleFrom"} and
+%{vdoc "Math.rotateAround"} can be used to specify a different center.
+
+> threeWaves' = sineWave
+>            <> scaleFrom c 1.5 sineWave
+>            <> rotateAround c (pi/4) sineWave
+>   where c = Vec pi 0
+
+%{ makeImage (3 * w `div` 2) h threeWaves' }
+
+The transformations above are all linear transformations, but any
+(continuous%{footnote "continuous"}) function can be used to transform an image.
+
+> wavyWave = transform (\p -> p + Vec 0 (cos (4 * getX p) / 2))
+>                      sineWave
+
+%{ makeImage w h wavyWave }
 
 <a name="render"></a>
 <h2>Rendering images</h2>
+
+Although we've seen lots of example images, we haven't talked about how to get
+an actual picture from an %{tdoc "Image"}. The function that does this is
+%{vdoc "renderImage"}, which takes an image and writes it to a PNG file with
+the specified name. For instance
+
+> saveBox :: IO ()
+> saveBox = renderImage "box.png" 100 100 white
+>         $ translate 10 (box 80 80)
+
+creates the following 100x100 PNG file %{code "box.png"}:
+
+%{ makeImage' "box.png" 100 100 $ translate 10 (box 80 80) }
+
+Note how the points in the image correspond directly to pixels in the final
+picture. If we make the box wider it doesn't fit in the picture:
+
+> saveBox' :: IO ()
+> saveBox' = renderImage "box.png" 100 100 white
+>          $ translate 10 (box 100 80)
+
+%{ makeImage' "box.png" 100 100 $ translate 10 (box 100 80) }
+
+In all the examples above we never cared about making sure that everything fit
+nicely in the final picture. In fact, if there had been a direct correspondence
+between points and pixels most examples above would only have been a few pixels
+wide. Indeed, having to worry about final pixel coordinates would be very
+tedious if all you want to do is create some nice figures. To deal with this
+there are two functions for automatically fitting an image inside some given
+bounds: %{vdoc "autoFit"} and %{vdoc "autoStretch"}.
+
+%{ fakeCode $ "autoFit     :: Point -> Point -> Image -> Image\n" ++
+              "autoStretch :: Point -> Point -> Image -> Image" }
+
+Both functions take two points describing the bottom-left and top-right corners
+of a rectangle, and an image which is resized and moved to fit inside that
+rectangle. The difference between them is that %{code "autoFit"} preserves the
+aspect ratio of the image, whereas %{code "autoStretch"} scales the X and Y
+dimensions independently.
+
+> fit     = autoFit     0 (Vec 200 100) unitCircle
+> stretch = autoStretch 0 (Vec 200 100) unitCircle
+
+<table class=imgtable><tr>
+<td>%{ makeImage' "autoFit"     200 100 fit } <i>autoFit</i></td>
+<td>%{ makeImage' "autoStretch" 200 100 stretch } <i>autoStretch</i></td>
+</tr></table>
+
+<a name=rendering-algorithm></a>
+<h3>The rendering algorithm</h3>
 
 <hr>
 <div class=footnotes>
@@ -209,6 +298,14 @@ the polygon.
 
 %{footnoteDef "regularPoly"}
 In fact, %{vdoc "Geometry.regularPoly"} is already defined in the Geometry module.
+
+%{footnoteDef "transform"}
+This isn't quite true, but true enough for our current purposes. See the
+<a href="Advanced.html">chapter on advanced curves</a> for more details.
+
+%{footnoteDef "continuous"}
+Curve functions need to be continuous for the <a
+href="#rendering-algorithm">rendering algorithm</a> to not get confused.
 
 </div>
 
