@@ -1,4 +1,4 @@
-.hs-keyword {color: #840; font-weight: bold;}
+.hs-keyword {color: #820; font-weight: bold;}
 .hs-comment, .hs-comment a {color: blue;}
 .hs-str, .hs-chr, .hs-num {color: magenta;}
 .hs-conid, .hs-conop {color: green;}
@@ -40,6 +40,7 @@ table.examples td {
 table.imgtable td {
   padding-left: 10px;
   padding-right: 10px;
+  text-align: center;
 }
 
 td.example-img {
