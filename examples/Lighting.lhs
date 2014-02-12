@@ -46,3 +46,5 @@
 
 %eval{ makeImage "lighting1" 300 150 balls }
 
+%{ footnotes }
+

@@ -278,8 +278,7 @@ dimensions independently.
 <a name=rendering-algorithm></a>
 <h3>The rendering algorithm</h3>
 
-<hr>
-<div class=footnotes>
+%{ footnotes }
 
 %{footnoteDef "points"}
 Note that %{tdoc "Math.Point"} is just a synonym for %{tdoc "Math.Vec"}, the

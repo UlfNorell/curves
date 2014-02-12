@@ -54,6 +54,10 @@ table.examples img {
   margin-top: 0px;
 }
 
+hr.footnote-sep {
+  margin-top: 2cm;
+}
+
 .header {
   position: absolute;
   top: 5px;

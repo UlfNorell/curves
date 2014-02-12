@@ -72,7 +72,7 @@ done = do
     [ tag "span class=footer"
         [ "curves-", version, ": Ulf Norell &lt;ulf.norell@gmail.com&gt;"
         , tag "span class=right" (show now) ]
-    , "</body></html>" ]
+    , "</div></body></html>" ]
   hPutStrLn stderr "Done"
 
 todo = rotate (pi/4) $ translate ( Vec 0 1) (stringImage' CenterAlign 0.4 "Coming") <>
@@ -134,6 +134,8 @@ footnoteDef s = do
   putStr $ unlines
     [ "<p><a name=" ++ show s ++ "/>"
     , "<a class=footnote href=\"#" ++ s ++"-back\">▲ " ++ i ++ "</a>" ]
+
+footnotes = putStrLn "<hr class=footnote-sep><div class=footnotes>"
 
 -- Utils ------------------------------------------------------------------
 
