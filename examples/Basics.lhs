@@ -6,6 +6,7 @@
 > module Basics where
 
 > import ExampleGen
+> import Data.Monoid
 
 -->
 
@@ -275,8 +276,32 @@ dimensions independently.
 <td>%{ makeImage' "autoStretch" 200 100 stretch } <i>autoStretch</i></td>
 </tr></table>
 
-<a name=rendering-algorithm></a>
-<h3>The rendering algorithm</h3>
+<!--
+
+> renderIllustration = mconcat
+>   [ c
+>   , outline 1 c
+>   , mconcat [ point $ -0.5
+>             , point 0.5 `with` [ LineColour := Colour 0.5 0.5 0.5 1 ]
+>             , point $ Vec 0.5 (-0.5)
+>             , point $ Vec 1.5 0.5
+>             ] `with` [ LineWidth := 3 ]
+>   , grid
+>   ]
+>   where
+>     outline w i =
+>       unfreezeImage $
+>       zipImage (\_ d p -> p + w * rot90 (norm d)) (differentiate i) i
+>           `with` [ LineColour := opacity 0.5 red ]
+>     c = bSpline [-Vec 4 3, -1, Vec 1 (-1), Vec 2 1, Vec 4 2]
+>     [d, x0, x1, y0, y1] = [0.3, -1, 2, -1, 1]
+>     grid = mconcat
+>       ([ line (Vec x (y0 - d)) (Vec x (y1 + d)) | x <- [x0..x1] ] ++
+>        [ line (Vec (x0 - d) y) (Vec (x1 + d) y) | y <- [y0..y1] ])
+>       `with` [ LineColour := opacity 0.5 blue ]
+>
+
+-->
 
 %{ footnotes }
 
@@ -303,8 +328,8 @@ This isn't quite true, but true enough for our current purposes. See the
 <a href="Advanced.html">chapter on advanced curves</a> for more details.
 
 %{footnoteDef "continuous"}
-Curve functions need to be continuous for the <a
-href="#rendering-algorithm">rendering algorithm</a> to not get confused.
+Curve functions need to be continuous for the rendering algorithm to not get
+confused.
 
 </div>
 
