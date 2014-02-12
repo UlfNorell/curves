@@ -9,6 +9,7 @@
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>module</span> <span class='hs-conid'>Basics</span> <span class='hs-keyword'>where</span>
 </pre>
 <pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>ExampleGen</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
 </pre>
 -->
 
@@ -281,11 +282,35 @@ dimensions independently.
 <td><img title='autoStretch' src="../images/basics-17.png"/> <i>autoStretch</i></td>
 </tr></table>
 
-<a name=rendering-algorithm></a>
-<h3>The rendering algorithm</h3>
+<!--
 
-<hr>
-<div class=footnotes>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>renderIllustration</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mconcat</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyglyph'>[</span> <span class='hs-varid'>c</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>   <span class='hs-layout'>,</span> <span class='hs-varid'>outline</span> <span class='hs-num'>1</span> <span class='hs-varid'>c</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>   <span class='hs-layout'>,</span> <span class='hs-varid'>mconcat</span> <span class='hs-keyglyph'>[</span> <span class='hs-varid'>point</span> <span class='hs-varop'>$</span> <span class='hs-comment'>-</span><span class='hs-num'>0.5</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span>             <span class='hs-layout'>,</span> <span class='hs-varid'>point</span> <span class='hs-num'>0.5</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-conid'>Colour</span> <span class='hs-num'>0.5</span> <span class='hs-num'>0.5</span> <span class='hs-num'>0.5</span> <span class='hs-num'>1</span> <span class='hs-keyglyph'>]</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span>             <span class='hs-layout'>,</span> <span class='hs-varid'>point</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>0.5</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>0.5</span><span class='hs-layout'>)</span>
+<a name="line-7"></a><span class='hs-varop'>&gt;</span>             <span class='hs-layout'>,</span> <span class='hs-varid'>point</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>1.5</span> <span class='hs-num'>0.5</span>
+<a name="line-8"></a><span class='hs-varop'>&gt;</span>             <span class='hs-keyglyph'>]</span> <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineWidth</span> <span class='hs-conop'>:=</span> <span class='hs-num'>3</span> <span class='hs-keyglyph'>]</span>
+<a name="line-9"></a><span class='hs-varop'>&gt;</span>   <span class='hs-layout'>,</span> <span class='hs-varid'>grid</span>
+<a name="line-10"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyglyph'>]</span>
+<a name="line-11"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span>
+<a name="line-12"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>outline</span> <span class='hs-varid'>w</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>=</span>
+<a name="line-13"></a><span class='hs-varop'>&gt;</span>       <span class='hs-varid'>unfreezeImage</span> <span class='hs-varop'>$</span>
+<a name="line-14"></a><span class='hs-varop'>&gt;</span>       <span class='hs-varid'>zipImage</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-keyword'>_</span> <span class='hs-varid'>d</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varop'>+</span> <span class='hs-varid'>w</span> <span class='hs-varop'>*</span> <span class='hs-varid'>rot90</span> <span class='hs-layout'>(</span><span class='hs-varid'>norm</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>differentiate</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span>
+<a name="line-15"></a><span class='hs-varop'>&gt;</span>           <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>opacity</span> <span class='hs-num'>0.5</span> <span class='hs-varid'>red</span> <span class='hs-keyglyph'>]</span>
+<a name="line-16"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>bSpline</span> <span class='hs-keyglyph'>[</span><span class='hs-comment'>-</span><span class='hs-conid'>Vec</span> <span class='hs-num'>4</span> <span class='hs-num'>3</span><span class='hs-layout'>,</span> <span class='hs-comment'>-</span><span class='hs-num'>1</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>1</span> <span class='hs-layout'>(</span><span class='hs-comment'>-</span><span class='hs-num'>1</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>2</span> <span class='hs-num'>1</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vec</span> <span class='hs-num'>4</span> <span class='hs-num'>2</span><span class='hs-keyglyph'>]</span>
+<a name="line-17"></a><span class='hs-varop'>&gt;</span>     <span class='hs-keyglyph'>[</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>x0</span><span class='hs-layout'>,</span> <span class='hs-varid'>x1</span><span class='hs-layout'>,</span> <span class='hs-varid'>y0</span><span class='hs-layout'>,</span> <span class='hs-varid'>y1</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyglyph'>[</span><span class='hs-num'>0.3</span><span class='hs-layout'>,</span> <span class='hs-comment'>-</span><span class='hs-num'>1</span><span class='hs-layout'>,</span> <span class='hs-num'>2</span><span class='hs-layout'>,</span> <span class='hs-comment'>-</span><span class='hs-num'>1</span><span class='hs-layout'>,</span> <span class='hs-num'>1</span><span class='hs-keyglyph'>]</span>
+<a name="line-18"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>grid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mconcat</span>
+<a name="line-19"></a><span class='hs-varop'>&gt;</span>       <span class='hs-layout'>(</span><span class='hs-keyglyph'>[</span> <span class='hs-varid'>line</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-varid'>x</span> <span class='hs-layout'>(</span><span class='hs-varid'>y0</span> <span class='hs-comment'>-</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-varid'>x</span> <span class='hs-layout'>(</span><span class='hs-varid'>y1</span> <span class='hs-varop'>+</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x0</span><span class='hs-keyglyph'>..</span><span class='hs-varid'>x1</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>]</span> <span class='hs-varop'>++</span>
+<a name="line-20"></a><span class='hs-varop'>&gt;</span>        <span class='hs-keyglyph'>[</span> <span class='hs-varid'>line</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>x0</span> <span class='hs-comment'>-</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vec</span> <span class='hs-layout'>(</span><span class='hs-varid'>x1</span> <span class='hs-varop'>+</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>y0</span><span class='hs-keyglyph'>..</span><span class='hs-varid'>y1</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
+<a name="line-21"></a><span class='hs-varop'>&gt;</span>       <span class='hs-varop'>`with`</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>LineColour</span> <span class='hs-conop'>:=</span> <span class='hs-varid'>opacity</span> <span class='hs-num'>0.5</span> <span class='hs-varid'>blue</span> <span class='hs-keyglyph'>]</span>
+<a name="line-22"></a><span class='hs-varop'>&gt;</span>
+</pre>
+-->
+
+<hr class=footnote-sep><div class=footnotes>
+
 
 <p><a name="points"/>
 <a class=footnote href="#points-back">▲ 1</a>
@@ -324,11 +349,11 @@ This isn't quite true, but true enough for our current purposes. See the
 <p><a name="continuous"/>
 <a class=footnote href="#continuous-back">▲ 7</a>
 
-Curve functions need to be continuous for the <a
-href="#rendering-algorithm">rendering algorithm</a> to not get confused.
+Curve functions need to be continuous for the rendering algorithm to not get
+confused.
 
 </div>
 
-<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sat Feb  8 13:02:25 CET 2014</span></span>
-</body></html>
+<span class=footer>curves-1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Wed Feb 12 19:52:21 CET 2014</span></span>
+</div></body></html>
 
