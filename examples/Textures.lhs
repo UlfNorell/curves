@@ -206,9 +206,7 @@ that you can change the texture of an image by modifying the fill colour.
 
 %{ makeImage w h purpleEgg }
 
-<hr>
-
-<div class=footnotes>
+%{ footnotes }
 
 %{ footnoteDef "NumInstances" }
 Thanks to Conal Elliott's nifty <a
@@ -230,6 +228,5 @@ texture function inputs. It would just take a while.
 
 %{ footnoteDef "lots" }
 %#{ (2^64)^4 } to be precise.
-</div>
 
 %{ done }
