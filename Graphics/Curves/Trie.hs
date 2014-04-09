@@ -114,28 +114,28 @@ instance Arbitrary Bit where
 type T' = Trie Bit
 type T = T' Integer
 
-infix 0 ===
-x === y = whenFail (putStrLn $ show x ++ " /=\n" ++ show y) (x == y)
+infix 0 =?=
+x =?= y = whenFail (putStrLn $ show x ++ " /=\n" ++ show y) (x == y)
 
 prop_monad1 :: T -> Property
-prop_monad1 t = (t >>= return) === t
+prop_monad1 t = (t >>= return) =?= t
 
 prop_monad2 :: Integer -> Fun Integer T -> Property
-prop_monad2 x (Fun _ f) = (return x >>= f) === f x
+prop_monad2 x (Fun _ f) = (return x >>= f) =?= f x
 
 -- Not true. Reason: m >>= f gives precedence to values with shorter keys in m.
 -- Changing bracketing can change when a conflict appears and thus which value
 -- gets dropped.
 prop_monad3 :: T -> Fun Integer T -> Fun Integer T -> Property
-prop_monad3 m (Fun _ f) (Fun _ g) = (m >>= f >>= g) === (m >>= \x -> f x >>= g)
+prop_monad3 m (Fun _ f) (Fun _ g) = (m >>= f >>= g) =?= (m >>= \x -> f x >>= g)
 
 prop_app1 :: Fun Integer Integer -> T -> Property
-prop_app1 (Fun _ f) t = pure f <*> t === fmap f t
+prop_app1 (Fun _ f) t = pure f <*> t =?= fmap f t
 
 prop_app2 :: T' (Fun Integer Integer) -> Integer -> Property
-prop_app2 f x = fmap apply f <*> pure x === fmap (`apply` x) f
+prop_app2 f x = fmap apply f <*> pure x =?= fmap (`apply` x) f
 
 -- Also not true (for the same reason as monad3)
 prop_app3 :: T' (Fun (Integer, Integer) Integer) -> T -> T -> Property
-prop_app3 f x y = ((apply <$> f) <*> ((,) <$> x <*> y)) ===
+prop_app3 f x y = ((apply <$> f) <*> ((,) <$> x <*> y)) =?=
                   ((curry . apply <$> f) <*> x <*> y)
