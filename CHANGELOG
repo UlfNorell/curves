@@ -1,3 +1,6 @@
+v1.1.0.1
+  * Fixed incompatibility with QuickCheck-2.7
+
 v1.1.0
   * Textures
   The fill colour can now depend on absolute and relative coordinates.
