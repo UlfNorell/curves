@@ -1,0 +1,45 @@
+
+<head><title>Examples</title><link href='http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono&subset=latin,greek-ext' rel='stylesheet' type='text/css'/><link href='../css/examples.css' rel='stylesheet' type='text/css'/></head>
+<body>
+<span class=header>curves-1.1.0.1: <a href=Examples.html>Examples</a> - <a href=../../dist/doc/html/curves/index.html>API</a><span class=right><a href=http://github.com/UlfNorell/curves>GitHub</a> - <a href=http://hackage.haskell.org/package/curves>Hackage</a></span></span>
+
+
+<!--
+
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>ExampleGen</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-conid'>Graphics</span><span class='hs-varop'>.</span><span class='hs-conid'>Curves</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Textures</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Basics</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Styles</span>
+<a name="line-7"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Advanced</span>
+<a name="line-8"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Blending</span>
+<a name="line-9"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Fractals</span>
+<a name="line-10"></a><span class='hs-varop'>&gt;</span> <span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Text</span>
+</pre>
+<pre><a name="line-1"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>makeGrid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-conid'>String</span><span class='hs-layout'>,</span> <span class='hs-conid'>String</span><span class='hs-layout'>,</span> <span class='hs-conid'>Image</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>()</span>
+<a name="line-2"></a><span class='hs-varop'>&gt;</span> <span class='hs-definition'>makeGrid</span> <span class='hs-varid'>w</span> <span class='hs-varid'>h</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-3"></a><span class='hs-varop'>&gt;</span>   <span class='hs-varid'>ts</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>mapM</span> <span class='hs-varid'>sequence</span> <span class='hs-keyglyph'>[</span> <span class='hs-keyglyph'>[</span> <span class='hs-conid'>(,,)</span> <span class='hs-varid'>file</span> <span class='hs-varid'>name</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>makeImageT'</span> <span class='hs-varid'>name</span> <span class='hs-varid'>w</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>|</span> <span class='hs-layout'>(</span><span class='hs-varid'>file</span><span class='hs-layout'>,</span> <span class='hs-varid'>name</span><span class='hs-layout'>,</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>row</span> <span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>row</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>]</span>
+<a name="line-4"></a><span class='hs-varop'>&gt;</span>   <span class='hs-varid'>putStr</span> <span class='hs-varop'>$</span>
+<a name="line-5"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>tag</span> <span class='hs-str'>"table class=examples"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>map</span> <span class='hs-layout'>(</span><span class='hs-varid'>tag</span> <span class='hs-str'>"tr"</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>concatMap</span> <span class='hs-varid'>mkRow</span> <span class='hs-varid'>ts</span><span class='hs-layout'>)</span>
+<a name="line-6"></a><span class='hs-varop'>&gt;</span>   <span class='hs-keyword'>where</span>
+<a name="line-7"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>mkRow</span> <span class='hs-varid'>row</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>is</span><span class='hs-layout'>,</span> <span class='hs-varid'>ts</span><span class='hs-keyglyph'>]</span>
+<a name="line-8"></a><span class='hs-varop'>&gt;</span>       <span class='hs-keyword'>where</span> <span class='hs-layout'>(</span><span class='hs-varid'>is</span><span class='hs-layout'>,</span> <span class='hs-varid'>ts</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unzip</span> <span class='hs-varop'>$</span> <span class='hs-varid'>map</span> <span class='hs-varid'>mkCell</span> <span class='hs-varid'>row</span>
+<a name="line-9"></a><span class='hs-varop'>&gt;</span>     <span class='hs-varid'>mkCell</span> <span class='hs-layout'>(</span><span class='hs-varid'>file</span><span class='hs-layout'>,</span> <span class='hs-varid'>name</span><span class='hs-layout'>,</span> <span class='hs-varid'>img</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>imgtag</span> <span class='hs-varop'>$</span> <span class='hs-varid'>link</span> <span class='hs-varid'>img</span><span class='hs-layout'>,</span> <span class='hs-varid'>tag</span> <span class='hs-str'>"td"</span> <span class='hs-varop'>$</span> <span class='hs-varid'>link</span> <span class='hs-varid'>name</span><span class='hs-layout'>)</span>
+<a name="line-10"></a><span class='hs-varop'>&gt;</span>       <span class='hs-keyword'>where</span> <span class='hs-varid'>link</span>   <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tag</span> <span class='hs-layout'>(</span><span class='hs-str'>"a href="</span> <span class='hs-varop'>++</span> <span class='hs-varid'>file</span> <span class='hs-varop'>++</span> <span class='hs-str'>".html"</span><span class='hs-layout'>)</span>
+<a name="line-11"></a><span class='hs-varop'>&gt;</span>             <span class='hs-varid'>imgtag</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tag</span> <span class='hs-str'>"td class=example-img"</span>
+</pre>
+-->
+
+<h1>Examples</h1>
+
+Here you can find a series of examples on how to use the curves library. Take your
+pick from the topics below.
+
+<table class=examples><tr><td class=example-img><a href=Basics.html><img title='Basics' src="../images/top-0.png"/></a></td><td class=example-img><a href=Styles.html><img title='Styles' src="../images/top-1.png"/></a></td><td class=example-img><a href=Blending.html><img title='Blending' src="../images/top-2.png"/></a></td><td class=example-img><a href=Advanced.html><img title='Advanced Curves' src="../images/top-3.png"/></a></td></tr><tr><td><a href=Basics.html>Basics</a></td><td><a href=Styles.html>Styles</a></td><td><a href=Blending.html>Blending</a></td><td><a href=Advanced.html>Advanced Curves</a></td></tr><tr><td class=example-img><a href=Text.html><img title='Drawing Text' src="../images/top-4.png"/></a></td><td class=example-img><a href=Textures.html><img title='Textures' src="../images/top-5.png"/></a></td><td class=example-img><a href=Fractals.html><img title='Fractals' src="../images/top-6.png"/></a></td></tr><tr><td><a href=Text.html>Drawing Text</a></td><td><a href=Textures.html>Textures</a></td><td><a href=Fractals.html>Fractals</a></td></tr></table>
+
+<span class="vertical-space"></span>
+<span class=footer>curves-1.1.0.1: Ulf Norell &lt;ulf.norell@gmail.com&gt;<span class=right>Sat Oct 18 09:12:45 EEST 2014</span></span>
+</div></body></html>
+
+
