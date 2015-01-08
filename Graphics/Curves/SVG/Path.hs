@@ -35,15 +35,50 @@ instance Show PathToken where
   show (TokCmd c)    = [c]
   show (TokNum x) = show x
 
+lexNum :: String -> Maybe (String, String)
+lexNum s = start s
+  where
+    eat c = fmap (\(a, b) -> (c:a, b))
+    ret s = Just ("", s)
+    bad   = Nothing
+
+    start ('-':s) = eat '-' $ num s
+    start s       = num s
+
+    num (c:s) | isDigit c = eat c $ num1 s
+    num _ = bad
+
+    num1 (c:s) | isDigit c = eat c $ num1 s
+    num1 ('.':s) = eat '.' $ frac s
+    num1 ('e':s) = eat 'e' $ expn s
+    num1 s       = ret s
+
+    frac (c:s) | isDigit c = eat c $ frac1 s
+
+    frac1 (c:s) | isDigit c = eat c $ frac1 s
+    frac1 ('e':s) = eat 'e' $ expn s
+    frac1 s = ret s
+
+    expn ('-':s) = eat '-' $ expn1 s
+    expn s = expn1 s
+
+    expn1 (c:s) | isDigit c = eat c $ expn2 s
+    expn1 _ = bad
+
+    expn2 (c:s) | isDigit c = eat c $ expn2 s
+    expn2 s = ret s
+
 lexPath :: String -> [PathToken]
 lexPath [] = []
 lexPath (c:s)
   | isAlpha c   = TokCmd c : lexPath s
-  | isNumChar c = case span isNumChar s of
-      (d, s') -> TokNum (read (c:d)) : lexPath s'
+  | isNumChar c =
+    case lexNum (c:s) of
+      Just (d, s') -> TokNum (read d) : lexPath s'
+      Nothing      -> error $ "lex error on " ++ show (take 25 (c:s)) ++ "..."
   | otherwise   = lexPath s
   where
-    isNumChar c = isDigit c || elem c "-."
+    isNumChar c = isDigit c || c == '-'
 
 -- | Read a path string.
 parsePath :: String -> Path
@@ -93,6 +128,7 @@ parsePath s = parse (lexPath s)
         argsN :: Int -> Char -> ([Scalar] -> PathCmd) -> [PathToken] -> Path
         argsN n c f ts
           | all isNum xs = f (map getNum xs) : next c ts'
+          | otherwise    = error $ "Expected " ++ show n ++ " numerical arguments to " ++ show c ++ ". Got: " ++ show xs
           where
             (xs, ts') = splitAt n ts
 
