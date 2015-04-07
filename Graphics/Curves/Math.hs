@@ -27,7 +27,6 @@ module Graphics.Curves.Math
   ) where
 
 import Control.Applicative
-import Test.QuickCheck
 
 type Scalar = Double
 
