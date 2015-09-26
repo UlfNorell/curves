@@ -1,3 +1,7 @@
+v1.1.0.2
+  * Fixed incompatibility with QuickCheck-2.8
+  * Fixed bug in SVG parser
+
 v1.1.0.1
   * Fixed incompatibility with QuickCheck-2.7
 
