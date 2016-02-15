@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, GeneralizedNewtypeDeriving, CPP #-}
 module Graphics.Curves.Trie
   ( Trie
   , empty, lookup, lookupPrefix
@@ -86,9 +86,11 @@ instance Ord a => Applicative (Trie a) where
 
 -- Testing ----------------------------------------------------------------
 
+#if !(MIN_VERSION_QuickCheck(2,8,2))
 instance (Ord a, Arbitrary a, Arbitrary b) => Arbitrary (Map a b) where
   arbitrary = Map.fromList <$> arbitrary
   shrink = map Map.fromList . shrink . Map.toList
+#endif
 
 instance (Ord a, Arbitrary a, Arbitrary b) => Arbitrary (Trie a b) where
   arbitrary = fromList <$> arbitrary
